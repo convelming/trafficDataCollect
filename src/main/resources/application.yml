@@ -1,0 +1,13 @@
+server:
+  port: 23104
+spring:
+  datasource:
+    username: postgres
+    password: postgres
+    url: jdbc:postgresql_postGIS://192.168.60.231:5432/gisdata
+    driver-class-name: net.postgis.jdbc.DriverWrapper
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQL9Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
