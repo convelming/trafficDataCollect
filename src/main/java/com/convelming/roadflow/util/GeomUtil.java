@@ -8,7 +8,6 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Node;
 
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -37,7 +36,7 @@ public class GeomUtil {
             return new PGgeometry(text);
         } catch (Exception e) {
             log.error("genpolygon err : " + e.getMessage());
-            return null;
+            throw new RuntimeException(e.getMessage());
         }
     }
 
@@ -50,7 +49,7 @@ public class GeomUtil {
             return new PGgeometry(text);
         } catch (Exception e) {
             log.error("genpotin err : " + e.getMessage());
-            return null;
+            throw new RuntimeException(e.getMessage());
         }
     }
 
@@ -64,7 +63,7 @@ public class GeomUtil {
             return new PGgeometry(text);
         } catch (Exception e) {
             log.error("genpotin err : " + e.getMessage());
-            return null;
+            throw new RuntimeException(e.getMessage());
         }
     }
 
@@ -90,7 +89,7 @@ public class GeomUtil {
             return new PGgeometry(text);
         } catch (Exception e) {
             log.error("genWay err : " + e.getMessage());
-            return null;
+            throw new RuntimeException(e.getMessage());
         }
     }
 
@@ -107,7 +106,7 @@ public class GeomUtil {
             return new PGgeometry(text);
         } catch (Exception e) {
             log.error("genline err : " + e.getMessage());
-            return null;
+            throw new RuntimeException(e.getMessage());
         }
     }
 
@@ -122,7 +121,7 @@ public class GeomUtil {
             return new PGgeometry(text);
         } catch (Exception e) {
             log.error("genline err : " + e.getMessage());
-            return null;
+            throw new RuntimeException(e.getMessage());
         }
     }
 
