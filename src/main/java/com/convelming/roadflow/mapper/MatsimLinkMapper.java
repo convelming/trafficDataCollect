@@ -44,7 +44,7 @@ public class MatsimLinkMapper {
     }
 
     public List<MatsimLink> queryByOrigid(Long origid){
-        String sql = " select ml.*, string_agg(distinct ls.type, ',') as \"statsType\" from " + TABLE_NAME + " ml left join link_stats ls on ml.id = ls.link_id where origid = ? group by ml.id ";
+        String sql = "select ml.*, string_agg(distinct ls.type, ',') as \"statsType\" from " + TABLE_NAME + " ml left join link_stats ls on ml.id = ls.link_id where ml.origid = ? group by ml.id";
         return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(MatsimLink.class), origid);
     }
 
