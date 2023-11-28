@@ -98,7 +98,7 @@ public class LinkStatsController {
         String fileName = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli() + "";
 
         response.addHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        response.addHeader("Content-Disposition", "attachment; filename=" + fileName + ".xlsx");
+        response.addHeader("Content-Disposition", "attachment; filename=" + fileName + ".xls");
 
         try {
             OutputStream os = response.getOutputStream();
