@@ -37,6 +37,12 @@ public class LinkStats {
     @Excel(name = "pcu/h", width = 30, isImportField = "wayId")
     private Integer pcuH;
 
+    @Excel(name = "link空间信息")
+    private String linkLineString;
+
+    @Excel(name = "way空间信息")
+    private String wayLineString;
+
     private Double x;
 
     private Double y;

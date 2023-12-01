@@ -5,8 +5,6 @@ import com.convelming.roadflow.model.LinkStats;
 import com.convelming.roadflow.util.IdUtil;
 import jakarta.annotation.Resource;
 import net.postgis.jdbc.PGgeometry;
-import org.matsim.api.core.v01.network.Link;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -86,19 +84,16 @@ public class LinkStatsMapper {
     }
 
     public LinkStats selectById(Long id) {
-        try {
-            return jdbcTemplate.queryForObject(" select * from " + TABLE_NAME + " where id = ? and deleted = 0", new BeanPropertyRowMapper<>(LinkStats.class), id);
-        }catch (EmptyResultDataAccessException e){
-            return null;
-        }
+        return jdbcTemplate.queryForObject(" select * from " + TABLE_NAME + " where id = ? and deleted = 0", new BeanPropertyRowMapper<>(LinkStats.class), id);
     }
 
     public List<LinkStats> queryAllMaker() {
-        return jdbcTemplate.query(" select distinct link_id, x, y, string_agg(distinct type, ',') as \"type\" from link_stats group by link_id, x, y ", new BeanPropertyRowMapper<>(LinkStats.class));
+        return jdbcTemplate.query(" select distinct link_id, x, y, string_agg(distinct type, ',') as \"type\" from " + TABLE_NAME + " group by link_id, x, y ", new BeanPropertyRowMapper<>(LinkStats.class));
     }
 
     public List<LinkStats> queryByIds(Collection<Long> ids) {
-        StringBuilder sql = new StringBuilder(" select " + BASE_FIELD + " from " + TABLE_NAME + " where id in (");
+//        StringBuilder sql = new StringBuilder(" select " + BASE_FIELD + " from " + TABLE_NAME + " where id in (");
+        StringBuilder sql = new StringBuilder("select ls.*, st_asewkt(ml.geom) \"linkLineString\", st_asewkt(ow.geom3857) \"wayLineString\" from link_stats ls left join matsim_link ml on ls.link_id=ml.id left join osm_way ow on ml.origid=ow.id  where ls.id in (");
         for (int i = 0, len = ids.size(); i < len; i++) {
             if (i == len - 1) {
                 sql.append("?");
@@ -110,7 +105,7 @@ public class LinkStatsMapper {
         return jdbcTemplate.query(sql.toString(), new BeanPropertyRowMapper<>(LinkStats.class), ids.toArray());
     }
 
-    public Page<LinkStats> queyrByGeometry(PGgeometry geometry, Boolean all, Page<LinkStats> page) {
+    public Page<LinkStats> queryByGeometry(PGgeometry geometry, Boolean all, Page<LinkStats> page) {
         if (all) {
             String sql = " select #{col} from " + TABLE_NAME + " ls left join matsim_link ml on ls.link_id = ml.id where ls.deleted = 0 ";
             Long total = jdbcTemplate.queryForObject(sql.replace("#{col}", "count(1)"), Long.class);
