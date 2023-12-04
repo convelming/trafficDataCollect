@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.geotools.ows.ServiceException;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingPathVariableException;
@@ -146,6 +147,11 @@ public class GlobalExceptionHandler {
         String requestURI = request.getRequestURI();
         log.error("请求地址'{}',发生系统异常.", requestURI, e);
         return Result.fail(e.getMessage());
+    }
+
+    @ExceptionHandler(EmptyResultDataAccessException.class)
+    public Result EmptyResultDataAccessException(){
+        return Result.fail(200, "查询不到数据");
     }
 
     /**
