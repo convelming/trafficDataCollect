@@ -85,6 +85,26 @@ public class MatsimLinkServiceImpl implements MatsimLinkService {
         return matsimLinkMapper.selectById(id);
     }
 
+    @Override
+    public MatsimLink queryReverseLink(Long id) {
+        MatsimLink link = matsimLinkMapper.queryReverseLink(id);
+        MatsimNode to = matsimNodeMapper.selectById(link.getToNode());
+        MatsimNode from = matsimNodeMapper.selectById(link.getFromNode());
+        link.setToxy(new Double[]{to.getX(), to.getY()});
+        link.setFromxy(new Double[]{from.getX(), from.getY()});
+        return link;
+    }
+
+    @Override
+    public int update(MatsimLink link) {
+        return matsimLinkMapper.update(link);
+    }
+
+    @Override
+    public int updateInWay(MatsimLink link) {
+        return matsimLinkMapper.updateInWay(link);
+    }
+
 
     /**
      * 构建单行道

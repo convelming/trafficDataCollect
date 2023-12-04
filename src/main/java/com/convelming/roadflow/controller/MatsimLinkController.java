@@ -1,12 +1,12 @@
 package com.convelming.roadflow.controller;
 
 import com.convelming.roadflow.common.Result;
+import com.convelming.roadflow.enums.HighwayType;
+import com.convelming.roadflow.model.MatsimLink;
 import com.convelming.roadflow.service.MatsimLinkService;
+import com.convelming.roadflow.util.CacheUtil;
 import jakarta.annotation.Resource;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/matsim/link")
@@ -14,18 +14,72 @@ public class MatsimLinkController {
 
     @Resource
     private MatsimLinkService matsimLinkService;
+    @Resource
+    private CacheUtil cacheUtil;
 
+    /**
+     * 根据origidid获取个路段，正反两个方向
+     * @param origid
+     * @return
+     */
     @GetMapping("/getMatsimLink/{origid}")
-    public Result getMatsimLinkByWayId(@PathVariable Long origid){
+    public Result getMatsimLinkByWayId(@PathVariable Long origid) {
         return Result.ok(matsimLinkService.queryByOrigid(origid));
     }
 
+    /**
+     * 根据id获取反向link
+     * @param id
+     * @return
+     */
+    @GetMapping("/getReverseLink/{id}")
+    public Result getReverseLink(@PathVariable Long id) {
+        return Result.ok(matsimLinkService.queryReverseLink(id));
+    }
 
+    /**
+     * 根据id获取link
+     * @param id
+     * @return
+     */
     @GetMapping("/{id}")
-    public Result getById(@PathVariable Long id){
+    public Result getById(@PathVariable Long id) {
         return Result.ok(matsimLinkService.queryById(id));
     }
 
+    /**
+     * 修改link信息
+     * @param link
+     * @return
+     */
+    @PostMapping("/update")
+    public Result update(@RequestBody MatsimLink link) {
+        return Result.ok("影响行数：" + matsimLinkService.update(link));
+    }
+
+    /**
+     * 修改way中所有link信息
+     * @param link
+     * @return
+     */
+    @PostMapping("/updateInWay")
+    public Result updateInWay(@RequestBody MatsimLink link){
+        return Result.ok("影响行数：" + matsimLinkService.updateInWay(link));
+    }
+
+    /**
+     * 获取全部道路类型
+     * @return
+     */
+    @GetMapping("/getAllHighwayType")
+    public Result getAllHighwayType(){
+        Object arr = cacheUtil.get(CacheUtil.ALL_HIGHWAY_TYPE);
+        if(arr == null){
+            arr = HighwayType.values();
+            cacheUtil.put(CacheUtil.ALL_HIGHWAY_TYPE, arr, Integer.MAX_VALUE);
+        }
+        return Result.ok(arr);
+    }
 
 
 }

@@ -18,6 +18,8 @@ public class CacheUtil {
      */
     public final static String ALL_OSM_WAY_KEY = "ALL_OSM_WAY";
 
+    public final static String ALL_HIGHWAY_TYPE = "ALL_HIGHWAY_TYPE";
+
     /**
      * 一天
      */

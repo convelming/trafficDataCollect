@@ -10,4 +10,10 @@ public interface MatsimLinkService {
 
     MatsimLink queryById(Long id);
 
+    MatsimLink queryReverseLink(Long id);
+
+    int update(MatsimLink link);
+
+    int updateInWay(MatsimLink link);
+
 }

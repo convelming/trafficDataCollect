@@ -21,6 +21,9 @@ public class LinkStats {
     @Excel(name = "路段ID", width = 30)
     private Long linkId;
 
+    /**
+     * osm路段id
+     */
     private Long wayId;
 
     @Excel(name = "开始时间", width = 30, format = "yyyy-MM-dd HH:mm:ss")
@@ -47,20 +50,38 @@ public class LinkStats {
 
     private Double y;
 
+    /**
+     * 备注
+     */
     private String remark;
 
+    /**
+     * ip地址
+     */
     @JsonIgnore
     private String ipAddr;
 
+    /**
+     * 版本
+     */
     @JsonIgnore
     private Integer version;
 
+    /**
+     * 逻辑删除
+     */
     @JsonIgnore
     private Integer deleted;
 
+    /**
+     * 创建时间
+     */
     @JsonIgnore
     private Date createTime;
 
+    /**
+     * 更新时间
+     */
     @JsonIgnore
     private Date updateTime;
 

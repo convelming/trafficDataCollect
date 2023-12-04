@@ -33,6 +33,11 @@ public class MatsimLink {
     private Long toNode;
 
     /**
+     * 路名
+     */
+    private String name;
+
+    /**
      * 长度
      */
     private Double length;
@@ -48,6 +53,11 @@ public class MatsimLink {
     private Double capacity;
 
     /**
+     * 车道数
+     */
+    private Integer lane;
+
+    /**
      * 空间坐标信息
      */
     @JsonIgnore
@@ -59,7 +69,7 @@ public class MatsimLink {
     private Long origid;
 
     /**
-     * osm way highway
+     * 道路类型
      */
     private String type;
 
@@ -69,13 +79,16 @@ public class MatsimLink {
     @JsonIgnore
     private PGgeometry center;
 
+    /**
+     * 流量类型
+     */
     private String statsType;
 
     private Double[] toxy;
 
     private Double[] fromxy;
 
-    public MatsimLink(MatsimLink link){
+    public MatsimLink(MatsimLink link) {
         BeanUtils.copyProperties(link, this);
     }
 

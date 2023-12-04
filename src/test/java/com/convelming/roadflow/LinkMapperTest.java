@@ -2,6 +2,7 @@ package com.convelming.roadflow;
 
 import com.convelming.roadflow.mapper.MatsimLinkMapper;
 import com.convelming.roadflow.model.MatsimLink;
+import com.convelming.roadflow.model.OSMWay;
 import com.convelming.roadflow.util.GeomUtil;
 import jakarta.annotation.Resource;
 import org.junit.Test;
@@ -12,6 +13,7 @@ import org.matsim.core.utils.geometry.CoordinateTransformation;
 import org.matsim.core.utils.geometry.transformations.TransformationFactory;
 import org.matsim.utils.objectattributes.attributable.Attributes;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.sql.SQLException;
@@ -25,10 +27,12 @@ public class LinkMapperTest {
 
     @Resource
     private MatsimLinkMapper linkMapper;
+    @Resource
+    private JdbcTemplate jdbcTemplate;
 
     private static final CoordinateTransformation ct_4526to3857 = TransformationFactory.getCoordinateTransformation("epsg:4526", "epsg:3857");
 
-    @Test
+    //    @Test
     public void test() {
         List<MatsimLink> links = linkMapper.queryByOrigid(25680335L);
 
@@ -37,22 +41,21 @@ public class LinkMapperTest {
         // 760905 \ 760916
 
 
-
         MatsimLink start = getStartLink(links);
         links.remove(start);
         toLinks.add(start);
-        for(MatsimLink next : links){
-            if(Objects.equals(start.getToNode(), next.getFromNode()) && !Objects.equals(start.getFromNode(), next.getToNode())){
+        for (MatsimLink next : links) {
+            if (Objects.equals(start.getToNode(), next.getFromNode()) && !Objects.equals(start.getFromNode(), next.getToNode())) {
                 toLinks.add(next);
                 start = next;
             }
         }
 
 
-
         System.out.println(toLinks);
 
     }
+
 
     public void sqlTest() throws SQLException {
         long id = -1;
@@ -69,7 +72,7 @@ public class LinkMapperTest {
         // 文件中 srid 为 3857
         String path = "C:\\Users\\zengren\\Documents\\WeChat Files\\wxid_xg6cuaubu03v22\\FileStorage\\File\\2023-10\\gz230427_fullPath_4526_h9.xml";
         Network network = NetworkUtils.readNetwork(path);
-
+        int count = 0, total = network.getLinks().values().size();
         List<MatsimLink> links = new ArrayList<>();
         for (org.matsim.api.core.v01.network.Link link : network.getLinks().values()) {
             MatsimLink l = new MatsimLink();
@@ -80,6 +83,7 @@ public class LinkMapperTest {
             l.setLength(link.getLength());
             l.setFreespeed(link.getFreespeed());
             l.setCapacity(link.getCapacity());
+            l.setLane((int) link.getNumberOfLanes());
             Attributes attributes = link.getAttributes();
             l.setType(String.valueOf(attributes.getAttribute("type")));
             l.setOrigid(Long.valueOf((String) attributes.getAttribute("origid")));
@@ -89,9 +93,12 @@ public class LinkMapperTest {
                     l.getSrid())
             );
             links.add(l);
+            count++;
+            jdbcTemplate.update("update matsim_link set lane = ? where id = ?", l.getLane(), l.getId());
+            System.out.println(count + " / " + total);
         }
 
-        linkMapper.batchInsert(links);
+//        linkMapper.batchInsert(links);
     }
 
     private MatsimLink getStartLink(List<MatsimLink> links) {

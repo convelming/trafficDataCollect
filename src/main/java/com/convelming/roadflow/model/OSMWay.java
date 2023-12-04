@@ -14,6 +14,14 @@ public class OSMWay {
 
     private Long id;
 
+    /**
+     * 路名
+     */
+    private String name;
+
+    /**
+     * 版本号
+     */
     private Integer version;
 
     private Date timestamp;
@@ -24,6 +32,9 @@ public class OSMWay {
 
     private Long chageset;
 
+    /**
+     * 节点
+     */
     private String nodes;
 
     private PGgeometry geom4326;
@@ -35,8 +46,14 @@ public class OSMWay {
      */
     private Boolean oneway = false;
 
+    /**
+     * 公路类型
+     */
     private String highway;
 
+    /**
+     * 其他信息
+     */
     private String other;
 
 }
