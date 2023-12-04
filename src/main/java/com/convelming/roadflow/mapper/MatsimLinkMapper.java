@@ -91,9 +91,9 @@ public class MatsimLinkMapper {
     public int update(MatsimLink link){
         String sql = "update " + TABLE_NAME + " set ";
 
-        sql += " name = ?, ";       // 道路名称
-        sql += " lane = ?, ";       // 车道数
-        sql += " type = ?, ";       // 道路类型
+        sql += " name = ?,";       // 道路名称
+        sql += " lane = ?,";       // 车道数
+        sql += " type = ?,";       // 道路类型
         sql += " freespeed = ?,";   // 自由流量
 
         sql = sql.substring(0, sql.length() - 1);
@@ -113,9 +113,9 @@ public class MatsimLinkMapper {
     public int updateInWay(MatsimLink link){
         String sql = " update " + TABLE_NAME + " set ";
 
-        sql += " name = ?, ";       // 道路名称
-        sql += " lane = ?, ";       // 车道数
-        sql += " type = ?, ";       // 道路类型
+        sql += " name = ?,";       // 道路名称
+        sql += " lane = ?,";       // 车道数
+        sql += " type = ?,";       // 道路类型
         sql += " freespeed = ?,";   // 自由流量
 
         sql = sql.substring(0, sql.length() - 1);
