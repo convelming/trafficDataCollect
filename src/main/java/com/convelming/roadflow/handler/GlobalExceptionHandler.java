@@ -2,6 +2,7 @@ package com.convelming.roadflow.handler;
 
 import com.convelming.roadflow.common.Result;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.geotools.ows.ServiceException;
 import org.springframework.dao.DuplicateKeyException;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.io.FileNotFoundException;
 import java.util.Objects;
 
 /**
@@ -23,6 +25,11 @@ import java.util.Objects;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler({FileNotFoundException.class})
+    public Result handleFileNotFoundException(FileNotFoundException e, HttpServletRequest request, HttpServletResponse response){
+        return Result.fail(e.getMessage());
+    }
 
     /**
      * 权限码异常

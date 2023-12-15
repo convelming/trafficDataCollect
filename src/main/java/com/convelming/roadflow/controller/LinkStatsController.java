@@ -13,11 +13,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -31,7 +29,6 @@ public class LinkStatsController {
 
     @Resource
     private LinkStatsService linkStatsService;
-
 
 
     @PostMapping("/insert")
@@ -58,7 +55,7 @@ public class LinkStatsController {
     }
 
     @GetMapping("/queryAllMaker")
-    public Result queryAllMaker(){
+    public Result queryAllMaker() {
         return Result.ok(linkStatsService.queryAllMaker());
     }
 
@@ -103,7 +100,7 @@ public class LinkStatsController {
         try {
             OutputStream os = response.getOutputStream();
 
-            Workbook workbook = ExcelExportUtil.exportExcel(new ExportParams("道路流量","道路流量"),
+            Workbook workbook = ExcelExportUtil.exportExcel(new ExportParams("道路流量", "道路流量"),
                     LinkStats.class, list);
 
             workbook.write(os);

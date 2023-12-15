@@ -51,6 +51,11 @@ public class LinkStats {
     private Double y;
 
     /**
+     * 视频地址
+     */
+    private String video;
+
+    /**
      * 备注
      */
     private String remark;
@@ -84,5 +89,11 @@ public class LinkStats {
      */
     @JsonIgnore
     private Date updateTime;
+
+    /**
+     * 是否是双向
+     */
+    @JsonIgnore
+    private Boolean isTwoWay;
 
 }

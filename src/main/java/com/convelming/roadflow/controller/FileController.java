@@ -1,0 +1,63 @@
+package com.convelming.roadflow.controller;
+
+import com.convelming.roadflow.common.Constant;
+import com.convelming.roadflow.common.Result;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.FileCopyUtils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
+@Slf4j
+@RestController
+@RequestMapping("/file")
+public class FileController {
+
+    @PostMapping("/upload")
+    public Result upload(MultipartFile file) {
+        String name = file.getOriginalFilename();
+        String date = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
+        String result = "/" + date + "/" + name;
+        String dir = Constant.VIDEO_PATH + date + "/";
+        new File(dir).mkdirs();
+        File out = new File(dir + file.getOriginalFilename());
+        try {
+            FileCopyUtils.copy(file.getBytes(), out);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Result.fail();
+        }
+        return Result.ok(result);
+    }
+
+    @GetMapping("/download")
+    public void download(String url, HttpServletResponse response) throws IOException {
+        String fileName = url.substring(url.lastIndexOf("/") + 1);
+//        response.addHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.addHeader("Content-Disposition", "attachment; filename=" + fileName);
+        try (
+                OutputStream os = response.getOutputStream();
+                FileInputStream is = new FileInputStream(Constant.VIDEO_PATH + "/" + url)
+        ) {
+            int len;
+            byte[] b = new byte[2048];
+            while ((len = is.read(b)) > -1) {
+                os.write(b, 0, len);
+            }
+            os.flush();
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
+    }
+
+}

@@ -1,6 +1,14 @@
 server:
   port: 23104
+  tomcat:
+    # 上传文件最大值
+    max-http-form-post-size: 4096MB
 spring:
+  servlet:
+    multipart:
+      # 上传文件最大值
+      max-file-size: 4096MB
+      max-request-size: 4096MB
   datasource:
     username: postgres
     password: postgres

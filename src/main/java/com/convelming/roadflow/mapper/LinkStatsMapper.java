@@ -16,9 +16,9 @@ public class LinkStatsMapper {
 
     private static final String TABLE_NAME = " link_stats ";
 
-    private static final String BASE_FIELD = " id, link_id, way_id, begin_time, end_time, \"type\", pcu_h, x, y, remark, ip_addr, version, deleted, create_time, update_time ";
+    private static final String BASE_FIELD = " id, link_id, way_id, begin_time, end_time, \"type\", pcu_h, video, x, y, remark, ip_addr, version, deleted, create_time, update_time ";
 
-    private static final String INSERT_SQL = " insert into " + TABLE_NAME + " ( " + BASE_FIELD + " ) values ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ) ";
+    private static final String INSERT_SQL = " insert into " + TABLE_NAME + " ( " + BASE_FIELD + " ) values ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ) ";
 
     private static final String LIMIT_SQL = " limit ? offset ? ";
 
@@ -38,6 +38,7 @@ public class LinkStatsMapper {
                 stats.getEndTime(),
                 stats.getType(),
                 stats.getPcuH(),
+                stats.getVideo(),
                 stats.getX(),
                 stats.getY(),
                 stats.getRemark(),
@@ -64,6 +65,7 @@ public class LinkStatsMapper {
         sql += " remark = ?, ";
         sql += " ip_addr = ?, ";
         sql += " version = version + 1, ";
+        sql += " video = ?, ";
         sql += " update_time = now() ";
 
         sql += " where id = ? ";
@@ -77,6 +79,7 @@ public class LinkStatsMapper {
                 stats.getPcuH(),
                 stats.getRemark(),
                 stats.getIpAddr(),
+                stats.getVideo(),
                 stats.getId()
         });
 
