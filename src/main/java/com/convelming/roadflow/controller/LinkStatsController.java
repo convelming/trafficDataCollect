@@ -60,7 +60,7 @@ public class LinkStatsController {
     }
 
     @PostMapping("/queryByArea")
-    public Result queryByArea(@RequestBody QeuryParam param) {
+    public Result queryByArea(@RequestBody QueryParam param) {
         double[][] xyarr = new double[param.getXyarr().length + 1][2];
         for (int i = 0; i < param.getXyarr().length; i++) {
             xyarr[i] = Arrays.copyOf(param.getXyarr()[i], 2);
@@ -78,7 +78,7 @@ public class LinkStatsController {
     }
 
     @PostMapping("/queryByLinkId/{linkId}")
-    public Result queryByLinkId(@PathVariable Long linkId, @RequestBody QeuryParam param) {
+    public Result queryByLinkId(@PathVariable Long linkId, @RequestBody QueryParam param) {
         Page<LinkStats> page = new Page<>(param.getPageNum(), param.getPageSize());
         page.param(
                 new Object[]{"type", param.getType()},
@@ -89,7 +89,7 @@ public class LinkStatsController {
     }
 
     @PostMapping("/export")
-    public void export(@RequestBody QeuryParam param, HttpServletResponse response) {
+    public void export(@RequestBody QueryParam param, HttpServletResponse response) {
         List<LinkStats> list = linkStatsService.queryByIds(List.of(param.getIds()));
 
         String fileName = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli() + "";
@@ -117,7 +117,7 @@ public class LinkStatsController {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    private static class QeuryParam {
+    public static class QueryParam {
         private Long[] ids;
         private double[][] xyarr;
         private Boolean selectAll = false;
