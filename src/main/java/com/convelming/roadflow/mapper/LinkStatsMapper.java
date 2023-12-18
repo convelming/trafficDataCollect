@@ -16,9 +16,9 @@ public class LinkStatsMapper {
 
     private static final String TABLE_NAME = " link_stats ";
 
-    private static final String BASE_FIELD = " id, link_id, way_id, begin_time, end_time, \"type\", pcu_h, video, x, y, remark, ip_addr, version, deleted, create_time, update_time ";
+    private static final String BASE_FIELD = " id, link_id, way_id, begin_time, end_time, \"type\", pcu_h, scar, struck, mcar, mtruck, lcar, ltruck, video, x, y, remark, ip_addr, version, deleted, create_time, update_time ";
 
-    private static final String INSERT_SQL = " insert into " + TABLE_NAME + " ( " + BASE_FIELD + " ) values ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ) ";
+    private static final String INSERT_SQL = " insert into " + TABLE_NAME + " ( " + BASE_FIELD + " ) values ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ) ";
 
     private static final String LIMIT_SQL = " limit ? offset ? ";
 
@@ -38,6 +38,12 @@ public class LinkStatsMapper {
                 stats.getEndTime(),
                 stats.getType(),
                 stats.getPcuH(),
+                stats.getScar(),
+                stats.getStruck(),
+                stats.getMcar(),
+                stats.getMtruck(),
+                stats.getLcar(),
+                stats.getLtruck(),
                 stats.getVideo(),
                 stats.getX(),
                 stats.getY(),
@@ -62,6 +68,12 @@ public class LinkStatsMapper {
         sql += " end_time = ?, ";
         sql += " \"type\" = ?, ";
         sql += " pcu_h = ?, ";
+        sql += " scar = ?, ";
+        sql += " struck = ?, ";
+        sql += " mcar = ?, ";
+        sql += " mtruck = ?, ";
+        sql += " lcar = ?, ";
+        sql += " ltruck = ?, ";
         sql += " remark = ?, ";
         sql += " ip_addr = ?, ";
         sql += " version = version + 1, ";
@@ -77,6 +89,12 @@ public class LinkStatsMapper {
                 stats.getEndTime(),
                 stats.getType(),
                 stats.getPcuH(),
+                stats.getScar(),
+                stats.getStruck(),
+                stats.getMcar(),
+                stats.getMtruck(),
+                stats.getLcar(),
+                stats.getLtruck(),
                 stats.getRemark(),
                 stats.getIpAddr(),
                 stats.getVideo(),

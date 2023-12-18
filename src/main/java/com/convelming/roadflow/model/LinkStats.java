@@ -38,13 +38,49 @@ public class LinkStats {
     private String type;
 
     @Excel(name = "pcu/h", width = 30, isImportField = "wayId")
-    private Integer pcuH;
+    private Double pcuH;
 
     @Excel(name = "link空间信息")
     private String linkLineString;
 
     @Excel(name = "way空间信息")
     private String wayLineString;
+
+    /**
+     * 小客车
+     */
+    @Excel(name = "小客车")
+    private Double scar = 0.;
+
+    /**
+     * 小货车
+     */
+    @Excel(name = "小货车")
+    private Double struck = 0.;
+
+    /**
+     * 中客车
+     */
+    @Excel(name = "中客车")
+    private Double mcar = 0.;
+
+    /**
+     * 中货车
+     */
+    @Excel(name = "中货车")
+    private Double mtruck = 0.;
+
+    /**
+     * 大客车
+     */
+    @Excel(name = "大客车")
+    private Double lcar = 0.;
+
+    /**
+     * 大货车
+     */
+    @Excel(name = "大货车")
+    private Double ltruck = 0.;
 
     private Double x;
 

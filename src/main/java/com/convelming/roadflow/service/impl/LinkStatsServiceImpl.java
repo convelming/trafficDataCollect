@@ -31,6 +31,12 @@ public class LinkStatsServiceImpl implements LinkStatsService {
         double[] xy = GeomUtil.point2xy(link.getCenter());
         stats.setX(xy[0]);
         stats.setY(xy[1]);
+        // 计算 pcu/h
+        double pcu = 0.;
+        pcu += stats.getScar() + stats.getStruck();
+        pcu += (stats.getMcar() + stats.getMtruck()) * 1.5;
+        pcu += (stats.getLcar() + stats.getLtruck()) * 2.0;
+        stats.setPcuH(pcu);
 
         if (stats.getIsTwoWay()) {
 
@@ -53,6 +59,12 @@ public class LinkStatsServiceImpl implements LinkStatsService {
         if (resource == null) {
             throw new RuntimeException("找不到要修改的对象");
         }
+        // 计算 pcu/h
+        double pcu = 0.;
+        pcu += stats.getScar() + stats.getStruck();
+        pcu += (stats.getMcar() + stats.getMtruck()) * 1.5;
+        pcu += (stats.getLcar() + stats.getLtruck()) * 2.0;
+        stats.setPcuH(pcu);
 
         MatsimLink link = matsimLinkMapper.selectById(stats.getLinkId());
         stats.setWayId(link.getOrigid());
