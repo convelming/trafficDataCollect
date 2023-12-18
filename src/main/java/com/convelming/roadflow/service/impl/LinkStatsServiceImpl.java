@@ -32,11 +32,16 @@ public class LinkStatsServiceImpl implements LinkStatsService {
         stats.setX(xy[0]);
         stats.setY(xy[1]);
 
-        if(stats.getIsTwoWay()){
-            // 对面路也添加一条
-            LinkStats twoWay = new LinkStats();
-            BeanUtils.copyProperties(link, twoWay);
-            linkStatsMapper.insert(twoWay);
+        if (stats.getIsTwoWay()) {
+
+            MatsimLink reverse = matsimLinkMapper.queryReverseLink(stats.getLinkId());
+            if (reverse != null) {
+                // 对面路也添加一条
+                LinkStats twoWay = new LinkStats();
+                BeanUtils.copyProperties(link, twoWay);
+                twoWay.setLinkId(reverse.getId());
+                linkStatsMapper.insert(twoWay);
+            }
         }
 
         return linkStatsMapper.insert(stats);

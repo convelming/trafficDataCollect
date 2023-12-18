@@ -93,7 +93,6 @@ public class LinkStats {
     /**
      * 是否是双向
      */
-    @JsonIgnore
     private Boolean isTwoWay;
 
 }
