@@ -22,6 +22,11 @@ public class LinkStatsServiceImpl implements LinkStatsService {
     @Resource
     private MatsimLinkMapper matsimLinkMapper;
 
+    /**
+     * 一小时毫秒数
+     */
+    private final double HOURS = 1000 * 60 * 60;
+
     @Override
     public boolean insert(LinkStats stats) {
 
@@ -36,6 +41,7 @@ public class LinkStatsServiceImpl implements LinkStatsService {
         pcu += stats.getScar() + stats.getStruck();
         pcu += (stats.getMcar() + stats.getMtruck()) * 1.5;
         pcu += (stats.getLcar() + stats.getLtruck()) * 2.0;
+        pcu = pcu / (stats.getEndTime().getTime() - stats.getBeginTime().getTime()) * HOURS;
         stats.setPcuH(pcu);
 
         if (stats.getIsTwoWay()) {
@@ -64,6 +70,9 @@ public class LinkStatsServiceImpl implements LinkStatsService {
         pcu += stats.getScar() + stats.getStruck();
         pcu += (stats.getMcar() + stats.getMtruck()) * 1.5;
         pcu += (stats.getLcar() + stats.getLtruck()) * 2.0;
+
+        pcu = pcu / (stats.getEndTime().getTime() - stats.getBeginTime().getTime()) * HOURS;
+
         stats.setPcuH(pcu);
 
         MatsimLink link = matsimLinkMapper.selectById(stats.getLinkId());
