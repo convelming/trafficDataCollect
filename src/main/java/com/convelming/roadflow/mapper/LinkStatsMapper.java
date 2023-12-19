@@ -108,8 +108,24 @@ public class LinkStatsMapper {
         return jdbcTemplate.queryForObject(" select * from " + TABLE_NAME + " where id = ? and deleted = 0", new BeanPropertyRowMapper<>(LinkStats.class), id);
     }
 
-    public List<LinkStats> queryAllMaker() {
-        return jdbcTemplate.query(" select distinct link_id, x, y, string_agg(distinct type, ',') as \"type\" from " + TABLE_NAME + " group by link_id, x, y ", new BeanPropertyRowMapper<>(LinkStats.class));
+    public List<LinkStats> queryAllMaker(Date beginTime, Date endTime, String type) {
+        String sql = " select distinct link_id, x, y, string_agg(distinct type, ',') as \"type\" from " + TABLE_NAME + " ls where 1=1 ";
+        List<Object> args = new ArrayList<>();
+        if (type != null && !"".equals(type)) {
+            sql += " and ls.type = ? ";
+            args.add(type);
+        }
+        if (beginTime != null) {
+            sql += " and ls.begin_time >= ? ";
+            args.add(beginTime);
+        }
+        if (endTime != null) {
+            sql += " and ls.end_time <= ? ";
+            args.add(endTime);
+        }
+        sql += " group by link_id, x, y ";
+
+        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(LinkStats.class), args.toArray());
     }
 
     public List<LinkStats> queryByIds(Collection<Long> ids) {

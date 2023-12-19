@@ -1,6 +1,7 @@
 package com.convelming.roadflow.service.impl;
 
 import com.convelming.roadflow.mapper.OSMWayMapper;
+import com.convelming.roadflow.model.OSMWay;
 import com.convelming.roadflow.model.vo.OSMWayVo;
 import com.convelming.roadflow.service.OSMWayService;
 import com.convelming.roadflow.util.CacheUtil;
@@ -37,5 +38,10 @@ public class OSMWayServiceImpl implements OSMWayService {
             body = osmWayMapper.queryByPolygonGeojson(geometry);
         }
         return body;
+    }
+
+    @Override
+    public List<OSMWay> getWayByName(String name) {
+        return osmWayMapper.queryByName(name);
     }
 }

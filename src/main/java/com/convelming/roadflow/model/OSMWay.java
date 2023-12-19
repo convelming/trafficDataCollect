@@ -1,5 +1,6 @@
 package com.convelming.roadflow.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -37,8 +38,10 @@ public class OSMWay {
      */
     private String nodes;
 
+    @JsonIgnore
     private PGgeometry geom4326;
 
+    @JsonIgnore
     private PGgeometry geom3857;
 
     /**

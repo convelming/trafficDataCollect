@@ -12,7 +12,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Repository
@@ -57,6 +56,11 @@ public class OSMWayMapper {
         return true;
     }
 
+    public double[] queryWayCenterByName() {
+        String sql = "select ST_ClosestPoint(geom4326, ST_Centroid(geom4326)) from osm_way where name like '%建设四马路%' and highway is not null;";
+        return null;
+    }
+
     /**
      * 查询一个多边形内所有的路
      *
@@ -95,6 +99,11 @@ public class OSMWayMapper {
         return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(OSMWayVo.class));
 //        log.info("sql ==> :{}", sql);
 //        log.info("param ==> :{}", geometry);
+    }
+
+    public List<OSMWay> queryByName(String name) {
+        String sql = " select * from " + TABLE_NAME + " where name like ?";
+        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(OSMWay.class), "%" + name + "%");
     }
 
     private Object[] genArgs(OSMWay way) {

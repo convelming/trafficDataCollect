@@ -7,10 +7,7 @@ import jakarta.annotation.Resource;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
 
@@ -32,6 +29,11 @@ public class OSMWayController {
             xyarr[param.getXyarr().length] = param.getXyarr()[0];
         }
         return Result.ok(service.getGeomjson(xyarr, param.getSelectAll()));
+    }
+
+    @GetMapping("/getWayByName")
+    public Result getWayByName(String name){
+        return Result.ok(service.getWayByName(name));
     }
 
 

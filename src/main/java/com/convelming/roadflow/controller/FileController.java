@@ -11,10 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
@@ -25,13 +22,21 @@ public class FileController {
 
     @PostMapping("/upload")
     public Result upload(MultipartFile file) {
+
         String name = file.getOriginalFilename();
         String date = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
         String result = "/" + date + "/" + name;
         String dir = Constant.VIDEO_PATH + date + "/";
         new File(dir).mkdirs();
         File out = new File(dir + file.getOriginalFilename());
-        try {
+        try (OutputStream os = new FileOutputStream(out)) {
+            InputStream is = file.getInputStream();
+            ;
+            int len;
+            byte[] bytes = new byte[4096];
+            while ((len = is.read()) > 0) {
+                os.write(bytes, 0, len);
+            }
             FileCopyUtils.copy(file.getBytes(), out);
         } catch (Exception e) {
             e.printStackTrace();

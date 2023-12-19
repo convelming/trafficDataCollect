@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Key Press Counter</title>
+</head>
+<body>
+    <h1>流量统计按键工具</h1>
+    <p>自定义按键:</p>
+    
+    <label for="keyA"> 小客车快捷键: </label>
+    <select id="keyA">
+        <option value="a"selected>A</option><option value="b">B</option><option value="c">C</option><option value="d">D</option>
+        <option value="e">E</option><option value="f">F</option><option value="g">G</option><option value="h">H</option>
+        <option value="i">I</option><option value="j">J</option><option value="k">K</option><option value="l">L</option>
+        <option value="m">M</option><option value="n">N</option><option value="o">O</option><option value="p">P</option>
+        <option value="q">Q</option><option value="r">R</option><option value="s">S</option><option value="t">T</option>
+        <option value="u">U</option><option value="v">V</option><option value="w">W</option><option value="x">X</option>   
+        <option value="y">Y</option><option value="z">Z</option><option value="0">0</option>
+        <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
+        <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+        <option value="9">9</option>
+        <!-- Add more options as needed -->
+    </select>
+
+    <label for="keyS"> 中型客车快捷键: </label>
+    <select id="keyS">
+        <option value="a">A</option><option value="b">B</option><option value="c">C</option><option value="d">D</option>
+        <option value="e">E</option><option value="f">F</option><option value="g">G</option><option value="h">H</option>
+        <option value="i">I</option><option value="j">J</option><option value="k">K</option><option value="l">L</option>
+        <option value="m">M</option><option value="n">N</option><option value="o">O</option><option value="p">P</option>
+        <option value="q">Q</option><option value="r">R</option><option value="s" selected>S</option><option value="t">T</option>
+        <option value="u">U</option><option value="v">V</option><option value="w">W</option><option value="x">X</option>   
+        <option value="y">Y</option><option value="z">Z</option><option value="0">0</option>
+        <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
+        <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+        <option value="9">9</option>
+        <!-- Add more options as needed -->
+    </select>
+
+    <label for="keyD"> 大客车快捷键: </label>
+    <select id="keyD">
+        <option value="a">A</option><option value="b">B</option><option value="c">C</option><option value="d"selected>D</option>
+        <option value="e">E</option><option value="f">F</option><option value="g">G</option><option value="h">H</option>
+        <option value="i">I</option><option value="j">J</option><option value="k">K</option><option value="l">L</option>
+        <option value="m">M</option><option value="n">N</option><option value="o">O</option><option value="p">P</option>
+        <option value="q">Q</option><option value="r">R</option><option value="s">S</option><option value="t">T</option>
+        <option value="u">U</option><option value="v">V</option><option value="w">W</option><option value="x">X</option>   
+        <option value="y">Y</option><option value="z">Z</option><option value="0">0</option>
+        <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
+        <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+        <option value="9">9</option>
+        <!-- Add more options as needed -->
+    </select>
+    <br>
+    <label for="keyZ"> 小货车快捷键: </label>
+    <select id="keyZ">
+        <option value="a">A</option><option value="b">B</option><option value="c">C</option><option value="d">D</option>
+        <option value="e">E</option><option value="f">F</option><option value="g">G</option><option value="h">H</option>
+        <option value="i">I</option><option value="j">J</option><option value="k">K</option><option value="l">L</option>
+        <option value="m">M</option><option value="n">N</option><option value="o">O</option><option value="p">P</option>
+        <option value="q">Q</option><option value="r">R</option><option value="s">S</option><option value="t">T</option>
+        <option value="u">U</option><option value="v">V</option><option value="w">W</option><option value="x">X</option>   
+        <option value="y">Y</option><option value="z"selected>Z</option><option value="0">0</option>
+        <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
+        <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+        <option value="9">9</option>
+        <!-- Add more options as needed -->
+    </select>
+
+    <label for="keyX"> 中型货车快捷键: </label>
+    <select id="keyX">
+        <option value="a">A</option><option value="b">B</option><option value="c">C</option><option value="d">D</option>
+        <option value="e">E</option><option value="f">F</option><option value="g">G</option><option value="h">H</option>
+        <option value="i">I</option><option value="j">J</option><option value="k">K</option><option value="l">L</option>
+        <option value="m">M</option><option value="n">N</option><option value="o">O</option><option value="p">P</option>
+        <option value="q">Q</option><option value="r">R</option><option value="s">S</option><option value="t">T</option>
+        <option value="u" >U</option><option value="v">V</option><option value="w">W</option><option value="x"selected>X</option>   
+        <option value="y">Y</option><option value="z">Z</option><option value="0">0</option>
+        <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
+        <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+        <option value="9">9</option>
+        <!-- Add more options as needed -->
+    </select>
+
+    <label for="keyC"> 大货车快捷键: </label>
+    <select id="keyC">
+        <option value="a">A</option><option value="b">B</option><option value="c"selected>C</option><option value="d">D</option>
+        <option value="e">E</option><option value="f">F</option><option value="g">G</option><option value="h">H</option>
+        <option value="i">I</option><option value="j">J</option><option value="k">K</option><option value="l">L</option>
+        <option value="m">M</option><option value="n">N</option><option value="o">O</option><option value="p">P</option>
+        <option value="q">Q</option><option value="r">R</option><option value="s">S</option><option value="t">T</option>
+        <option value="u">U</option><option value="v">V</option><option value="w">W</option><option value="x">X</option>   
+        <option value="y">Y</option><option value="z">Z</option><option value="0">0</option>
+        <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
+        <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+        <option value="9">9</option>
+        <!-- Add more options as needed -->
+    </select>
+    <p>点击按键计数:</p>
+    
+    <p>
+    小客车流量: <span id="aCount">0</span> 
+    中型客车流量: <span id="sCount">0</span>
+    大客车流量: <span id="dCount">0</span></p>
+    <p>
+    小货车流量: <span id="zCount">0</span> 
+    中型货车流量: <span id="xCount">0</span>
+    大货车流量: <span id="cCount">0</span></p>
+    <button id="copyToClipboardBtn">复制</button>
+
+    <script>
+        // Initialize counts
+        let keyAPressCount = 0;
+        let keySPressCount = 0;
+        let keyDPressCount = 0;
+        let keyZPressCount = 0;
+        let keyXPressCount = 0;
+        let keyCPressCount = 0;
+        // Update counts and display on key press
+        document.addEventListener('keydown', function(event) {
+            // Get selected keys on each key press
+            const keyA = document.getElementById('keyA').value.toLowerCase();
+            const keyS = document.getElementById('keyS').value.toLowerCase();
+            const keyD = document.getElementById('keyD').value.toLowerCase();
+            const keyZ = document.getElementById('keyZ').value.toLowerCase();
+            const keyX = document.getElementById('keyX').value.toLowerCase();
+            const keyC = document.getElementById('keyC').value.toLowerCase();
+            const pressedKey = event.key.toLowerCase();
+            switch(pressedKey) {
+                case keyA:
+                    keyAPressCount++;
+                    document.getElementById('aCount').textContent = keyAPressCount;
+                    break;
+                case keyS:
+                    keySPressCount++;
+                    document.getElementById('sCount').textContent = keySPressCount;
+                    break;
+                case keyD:
+                    keyDPressCount++;
+                    document.getElementById('dCount').textContent = keyDPressCount;
+                    break;
+                case keyZ:
+                    keyZPressCount++;
+                    document.getElementById('zCount').textContent = keyZPressCount;
+                    break;
+                case keyX:
+                    keyXPressCount++;
+                    document.getElementById('xCount').textContent = keyXPressCount;
+                    break;
+                case keyC:
+                    keyCPressCount++;
+                    document.getElementById('cCount').textContent = keyCPressCount;
+                    break;    
+                default:
+                    // Ignore other keys
+                    break;
+            }
+        });
+
+        // Copy counts to clipboard when button is clicked
+        document.getElementById('copyToClipboardBtn').addEventListener('click', function() {
+            const countsText = "小客车: "+keyAPressCount+",中型客车:"+keySPressCount+",大客车:"+keyDPressCount+"\n小货车:"+keyZPressCount+",中型货车:"+keyXPressCount+",大货车: "+keyCPressCount;
+
+            // Create a temporary textarea to hold the text
+            const tempTextarea = document.createElement('textarea');
+            tempTextarea.value = countsText;
+            document.body.appendChild(tempTextarea);
+
+            // Select and copy the text
+            tempTextarea.select();
+            document.execCommand('copy');
+
+            // Remove the temporary textarea
+            document.body.removeChild(tempTextarea);
+
+            // Inform the user that the counts are copied
+            alert(countsText+'\n 上述内容已复制到粘贴板');
+        });
+    </script>
+</body>
+</html>

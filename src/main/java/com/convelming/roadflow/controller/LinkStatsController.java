@@ -17,6 +17,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
@@ -55,8 +56,18 @@ public class LinkStatsController {
     }
 
     @GetMapping("/queryAllMaker")
-    public Result queryAllMaker() {
-        return Result.ok(linkStatsService.queryAllMaker());
+    public Result queryAllMaker(String beginTime,
+                                String endTime,
+                                String type) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date begin = null, end = null;
+        try {
+            if(beginTime != null) begin = sdf.parse(beginTime);
+            if(endTime != null) end = sdf.parse(endTime);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Result.ok(linkStatsService.queryAllMaker(begin, end, type));
     }
 
     @PostMapping("/queryByArea")
@@ -111,7 +122,6 @@ public class LinkStatsController {
             e.printStackTrace();
         }
     }
-
 
 
     @Data

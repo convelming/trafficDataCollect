@@ -11,7 +11,10 @@ import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -25,7 +28,9 @@ public class LinkStatsServiceImpl implements LinkStatsService {
     /**
      * 一小时毫秒数
      */
-    private final double HOURS = 1000 * 60 * 60;
+    private final BigDecimal HOURS = new BigDecimal("3600000");
+    private final BigDecimal M = new BigDecimal("1.5");
+    private final BigDecimal L = new BigDecimal("2");
 
     @Override
     public boolean insert(LinkStats stats) {
@@ -37,12 +42,13 @@ public class LinkStatsServiceImpl implements LinkStatsService {
         stats.setX(xy[0]);
         stats.setY(xy[1]);
         // 计算 pcu/h
-        double pcu = 0.;
-        pcu += stats.getScar() + stats.getStruck();
-        pcu += (stats.getMcar() + stats.getMtruck()) * 1.5;
-        pcu += (stats.getLcar() + stats.getLtruck()) * 2.0;
-        pcu = pcu / (stats.getEndTime().getTime() - stats.getBeginTime().getTime()) * HOURS;
-        stats.setPcuH(pcu);
+        BigDecimal pcu = BigDecimal.ZERO;
+        pcu = pcu.add(BigDecimal.valueOf(stats.getScar())).add(BigDecimal.valueOf(stats.getStruck()));
+        pcu = pcu.add(BigDecimal.valueOf(stats.getMcar()).multiply(M)).add(BigDecimal.valueOf(stats.getMtruck()).multiply(M));
+        pcu = pcu.add(BigDecimal.valueOf(stats.getLcar()).multiply(L)).add(BigDecimal.valueOf(stats.getLtruck()).multiply(L));
+        pcu = pcu.divide(BigDecimal.valueOf(stats.getEndTime().getTime() - stats.getBeginTime().getTime()), 64, RoundingMode.UP).multiply(HOURS);
+
+        stats.setPcuH(pcu.setScale(2, RoundingMode.DOWN).doubleValue());
 
         if (stats.getIsTwoWay()) {
 
@@ -66,14 +72,13 @@ public class LinkStatsServiceImpl implements LinkStatsService {
             throw new RuntimeException("找不到要修改的对象");
         }
         // 计算 pcu/h
-        double pcu = 0.;
-        pcu += stats.getScar() + stats.getStruck();
-        pcu += (stats.getMcar() + stats.getMtruck()) * 1.5;
-        pcu += (stats.getLcar() + stats.getLtruck()) * 2.0;
+        BigDecimal pcu = BigDecimal.ZERO;
+        pcu = pcu.add(BigDecimal.valueOf(stats.getScar())).add(BigDecimal.valueOf(stats.getStruck()));
+        pcu = pcu.add(BigDecimal.valueOf(stats.getMcar()).multiply(M)).add(BigDecimal.valueOf(stats.getMtruck()).multiply(M));
+        pcu = pcu.add(BigDecimal.valueOf(stats.getLcar()).multiply(L)).add(BigDecimal.valueOf(stats.getLtruck()).multiply(L));
+        pcu = pcu.divide(BigDecimal.valueOf(stats.getEndTime().getTime() - stats.getBeginTime().getTime()), 64, RoundingMode.UP).multiply(HOURS);
 
-        pcu = pcu / (stats.getEndTime().getTime() - stats.getBeginTime().getTime()) * HOURS;
-
-        stats.setPcuH(pcu);
+        stats.setPcuH(pcu.setScale(2, RoundingMode.DOWN).doubleValue());
 
         MatsimLink link = matsimLinkMapper.selectById(stats.getLinkId());
         stats.setWayId(link.getOrigid());
@@ -92,8 +97,8 @@ public class LinkStatsServiceImpl implements LinkStatsService {
     }
 
     @Override
-    public List<LinkStats> queryAllMaker() {
-        return linkStatsMapper.queryAllMaker();
+    public List<LinkStats> queryAllMaker(Date beginTime, Date endTime, String type) {
+        return linkStatsMapper.queryAllMaker(beginTime, endTime, type);
     }
 
     @Override
