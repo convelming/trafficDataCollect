@@ -31,16 +31,18 @@ public class FileController {
         File out = new File(dir + file.getOriginalFilename());
         try (OutputStream os = new FileOutputStream(out)) {
             InputStream is = file.getInputStream();
-            ;
             int len;
             byte[] bytes = new byte[4096];
-            while ((len = is.read()) > 0) {
+            while ((len = is.read(bytes)) > 0) {
                 os.write(bytes, 0, len);
             }
+            os.flush();
+            is.close();
             FileCopyUtils.copy(file.getBytes(), out);
         } catch (Exception e) {
+            log.error(e.getMessage());
             e.printStackTrace();
-            Result.fail();
+            return Result.fail();
         }
         return Result.ok(result);
     }

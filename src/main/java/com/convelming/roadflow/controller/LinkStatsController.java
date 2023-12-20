@@ -52,7 +52,7 @@ public class LinkStatsController {
 
     @DeleteMapping("/delete/{id}")
     public Result delete(@PathVariable Long id) {
-        return Result.fialOrOk(linkStatsService.delete(id));
+        return Result.ok(linkStatsService.delete(id));
     }
 
     @GetMapping("/queryAllMaker")
