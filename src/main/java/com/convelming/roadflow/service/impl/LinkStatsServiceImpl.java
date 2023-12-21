@@ -8,6 +8,7 @@ import com.convelming.roadflow.model.MatsimLink;
 import com.convelming.roadflow.service.LinkStatsService;
 import com.convelming.roadflow.util.GeomUtil;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+@Slf4j
 @Service
 public class LinkStatsServiceImpl implements LinkStatsService {
 
@@ -50,17 +52,27 @@ public class LinkStatsServiceImpl implements LinkStatsService {
 
         stats.setPcuH(pcu.setScale(2, RoundingMode.DOWN).doubleValue());
 
-        if (stats.getIsTwoWay()) {
+//        linkStatsMapper.insert(stats);
 
-            MatsimLink reverse = matsimLinkMapper.queryReverseLink(stats.getLinkId());
-            if (reverse != null) {
-                // 对面路也添加一条
-                LinkStats twoWay = new LinkStats();
-                BeanUtils.copyProperties(link, twoWay);
-                twoWay.setLinkId(reverse.getId());
-                linkStatsMapper.insert(twoWay);
-            }
-        }
+//        if (stats.getIsTwoWay()) {
+//            try {
+//                MatsimLink reverse = matsimLinkMapper.queryReverseLink(stats.getLinkId());
+//                // 对面路也添加一条
+//                LinkStats twoWay = new LinkStats();
+//                BeanUtils.copyProperties(link, twoWay);
+//                twoWay.setLinkId(reverse.getId());
+//                twoWay.setScar(0.);
+//                twoWay.setStruck(0.);
+//                twoWay.setMcar(0.);
+//                twoWay.setMtruck(0.);
+//                twoWay.setLcar(0.);
+//                twoWay.setLtruck(0.);
+//                twoWay.setPcuH(0.);
+////                linkStatsMapper.insert(twoWay);
+//            } catch (Exception e) {
+//                log.warn("找不到反向道路。");
+//            }
+//        }
 
         return linkStatsMapper.insert(stats);
     }
@@ -86,6 +98,25 @@ public class LinkStatsServiceImpl implements LinkStatsService {
         double[] xy = GeomUtil.point2xy(link.getCenter());
         stats.setX(xy[0]);
         stats.setY(xy[1]);
+
+//        if (stats.getIsTwoWay()) {
+//
+//            MatsimLink reverse = matsimLinkMapper.queryReverseLink(stats.getLinkId());
+//            if (reverse != null) {
+//                // 对面路也添加一条
+//                LinkStats twoWay = new LinkStats();
+//                BeanUtils.copyProperties(link, twoWay);
+//                twoWay.setLinkId(reverse.getId());
+//                twoWay.setScar(0.);
+//                twoWay.setStruck(0.);
+//                twoWay.setMcar(0.);
+//                twoWay.setMtruck(0.);
+//                twoWay.setLcar(0.);
+//                twoWay.setLtruck(0.);
+//                twoWay.setPcuH(0.);
+//                linkStatsMapper.insert(twoWay);
+//            }
+//        }
 
         BeanUtils.copyProperties(stats, resource);
         return linkStatsMapper.update(resource);

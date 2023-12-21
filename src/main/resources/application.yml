@@ -1,9 +1,11 @@
 server:
   port: 23104
   tomcat:
-    connection-timeout: 1800000
+    connection-timeout: 3600000
     # 上传文件最大值
     max-http-form-post-size: 4096MB
+  compression:
+    enabled: true
 spring:
   servlet:
     multipart:
@@ -13,7 +15,7 @@ spring:
   datasource:
     username: postgres
     password: postgres
-    url: jdbc:postgresql_postGIS://192.168.60.231:5432/gisdata
+    url: jdbc:postgresql_postGIS://192.168.60.231:5432/gisdata?rewriteBatchedStatements=true
     driver-class-name: net.postgis.jdbc.DriverWrapper
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQL9Dialect

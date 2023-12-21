@@ -16,9 +16,9 @@ public class LinkStatsMapper {
 
     private static final String TABLE_NAME = " link_stats ";
 
-    private static final String BASE_FIELD = " id, link_id, way_id, begin_time, end_time, \"type\", pcu_h, scar, struck, mcar, mtruck, lcar, ltruck, video, x, y, remark, ip_addr, version, deleted, create_time, update_time ";
+    private static final String BASE_FIELD = " id, link_id, way_id, begin_time, end_time, \"type\", pcu_h, scar, struck, mcar, mtruck, lcar, ltruck, video, is_two_way, x, y, remark, ip_addr, version, deleted, create_time, update_time ";
 
-    private static final String INSERT_SQL = " insert into " + TABLE_NAME + " ( " + BASE_FIELD + " ) values ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ) ";
+    private static final String INSERT_SQL = " insert into " + TABLE_NAME + " ( " + BASE_FIELD + " ) values ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ) ";
 
     private static final String LIMIT_SQL = " limit ? offset ? ";
 
@@ -45,6 +45,7 @@ public class LinkStatsMapper {
                 stats.getLcar(),
                 stats.getLtruck(),
                 stats.getVideo(),
+                stats.getIsTwoWay(),
                 stats.getX(),
                 stats.getY(),
                 stats.getRemark(),
@@ -78,6 +79,7 @@ public class LinkStatsMapper {
         sql += " ip_addr = ?, ";
         sql += " version = version + 1, ";
         sql += " video = ?, ";
+        sql += " is_two_way = ?, ";
         sql += " update_time = now() ";
 
         sql += " where id = ? ";
@@ -98,6 +100,7 @@ public class LinkStatsMapper {
                 stats.getRemark(),
                 stats.getIpAddr(),
                 stats.getVideo(),
+                stats.getIsTwoWay(),
                 stats.getId()
         });
 
@@ -109,7 +112,7 @@ public class LinkStatsMapper {
     }
 
     public List<LinkStats> queryAllMaker(Date beginTime, Date endTime, String type) {
-        String sql = " select distinct link_id, x, y, string_agg(distinct type, ',') as \"type\" from " + TABLE_NAME + " ls where 1=1 ";
+        String sql = " select distinct link_id, x, y, string_agg(distinct type, ',') as \"type\" from " + TABLE_NAME + " ls where ls.deleted = 0 ";
         List<Object> args = new ArrayList<>();
         if (type != null && !"".equals(type)) {
             sql += " and ls.type = ? ";

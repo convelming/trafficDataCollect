@@ -157,7 +157,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(EmptyResultDataAccessException.class)
-    public Result EmptyResultDataAccessException(){
+    public Result EmptyResultDataAccessException(EmptyResultDataAccessException e){
+        log.error("数据库查询为空", e);
         return Result.fail(200, "查询不到数据");
     }
 
