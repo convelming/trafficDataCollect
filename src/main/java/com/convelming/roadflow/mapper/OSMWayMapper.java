@@ -102,7 +102,7 @@ public class OSMWayMapper {
     }
 
     public List<OSMWay> queryByName(String name) {
-        String sql = " select * from " + TABLE_NAME + " where name like ?";
+        String sql = " select * from " + TABLE_NAME + " where name like ? and highway is not null";
         return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(OSMWay.class), "%" + name + "%");
     }
 
