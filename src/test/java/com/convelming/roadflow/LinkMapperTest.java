@@ -70,11 +70,16 @@ public class LinkMapperTest {
 //    @Test
     public void initLink() {
         // 文件中 srid 为 3857
-        String path = "C:\\Users\\zengren\\Documents\\WeChat Files\\wxid_xg6cuaubu03v22\\FileStorage\\File\\2023-10\\gz230427_fullPath_4526_h9.xml";
+        // 1373440 16:38:33
+        String path = "C:\\Users\\zengren\\Desktop\\guangzhou_20231221_000001.xml";
         Network network = NetworkUtils.readNetwork(path);
         int count = 0, total = network.getLinks().values().size();
         List<MatsimLink> links = new ArrayList<>();
         for (org.matsim.api.core.v01.network.Link link : network.getLinks().values()) {
+            count++;
+            if(count < 594982){
+                continue;
+            }
             MatsimLink l = new MatsimLink();
             l.setId(Long.valueOf(link.getId().toString()));
             l.setSrid(GeomUtil.MKT);
@@ -93,10 +98,11 @@ public class LinkMapperTest {
                     l.getSrid())
             );
             links.add(l);
-            count++;
-            jdbcTemplate.update("update matsim_link set lane = ? where id = ?", l.getLane(), l.getId());
+//            jdbcTemplate.update("update matsim_link set lane = ? where id = ?", l.getLane(), l.getId());
+            linkMapper.insert(l);
             System.out.println(count + " / " + total);
         }
+//        linkMapper.batchInsert(links);
 
 //        linkMapper.batchInsert(links);
     }
