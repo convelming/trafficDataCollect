@@ -21,6 +21,7 @@ public class MatsimLinkMapper {
 
     /**
      * 新增
+     *
      * @param link
      * @return
      */
@@ -31,6 +32,7 @@ public class MatsimLinkMapper {
 
     /**
      * 根据id删除
+     *
      * @param id
      * @return
      */
@@ -41,6 +43,7 @@ public class MatsimLinkMapper {
 
     /**
      * 根据id查询
+     *
      * @param id
      * @return
      */
@@ -48,8 +51,14 @@ public class MatsimLinkMapper {
         return jdbcTemplate.queryForObject("select * from " + TABLE_NAME + " where id = ?", new BeanPropertyRowMapper<>(MatsimLink.class), id);
     }
 
+    public List<MatsimLink> selectLikeId(Object id) {
+        String sql = "select id, origid from " + TABLE_NAME + " where id||'' like ? order by id limit 1000";
+        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(MatsimLink.class), "%" + id + "%");
+    }
+
     /**
      * 批量新增
+     *
      * @param links
      * @return
      */
@@ -65,6 +74,7 @@ public class MatsimLinkMapper {
 
     /**
      * 根据origid查询
+     *
      * @param origid
      * @return
      */
@@ -75,6 +85,7 @@ public class MatsimLinkMapper {
 
     /**
      * 根据id查询反向link
+     *
      * @param id
      * @return
      */
@@ -85,10 +96,11 @@ public class MatsimLinkMapper {
 
     /**
      * 修改link信息
+     *
      * @param link
      * @return
      */
-    public int update(MatsimLink link){
+    public int update(MatsimLink link) {
         String sql = "update " + TABLE_NAME + " set ";
 
         sql += " name = ?,";       // 道路名称
@@ -110,7 +122,7 @@ public class MatsimLinkMapper {
         return row;
     }
 
-    public int updateInWay(MatsimLink link){
+    public int updateInWay(MatsimLink link) {
         String sql = " update " + TABLE_NAME + " set ";
 
         sql += " name = ?,";       // 道路名称
@@ -132,9 +144,9 @@ public class MatsimLinkMapper {
 
         // 修改 way
         jdbcTemplate.update("update osm_way set name = ?, highway = ? where id = ?", new Object[]{
-            link.getName(),
-            link.getType(),
-            link.getOrigid()
+                link.getName(),
+                link.getType(),
+                link.getOrigid()
         });
 
         return row;

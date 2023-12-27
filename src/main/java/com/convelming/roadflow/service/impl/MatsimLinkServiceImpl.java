@@ -86,6 +86,11 @@ public class MatsimLinkServiceImpl implements MatsimLinkService {
     }
 
     @Override
+    public List<MatsimLink> queryLikeId(Long linkId) {
+        return matsimLinkMapper.selectLikeId(linkId);
+    }
+
+    @Override
     public MatsimLink queryReverseLink(Long id) {
         MatsimLink link = matsimLinkMapper.queryReverseLink(id);
         MatsimNode to = matsimNodeMapper.selectById(link.getToNode());

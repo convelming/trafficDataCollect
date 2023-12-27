@@ -47,6 +47,11 @@ public class MatsimLinkController {
         return Result.ok(matsimLinkService.queryById(id));
     }
 
+    @GetMapping("/getLinkId")
+    public Result getLinkId(Long id) {
+        return Result.ok(matsimLinkService.queryLikeId(id));
+    }
+
     /**
      * 修改link信息
      * @param link

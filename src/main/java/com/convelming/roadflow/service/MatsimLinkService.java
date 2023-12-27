@@ -9,6 +9,7 @@ public interface MatsimLinkService {
     List<List<MatsimLink>> queryByOrigid(Long origid);
 
     MatsimLink queryById(Long id);
+    List<MatsimLink> queryLikeId(Long id);
 
     MatsimLink queryReverseLink(Long id);
 
