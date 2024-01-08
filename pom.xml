@@ -12,7 +12,7 @@
 
     <groupId>com.convelming</groupId>
     <artifactId>LinkStats</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0</version>
     <name>LinkStats</name>
     <description>LinkStats</description>
     <properties>

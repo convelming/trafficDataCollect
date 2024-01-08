@@ -112,7 +112,7 @@ public class LinkStatsMapper {
     }
 
     public List<LinkStats> queryAllMaker(Date beginTime, Date endTime, String type) {
-        String sql = " select distinct link_id, x, y, string_agg(distinct type, ',') as \"type\" from " + TABLE_NAME + " ls where ls.deleted = 0 ";
+        String sql = " select distinct link_id, x, y, max(pcu_h) \"pcu_h\", string_agg(distinct type, ',') as \"type\" from " + TABLE_NAME + " ls where ls.deleted = 0 ";
         List<Object> args = new ArrayList<>();
         if (type != null && !"".equals(type)) {
             sql += " and ls.type = ? ";

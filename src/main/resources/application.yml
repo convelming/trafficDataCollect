@@ -15,7 +15,9 @@ spring:
   datasource:
     username: postgres
     password: postgres
-    url: jdbc:postgresql_postGIS://192.168.60.231:5432/gisdata?rewriteBatchedStatements=true
+#    password: postgis@2024a
+#    url: jdbc:postgresql_postGIS://8.138.103.110:5432/gisdata
+    url: jdbc:postgresql_postGIS://192.168.60.231:5432/gisdata
     driver-class-name: net.postgis.jdbc.DriverWrapper
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQL9Dialect
