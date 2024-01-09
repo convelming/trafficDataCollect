@@ -2,6 +2,7 @@ package com.convelming.roadflow.service;
 
 import com.convelming.roadflow.common.Page;
 import com.convelming.roadflow.model.LinkStats;
+import com.convelming.roadflow.model.vo.LinkStatsAvg;
 
 import java.util.Collection;
 import java.util.Date;
@@ -23,6 +24,7 @@ public interface LinkStatsService {
 
     List<LinkStats> queryByIds(Collection<Long> ids);
 
+    List<LinkStatsAvg> queryAvgStats(Long[] ids, Long linkId);
     LinkStats queryById(Long id);
 
 }

@@ -19,7 +19,6 @@ public class MatsimLinkController {
 
     /**
      * 根据origidid获取个路段，正反两个方向
-     * @param origid
      * @return
      */
     @GetMapping("/getMatsimLink/{origid}")
@@ -29,7 +28,6 @@ public class MatsimLinkController {
 
     /**
      * 根据id获取反向link
-     * @param id
      * @return
      */
     @GetMapping("/getReverseLink/{id}")
@@ -39,7 +37,6 @@ public class MatsimLinkController {
 
     /**
      * 根据id获取link
-     * @param id
      * @return
      */
     @GetMapping("/{id}")
@@ -47,6 +44,10 @@ public class MatsimLinkController {
         return Result.ok(matsimLinkService.queryById(id));
     }
 
+    /**
+     * 根据id查询link
+     * @return
+     */
     @GetMapping("/getLinkId")
     public Result getLinkId(Long id) {
         return Result.ok(matsimLinkService.queryLikeId(id));
@@ -54,7 +55,6 @@ public class MatsimLinkController {
 
     /**
      * 修改link信息
-     * @param link
      * @return
      */
     @PostMapping("/update")
@@ -64,7 +64,6 @@ public class MatsimLinkController {
 
     /**
      * 修改way中所有link信息
-     * @param link
      * @return
      */
     @PostMapping("/updateInWay")

@@ -2,6 +2,7 @@ package com.convelming.roadflow.mapper;
 
 import com.convelming.roadflow.common.Page;
 import com.convelming.roadflow.model.LinkStats;
+import com.convelming.roadflow.model.vo.LinkStatsAvg;
 import com.convelming.roadflow.util.IdUtil;
 import jakarta.annotation.Resource;
 import net.postgis.jdbc.PGgeometry;
@@ -143,6 +144,31 @@ public class LinkStatsMapper {
         }
         sql.append(") and deleted = 0");
         return jdbcTemplate.query(sql.toString(), new BeanPropertyRowMapper<>(LinkStats.class), ids.toArray());
+    }
+
+    public List<LinkStatsAvg> queryAvgStats(Long[] ids, Long linkId) {
+        String sql = " select " +
+                "    to_char(begin_time, 'HH24') as \"hour\", " +
+                "    avg(pcu_h) as \"pcu_h\", " +
+                "    avg(scar / (extract(epoch from end_time - begin_time) / 3600)) as \"scar\", " +
+                "    avg(mcar / (extract(epoch from end_time - begin_time) / 3600)) as \"mcar\", " +
+                "    avg(lcar / (extract(epoch from end_time - begin_time) / 3600)) as \"lcar\", " +
+                "    avg(struck / (extract(epoch from end_time - begin_time) / 3600)) as \"struck\", " +
+                "    avg(mtruck / (extract(epoch from end_time - begin_time) / 3600)) as \"mtruck\", " +
+                "    avg(ltruck / (extract(epoch from end_time - begin_time) / 3600)) as \"ltruck\" " +
+                " from link_stats where deleted = 0 ";
+        if (ids == null || ids.length == 0) {
+            sql += " and link_id = ? group by to_char(begin_time, 'HH24') ";
+            return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(LinkStatsAvg.class), linkId);
+        } else {
+            sql += " and id in (";
+            for (int i = 0, len = ids.length; i < len; i++) {
+                sql += "?,";
+            }
+            sql = sql.substring(0, sql.length() - 1);
+            sql += " ) group by to_char(begin_time, 'HH24') ";
+            return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(LinkStatsAvg.class), ids);
+        }
     }
 
     public Page<LinkStats> queryByGeometry(PGgeometry geometry, Boolean all, Page<LinkStats> page) {

@@ -5,6 +5,7 @@ import com.convelming.roadflow.mapper.LinkStatsMapper;
 import com.convelming.roadflow.mapper.MatsimLinkMapper;
 import com.convelming.roadflow.model.LinkStats;
 import com.convelming.roadflow.model.MatsimLink;
+import com.convelming.roadflow.model.vo.LinkStatsAvg;
 import com.convelming.roadflow.service.LinkStatsService;
 import com.convelming.roadflow.util.GeomUtil;
 import jakarta.annotation.Resource;
@@ -145,6 +146,11 @@ public class LinkStatsServiceImpl implements LinkStatsService {
     @Override
     public List<LinkStats> queryByIds(Collection<Long> ids) {
         return linkStatsMapper.queryByIds(ids);
+    }
+
+    @Override
+    public List<LinkStatsAvg> queryAvgStats(Long[] ids, Long linkId) {
+        return linkStatsMapper.queryAvgStats(ids, linkId);
     }
 
     @Override

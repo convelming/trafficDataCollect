@@ -18,6 +18,11 @@ public class OSMWayController {
     @Resource
     private OSMWayService service;
 
+    /**
+     * 查询全部路网geojson数据
+     * @param param
+     * @return
+     */
     @PostMapping("/getGeomjson")
     public Result getGeomjson(@RequestBody QeuryParam param) {
         double[][] xyarr = null;
@@ -31,6 +36,11 @@ public class OSMWayController {
         return Result.ok(service.getGeomjson(xyarr, param.getSelectAll()));
     }
 
+    /**
+     * 根据路名模糊查询
+     * @param name 路名
+     * @return
+     */
     @GetMapping("/getWayByName")
     public Result getWayByName(String name){
         return Result.ok(service.getWayByName(name));

@@ -24,6 +24,10 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+
+/**
+ * 流量调查数据
+ */
 @RestController
 @RequestMapping("/link/stats")
 public class LinkStatsController {
@@ -31,30 +35,54 @@ public class LinkStatsController {
     @Resource
     private LinkStatsService linkStatsService;
 
-
+    /**
+     * 新增流量调查数据
+     * @return
+     */
     @PostMapping("/insert")
     public Result insert(@RequestBody LinkStats stats, HttpServletRequest request) {
         stats.setIpAddr(request.getRemoteAddr());
         return Result.fialOrOk(linkStatsService.insert(stats));
     }
 
+    /**
+     * 修改流量调查数据
+     * @param stats
+     * @return
+     */
     @PostMapping("/update")
     public Result update(@RequestBody LinkStats stats, HttpServletRequest request) {
         stats.setIpAddr(request.getRemoteAddr());
         return Result.fialOrOk(linkStatsService.update(stats));
     }
 
+    /**
+     * 查询详情
+     * @param id 主键
+     * @return
+     */
     @GetMapping("/{id}")
     public Result getById(@PathVariable Long id) {
         return Result.ok(linkStatsService.queryById(id));
     }
 
-
+    /**
+     * 删除
+     * @param id 主键
+     * @return
+     */
     @DeleteMapping("/delete/{id}")
     public Result delete(@PathVariable Long id) {
         return Result.ok(linkStatsService.delete(id));
     }
 
+    /**
+     * 查询全部路段流量
+     * @param beginTime 开始时间
+     * @param endTime 结束时间
+     * @param type 类型
+     * @return
+     */
     @GetMapping("/queryAllMaker")
     public Result queryAllMaker(String beginTime,
                                 String endTime,
@@ -62,14 +90,19 @@ public class LinkStatsController {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date begin = null, end = null;
         try {
-            if(beginTime != null && !"".equals(beginTime)) begin = sdf.parse(beginTime);
-            if(endTime != null && !"".equals(endTime)) end = sdf.parse(endTime);
+            if (beginTime != null && !"".equals(beginTime)) begin = sdf.parse(beginTime);
+            if (endTime != null && !"".equals(endTime)) end = sdf.parse(endTime);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return Result.ok(linkStatsService.queryAllMaker(begin, end, type));
     }
 
+    /**
+     * 查询区域内路段流量
+     * @param param param.xyarr
+     * @return
+     */
     @PostMapping("/queryByArea")
     public Result queryByArea(@RequestBody QueryParam param) {
         double[][] xyarr = new double[param.getXyarr().length + 1][2];
@@ -88,6 +121,12 @@ public class LinkStatsController {
         return Result.ok(linkStatsService.queryByArea(xyarr, param.getSelectAll(), page));
     }
 
+    /**
+     * 根据linkId查询流量
+     * @param linkId linkId
+     * @param param 分页/查询条件
+     * @return
+     */
     @PostMapping("/queryByLinkId/{linkId}")
     public Result queryByLinkId(@PathVariable Long linkId, @RequestBody QueryParam param) {
         Page<LinkStats> page = new Page<>(param.getPageNum(), param.getPageSize());
@@ -97,6 +136,16 @@ public class LinkStatsController {
                 new Object[]{"endTime", param.getEndTime()}
         );
         return Result.ok(linkStatsService.queryByLinkId(linkId, page));
+    }
+
+    /**
+     * 查询link每小时平均流量
+     * @param param
+     * @return
+     */
+    @PostMapping("/queryAvgStats")
+    public Result queryAvgStats(@RequestBody QueryParam param) {
+        return Result.ok(linkStatsService.queryAvgStats(param.getIds(), param.getLinkId()));
     }
 
     @PostMapping("/export")
@@ -128,18 +177,43 @@ public class LinkStatsController {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class QueryParam {
+        /**
+         * 主键id
+         */
         private Long[] ids;
+        /**
+         * 坐标数组
+         * xyarr[x][0] x轴
+         * xyarr[x][1] y轴
+         */
         private double[][] xyarr;
+        /**
+         * 是否查询全部
+         */
         private Boolean selectAll = false;
-
+        /**
+         * 分页每页大小
+         */
         private Integer pageSize = 10;
+        /**
+         * 分页第几页
+         */
         private Integer pageNum = 1;
 
         private Long linkId;
         private Long wayId;
+        /**
+         * 调查方式
+         */
         private String type;
+        /**
+         * 开始时间
+         */
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
         private Date beginTime;
+        /**
+         * 结束时间
+         */
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
         private Date endTime;
 
