@@ -42,7 +42,7 @@ public class MatsimNodeMapper {
         return jdbcTemplate.queryForObject("select * from " + TABLE_NAME + " where id = ?", new BeanPropertyRowMapper<>(MatsimNode.class), id);
     }
 
-    public List<MatsimNode> selectByIds(Collection<Long> ids) {
+    public List<MatsimNode> selectByIds(Collection<String> ids) {
 
         if(ids.isEmpty()){
             return new ArrayList<>();

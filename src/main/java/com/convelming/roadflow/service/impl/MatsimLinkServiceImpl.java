@@ -150,14 +150,14 @@ public class MatsimLinkServiceImpl implements MatsimLinkService {
 
     private void buildPath(List<MatsimLink> links) {
 
-        Set<Long> nodesId = new HashSet<>();
+        Set<String> nodesId = new HashSet<>();
         for (MatsimLink link : links) {
             nodesId.add(link.getFromNode());
             nodesId.add(link.getToNode());
         }
 
         List<MatsimNode> nodes = matsimNodeMapper.selectByIds(nodesId);
-        Map<Long, MatsimNode> nodeMap = nodes.stream().collect(Collectors.toMap(MatsimNode::getId, (x -> x)));
+        Map<String, MatsimNode> nodeMap = nodes.stream().collect(Collectors.toMap(MatsimNode::getId, (x -> x)));
 
         for (MatsimLink link : links) {
             MatsimNode to = nodeMap.get(link.getToNode());

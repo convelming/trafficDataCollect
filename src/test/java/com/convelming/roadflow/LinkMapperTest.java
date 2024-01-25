@@ -1,25 +1,27 @@
 package com.convelming.roadflow;
 
+import com.convelming.roadflow.mapper.LinkStatsMapper;
 import com.convelming.roadflow.mapper.MatsimLinkMapper;
 import com.convelming.roadflow.model.MatsimLink;
-import com.convelming.roadflow.model.OSMWay;
 import com.convelming.roadflow.util.GeomUtil;
 import jakarta.annotation.Resource;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.utils.geometry.CoordinateTransformation;
 import org.matsim.core.utils.geometry.transformations.TransformationFactory;
 import org.matsim.utils.objectattributes.attributable.Attributes;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
@@ -27,6 +29,8 @@ public class LinkMapperTest {
 
     @Resource
     private MatsimLinkMapper linkMapper;
+    @Resource
+    private LinkStatsMapper linkStatsMapper;
     @Resource
     private JdbcTemplate jdbcTemplate;
 
@@ -67,31 +71,27 @@ public class LinkMapperTest {
         System.out.println(result);
     }
 
-//    @Test
+    @Test
     public void initLink() {
         // 文件中 srid 为 3857
         // 1373440 16:38:33
-        String path = "C:\\Users\\zengren\\Desktop\\guangzhou_20231221_000001.xml";
+        String path = "C:\\Users\\zengren\\Documents\\WeChat Files\\wxid_xg6cuaubu03v22\\FileStorage\\File\\2024-01\\gz_idRemap_subway_pt_remod_240124_slice.xml";
         Network network = NetworkUtils.readNetwork(path);
         int count = 0, total = network.getLinks().values().size();
         List<MatsimLink> links = new ArrayList<>();
         for (org.matsim.api.core.v01.network.Link link : network.getLinks().values()) {
-            count++;
-            if(count < 594982){
-                continue;
-            }
             MatsimLink l = new MatsimLink();
-            l.setId(Long.valueOf(link.getId().toString()));
+            l.setId(String.valueOf(link.getId().toString()));
             l.setSrid(GeomUtil.MKT);
-            l.setFromNode(Long.valueOf(link.getFromNode().getId().toString()));
-            l.setToNode(Long.valueOf(link.getToNode().getId().toString()));
+            l.setFromNode(String.valueOf(link.getFromNode().getId().toString()));
+            l.setToNode(String.valueOf(link.getToNode().getId().toString()));
             l.setLength(link.getLength());
             l.setFreespeed(link.getFreespeed());
             l.setCapacity(link.getCapacity());
             l.setLane((int) link.getNumberOfLanes());
             Attributes attributes = link.getAttributes();
             l.setType(String.valueOf(attributes.getAttribute("type")));
-            l.setOrigid(Long.valueOf((String) attributes.getAttribute("origid")));
+            l.setOrigid(Long.valueOf(attributes.getAttribute("origid") == null ? "-1" : attributes.getAttribute("origid").toString()));
             l.setGeom(GeomUtil.genLine(
                     ct_4526to3857.transform(link.getFromNode().getCoord()),
                     ct_4526to3857.transform(link.getToNode().getCoord()),
@@ -99,10 +99,10 @@ public class LinkMapperTest {
             );
             links.add(l);
 //            jdbcTemplate.update("update matsim_link set lane = ? where id = ?", l.getLane(), l.getId());
-            linkMapper.insert(l);
-            System.out.println(count + " / " + total);
+//            linkMapper.insert(l);
+//            System.out.println(count + " / " + total);
         }
-//        linkMapper.batchInsert(links);
+        linkMapper.batchInsert(links);
 
 //        linkMapper.batchInsert(links);
     }
@@ -124,4 +124,45 @@ public class LinkMapperTest {
         }
         return null;
     }
+
+    //    @Test
+    public void validLinkId() {
+        String fileName = "C:\\Users\\zengren\\Documents\\WeChat Files\\wxid_xg6cuaubu03v22\\FileStorage\\File\\2024-01\\gz230427_fullPath_4526_h9_withSubwayPtMapped.xml";
+        Network network = NetworkUtils.readNetwork(fileName);
+
+        Map<String, Integer> map = new HashMap<>();
+
+        network.getLinks().values().forEach(link -> {
+            map.put(link.getId().toString(), 3);
+        });
+        List<MatsimLink> links = jdbcTemplate.query("select * from matsim_link", new BeanPropertyRowMapper<>(MatsimLink.class));
+        Map<String, MatsimLink> linkMap = links.stream().collect(Collectors.toMap(MatsimLink::getId, l -> l));
+        links.forEach(link -> {
+            String id = link.getId().toString();
+            map.merge(id, 2, Integer::sum);
+        });
+        int[] count = {0};
+        map.forEach((k, v) -> {
+            if (v == 2) {
+                System.out.println("流量调查单独存在：" + k);
+            } else if (v == 3) {
+//                System.out.println("xml 单独存在：" + k);
+            } else {
+                MatsimLink ml = linkMap.get(Long.valueOf(k));
+                Link lk = network.getLinks().get(Id.createLinkId(k));
+                if (ml.getOrigid().toString().equals(lk.getAttributes().getAttribute("origid").toString())
+                        && ml.getToNode().toString().equals(lk.getToNode().getId().toString())
+                        && ml.getFromNode().toString().equals(lk.getFromNode().getId().toString())
+                ) {
+
+                } else {
+                    count[0]++;
+                    System.out.println("LinkId: " + k + " , 绑定节点与osm道路不一致");
+                }
+            }
+        });
+        System.out.println("节点与osm道路不一致数量：" + count[0]);
+        System.out.println("流量调查单独存在：" + map.values().stream().filter(i -> i == 2).count());
+    }
+
 }

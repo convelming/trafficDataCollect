@@ -15,7 +15,7 @@ public class MatsimLink {
     /**
      * id
      */
-    private Long id;
+    private String id;
 
     /**
      * 空间坐标编码
@@ -25,12 +25,12 @@ public class MatsimLink {
     /**
      * 起始点
      */
-    private Long fromNode;
+    private String fromNode;
 
     /**
      * 结束点
      */
-    private Long toNode;
+    private String toNode;
 
     /**
      * 路名

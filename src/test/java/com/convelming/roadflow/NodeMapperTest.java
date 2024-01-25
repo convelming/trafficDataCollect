@@ -52,15 +52,16 @@ public class NodeMapperTest {
     }
 
 
+    @Test
     public void initMatsiNode() {
         // 文件中 srid 为 3857
-        String path = "C:\\Users\\zengren\\Documents\\WeChat Files\\wxid_xg6cuaubu03v22\\FileStorage\\File\\2023-10\\gz230427_fullPath_4526_h9.xml";
+        String path = "C:\\Users\\zengren\\Documents\\WeChat Files\\wxid_xg6cuaubu03v22\\FileStorage\\File\\2024-01\\gz_idRemap_subway_pt_remod_240124_slice.xml";
         Network network = NetworkUtils.readNetwork(path);
 
         List<MatsimNode> nodes = new ArrayList<>();
         for (org.matsim.api.core.v01.network.Node node : network.getNodes().values()) {
             MatsimNode n = new MatsimNode();
-            n.setId(Long.valueOf(node.getId().toString()));
+            n.setId(String.valueOf(node.getId().toString()));
             n.setSrid(GeomUtil.MKT);
             Coord coord = ct_4526to3857.transform(node.getCoord());
             n.setX(coord.getX());
@@ -72,10 +73,11 @@ public class NodeMapperTest {
         matsimNodeMapper.batchInsert(nodes);
     }
 
-//    @Test
+    @Test
     public void initOSMNode() {
         try {
-            List<OSMNode> nodes = XmlUtil.loadNode("C:\\Users\\zengren\\Documents\\WeChat Files\\wxid_xg6cuaubu03v22\\FileStorage\\File\\2023-11\\gzInpoly221123.osm", "node");
+            String file = "C:\\Users\\zengren\\Desktop\\guangzhou_20240123_210550.osm";
+            List<OSMNode> nodes = XmlUtil.loadNode(file, "node");
             osmNodeMapper.batchInsert(nodes);
         } catch (Exception e) {
             e.printStackTrace();

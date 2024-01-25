@@ -105,15 +105,13 @@ public class XmlUtil {
             for (Element tag : tags) {
                 tagMap.put(tag.attributeValue("k"), tag.attributeValue("v"));
             }
-
 //            if (tagMap.get("building") != null || tagMap.get("natural") != null || tagMap.get("man_made") != null || tagMap.get("amenity") != null) { // 建筑物 自然景观 人造景观 重要设施
 //                continue;
 //            }
-
             osmWay.setOneway("yes".equals(tagMap.get("oneway")));
             osmWay.setHighway((String) tagMap.get("highway"));
+            osmWay.setName((String) (tagMap.get("name")));
             osmWay.setOther(JSONObject.toJSONString(tagMap));
-
             osmWay.setNodes(JSONArray.toJSONString(nds.stream().map(OSMNode::getId).toList()));
             osmWay.setGeom3857(GeomUtil.genWay(nds, GeomUtil.MKT));
             osmWay.setGeom4326(GeomUtil.genWay(nds, 4326));

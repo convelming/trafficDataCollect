@@ -46,7 +46,7 @@ public class OSMWayMapperTest {
         List<OSMWay> ways = jdbcTemplate.query("select * from osm_way", new BeanPropertyRowMapper<>(OSMWay.class));
         ways.forEach(way -> {
             String json = way.getOther();
-            if (json != null && json.length() > 0) {
+            if (json != null && !json.isEmpty()) {
                 JSONObject object = JSONObject.parseObject(json);
                 String name = object.getString("name");
                 if (name != null) {
@@ -56,18 +56,16 @@ public class OSMWayMapperTest {
         });
     }
 
-    //    @Test
+    @Test
     public void initOSMWay() throws ParseException {
-        List<OSMWay> osmways = XmlUtil.loadWay("C:\\Users\\zengren\\Documents\\WeChat Files\\wxid_xg6cuaubu03v22\\FileStorage\\File\\2023-11\\gzInpoly221123.osm", "way");
-//        osmways.stream().filter( way -> {
-//
-//        });
+        String file = "C:\\Users\\zengren\\Desktop\\guangzhou_20240123_210550.osm";
+        List<OSMWay> osmways = XmlUtil.loadWay(file, "way");
         osmWayMapper.batchInsert(osmways);
     }
 
     /*
-    docker run --name postgres --restart=always -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:alpine3.18
-    docker run --name postgres --restart=always -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d 192.168.60.231:8843/library/postgres:alpine3.18
+        docker run --name postgres --restart=always -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:alpine3.18
+        docker run --name postgres --restart=always -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d 192.168.60.231:8843/library/postgres:alpine3.18
      */
 
 }

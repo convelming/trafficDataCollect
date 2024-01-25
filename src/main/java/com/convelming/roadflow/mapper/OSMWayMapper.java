@@ -19,9 +19,9 @@ public class OSMWayMapper {
 
     private static final String TABLE_NAME = " osm_way ";
 
-    private static final String BASE_FIELD = " id, version, timestamp, uid, \"user\", changeset, nodes, oneway, highway, geom4326, geom3857, other ";
+    private static final String BASE_FIELD = " id, version, timestamp, uid, \"user\", changeset, nodes, oneway, highway, geom4326, geom3857, name, other ";
 
-    private static final String INSERT_SQL = "insert into " + TABLE_NAME + " (" + BASE_FIELD + ") values (?, ?, ?, ?, ?, ?, to_json(?::json), ?, ?, ?, ?, ?)";
+    private static final String INSERT_SQL = "insert into " + TABLE_NAME + " (" + BASE_FIELD + ") values (?, ?, ?, ?, ?, ?, to_json(?::json), ?, ?, ?, ?, ?, ?)";
 
 
     @Resource
@@ -119,6 +119,7 @@ public class OSMWayMapper {
                 way.getHighway(),
                 way.getGeom4326(),
                 way.getGeom3857(),
+                way.getName(),
                 way.getOther()
         };
     }

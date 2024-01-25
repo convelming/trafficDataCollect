@@ -13,7 +13,7 @@ public class MatsimNode {
     /**
      * id
      */
-    private Long id;
+    private String id;
 
     /**
      * x 坐标
