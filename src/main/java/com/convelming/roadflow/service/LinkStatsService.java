@@ -20,11 +20,11 @@ public interface LinkStatsService {
 
     Page<LinkStats> queryByArea(double[][] xyarr, Boolean all, Page<LinkStats> page);
 
-    Page<LinkStats> queryByLinkId(Long linkId, Page<LinkStats> page);
+    Page<LinkStats> queryByLinkId(String linkId, Page<LinkStats> page);
 
     List<LinkStats> queryByIds(Collection<Long> ids);
 
-    List<LinkStatsAvg> queryAvgStats(Long[] ids, Long linkId);
+    List<LinkStatsAvg> queryAvgStats(Long[] ids, String linkId);
     LinkStats queryById(Long id);
 
 }

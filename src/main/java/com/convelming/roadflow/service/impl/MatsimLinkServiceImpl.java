@@ -27,11 +27,11 @@ public class MatsimLinkServiceImpl implements MatsimLinkService {
     @Resource
     private MatsimNodeMapper matsimNodeMapper;
 
-    public List<List<MatsimLink>> queryByOrigid(Long origid) {
+    public List<List<MatsimLink>> queryByOrigid(String origid) {
         List<MatsimLink> org = matsimLinkMapper.queryByOrigid(origid); // 需要分成 to , from 两组 , 按顺序连接
 
         OSMWay osmWay = osmWayMapper.selectById(origid);
-        Long startNodeId = JSONArray.parseArray(osmWay.getNodes()).getLong(0);
+        String startNodeId = JSONArray.parseArray(osmWay.getNodes()).getString(0);
         if (osmWay.getOneway()) { // 单行道
             List<MatsimLink> links = buildOneWay(org);
             buildPath(links);
@@ -81,17 +81,17 @@ public class MatsimLinkServiceImpl implements MatsimLinkService {
     }
 
     @Override
-    public MatsimLink queryById(Long id) {
+    public MatsimLink queryById(String id) {
         return matsimLinkMapper.selectById(id);
     }
 
     @Override
-    public List<MatsimLink> queryLikeId(Long linkId) {
+    public List<MatsimLink> queryLikeId(String linkId) {
         return matsimLinkMapper.selectLikeId(linkId);
     }
 
     @Override
-    public MatsimLink queryReverseLink(Long id) {
+    public MatsimLink queryReverseLink(String id) {
         MatsimLink link = matsimLinkMapper.queryReverseLink(id);
         MatsimNode to = matsimNodeMapper.selectById(link.getToNode());
         MatsimNode from = matsimNodeMapper.selectById(link.getFromNode());
@@ -167,7 +167,7 @@ public class MatsimLinkServiceImpl implements MatsimLinkService {
         }
     }
 
-    private MatsimLink getStartLink(List<MatsimLink> links, Long startNodeId) {
+    private MatsimLink getStartLink(List<MatsimLink> links, String startNodeId) {
         for(MatsimLink link : links){
             if(link.getFromNode().equals(startNodeId)){
                 return link;

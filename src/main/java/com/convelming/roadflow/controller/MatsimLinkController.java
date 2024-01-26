@@ -22,7 +22,7 @@ public class MatsimLinkController {
      * @return
      */
     @GetMapping("/getMatsimLink/{origid}")
-    public Result getMatsimLinkByWayId(@PathVariable Long origid) {
+    public Result getMatsimLinkByWayId(@PathVariable String origid) {
         return Result.ok(matsimLinkService.queryByOrigid(origid));
     }
 
@@ -31,7 +31,7 @@ public class MatsimLinkController {
      * @return
      */
     @GetMapping("/getReverseLink/{id}")
-    public Result getReverseLink(@PathVariable Long id) {
+    public Result getReverseLink(@PathVariable String id) {
         return Result.ok(matsimLinkService.queryReverseLink(id));
     }
 
@@ -40,7 +40,7 @@ public class MatsimLinkController {
      * @return
      */
     @GetMapping("/{id}")
-    public Result getById(@PathVariable Long id) {
+    public Result getById(@PathVariable String id) {
         return Result.ok(matsimLinkService.queryById(id));
     }
 
@@ -49,7 +49,7 @@ public class MatsimLinkController {
      * @return
      */
     @GetMapping("/getLinkId")
-    public Result getLinkId(Long id) {
+    public Result getLinkId(String id) {
         return Result.ok(matsimLinkService.queryLikeId(id));
     }
 

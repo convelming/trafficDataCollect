@@ -78,7 +78,7 @@ public class MatsimLinkMapper {
      * @param origid
      * @return
      */
-    public List<MatsimLink> queryByOrigid(Long origid) {
+    public List<MatsimLink> queryByOrigid(String origid) {
         String sql = "select ml.*, string_agg(distinct ls.type, ',') as \"statsType\" from " + TABLE_NAME + " ml left join link_stats ls on ml.id = ls.link_id and ls.deleted = 0 where ml.origid = ? group by ml.id";
         return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(MatsimLink.class), origid);
     }
@@ -89,7 +89,7 @@ public class MatsimLinkMapper {
      * @param id
      * @return
      */
-    public MatsimLink queryReverseLink(Long id) {
+    public MatsimLink queryReverseLink(String id) {
         String sql = "select a.* from " + TABLE_NAME + " a left join " + TABLE_NAME + " b on a.to_node = b.from_node and a.from_node = b.to_node where b.id = ?";
         return jdbcTemplate.queryForObject(sql, new BeanPropertyRowMapper<>(MatsimLink.class), id);
     }

@@ -2,7 +2,9 @@ package com.convelming.roadflow;
 
 import com.convelming.roadflow.mapper.LinkStatsMapper;
 import com.convelming.roadflow.mapper.MatsimLinkMapper;
+import com.convelming.roadflow.mapper.OSMWayMapper;
 import com.convelming.roadflow.model.MatsimLink;
+import com.convelming.roadflow.model.OSMWay;
 import com.convelming.roadflow.util.GeomUtil;
 import jakarta.annotation.Resource;
 import org.junit.Test;
@@ -33,12 +35,14 @@ public class LinkMapperTest {
     private LinkStatsMapper linkStatsMapper;
     @Resource
     private JdbcTemplate jdbcTemplate;
+    @Resource
+    private OSMWayMapper wayMapper;
 
     private static final CoordinateTransformation ct_4526to3857 = TransformationFactory.getCoordinateTransformation("epsg:4526", "epsg:3857");
 
     //    @Test
     public void test() {
-        List<MatsimLink> links = linkMapper.queryByOrigid(25680335L);
+        List<MatsimLink> links = linkMapper.queryByOrigid("25680335");
 
         List<MatsimLink> toLinks = new ArrayList<>();
         // fromNode \ toNode 唯一的两个点分别是 from\to 的起点\终点
@@ -79,6 +83,9 @@ public class LinkMapperTest {
         Network network = NetworkUtils.readNetwork(path);
         int count = 0, total = network.getLinks().values().size();
         List<MatsimLink> links = new ArrayList<>();
+
+        Map<Long, OSMWay> wayMap = wayMapper.queryByPolygon(null).stream().collect(Collectors.toMap(OSMWay::getId, w -> w));
+
         for (org.matsim.api.core.v01.network.Link link : network.getLinks().values()) {
             MatsimLink l = new MatsimLink();
             l.setId(String.valueOf(link.getId().toString()));
@@ -97,6 +104,10 @@ public class LinkMapperTest {
                     ct_4526to3857.transform(link.getToNode().getCoord()),
                     l.getSrid())
             );
+            OSMWay way = wayMap.get(l.getOrigid());
+            if(way != null){
+                l.setName(way.getName());
+            }
             links.add(l);
 //            jdbcTemplate.update("update matsim_link set lane = ? where id = ?", l.getLane(), l.getId());
 //            linkMapper.insert(l);

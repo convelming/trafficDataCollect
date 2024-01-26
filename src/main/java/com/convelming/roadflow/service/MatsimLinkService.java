@@ -6,12 +6,12 @@ import java.util.List;
 
 public interface MatsimLinkService {
 
-    List<List<MatsimLink>> queryByOrigid(Long origid);
+    List<List<MatsimLink>> queryByOrigid(String origid);
 
-    MatsimLink queryById(Long id);
-    List<MatsimLink> queryLikeId(Long id);
+    MatsimLink queryById(String id);
+    List<MatsimLink> queryLikeId(String id);
 
-    MatsimLink queryReverseLink(Long id);
+    MatsimLink queryReverseLink(String id);
 
     int update(MatsimLink link);
 

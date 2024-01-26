@@ -13,7 +13,7 @@ import java.util.Date;
 @AllArgsConstructor
 public class OSMWay {
 
-    private Long id;
+    private String id;
 
     /**
      * 路名

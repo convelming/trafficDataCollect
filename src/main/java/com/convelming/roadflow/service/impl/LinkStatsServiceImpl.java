@@ -139,7 +139,7 @@ public class LinkStatsServiceImpl implements LinkStatsService {
     }
 
     @Override
-    public Page<LinkStats> queryByLinkId(Long linkId, Page<LinkStats> page) {
+    public Page<LinkStats> queryByLinkId(String linkId, Page<LinkStats> page) {
         return linkStatsMapper.queryByLinkId(linkId, page);
     }
 
@@ -149,7 +149,7 @@ public class LinkStatsServiceImpl implements LinkStatsService {
     }
 
     @Override
-    public List<LinkStatsAvg> queryAvgStats(Long[] ids, Long linkId) {
+    public List<LinkStatsAvg> queryAvgStats(Long[] ids, String linkId) {
         return linkStatsMapper.queryAvgStats(ids, linkId);
     }
 

@@ -146,7 +146,7 @@ public class LinkStatsMapper {
         return jdbcTemplate.query(sql.toString(), new BeanPropertyRowMapper<>(LinkStats.class), ids.toArray());
     }
 
-    public List<LinkStatsAvg> queryAvgStats(Long[] ids, Long linkId) {
+    public List<LinkStatsAvg> queryAvgStats(Long[] ids, String linkId) {
         String sql = " select " +
                 "    to_char(begin_time, 'HH24') as \"hour\", " +
                 "    avg(pcu_h) as \"pcu_h\", " +
@@ -207,7 +207,7 @@ public class LinkStatsMapper {
         }
     }
 
-    public Page<LinkStats> queryByLinkId(Long linkId, Page<LinkStats> page) {
+    public Page<LinkStats> queryByLinkId(String linkId, Page<LinkStats> page) {
         String sql = " select #{col} from " + TABLE_NAME + " ls where deleted = 0 and link_id = ? ";
 
         List<Object> args = new ArrayList<>();

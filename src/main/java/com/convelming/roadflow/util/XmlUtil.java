@@ -79,7 +79,7 @@ public class XmlUtil {
         Map<Long, OSMNode> nodeMap = loadNode(filename, "node").stream().collect(Collectors.toMap(OSMNode::getId, (p) -> p));
         for (Element way : list) {
             OSMWay osmWay = new OSMWay();
-            osmWay.setId(Long.valueOf(way.attributeValue("id")));
+            osmWay.setId(String.valueOf(way.attributeValue("id")));
             osmWay.setVersion(Integer.valueOf(way.attributeValue("version")));
             osmWay.setTimestamp(sdf.parse(way.attributeValue("timestamp")));
             osmWay.setUid(Long.valueOf(way.attributeValue("uid")));

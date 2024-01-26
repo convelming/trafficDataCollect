@@ -128,7 +128,7 @@ public class LinkStatsController {
      * @return
      */
     @PostMapping("/queryByLinkId/{linkId}")
-    public Result queryByLinkId(@PathVariable Long linkId, @RequestBody QueryParam param) {
+    public Result queryByLinkId(@PathVariable String linkId, @RequestBody QueryParam param) {
         Page<LinkStats> page = new Page<>(param.getPageNum(), param.getPageSize());
         page.param(
                 new Object[]{"type", param.getType()},
@@ -200,7 +200,7 @@ public class LinkStatsController {
          */
         private Integer pageNum = 1;
 
-        private Long linkId;
+        private String linkId;
         private Long wayId;
         /**
          * 调查方式
