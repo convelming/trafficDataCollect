@@ -33,7 +33,7 @@ public class OSMWayMapperTest {
 
 
     public void sqlTest() throws SQLException, JSONException {
-        long id = -1;
+        String id = "-1";
         OSMWay way = new OSMWay(id, "", 1, new Date(), 1L, "1", 1L, "[1,2,3,4]", new PGgeometry("SRID=4326;POINT(1 1)"), new PGgeometry("SRID=3857;POINT(1 1)"), true, "", "");
         osmWayMapper.deleteById(id);
         osmWayMapper.insert(way);
