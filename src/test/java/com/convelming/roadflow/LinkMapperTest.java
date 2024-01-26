@@ -84,7 +84,7 @@ public class LinkMapperTest {
         int count = 0, total = network.getLinks().values().size();
         List<MatsimLink> links = new ArrayList<>();
 
-        Map<Long, OSMWay> wayMap = wayMapper.queryByPolygon(null).stream().collect(Collectors.toMap(OSMWay::getId, w -> w));
+        Map<String, OSMWay> wayMap = wayMapper.queryByPolygon(null).stream().collect(Collectors.toMap(OSMWay::getId, w -> w));
 
         for (org.matsim.api.core.v01.network.Link link : network.getLinks().values()) {
             MatsimLink l = new MatsimLink();
