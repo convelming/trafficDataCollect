@@ -55,7 +55,7 @@ public class NodeMapperTest {
     @Test
     public void initMatsiNode() {
         // 文件中 srid 为 3857
-        String path = "C:\\Users\\zengren\\Documents\\WeChat Files\\wxid_xg6cuaubu03v22\\FileStorage\\File\\2024-01\\gz_idRemap_subway_pt_remod_240124_slice.xml";
+        String path = "C:\\Users\\zengren\\Documents\\WeChat Files\\wxid_xg6cuaubu03v22\\FileStorage\\File\\2024-01\\gzInpoly240126.xml";
         Network network = NetworkUtils.readNetwork(path);
 
         List<MatsimNode> nodes = new ArrayList<>();

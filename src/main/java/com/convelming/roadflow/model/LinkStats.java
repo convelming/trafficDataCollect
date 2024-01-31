@@ -19,7 +19,7 @@ public class LinkStats {
     private Long id;
 
     @Excel(name = "路段ID", width = 30)
-    private Long linkId;
+    private String linkId;
 
     /**
      * osm路段id
@@ -34,7 +34,7 @@ public class LinkStats {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date endTime;
 
-    @Excel(name = "调查方式", width = 30, replace = {"人工调查_1", "视频识别_2", "其他_0"})
+    @Excel(name = "调查方式", width = 30, replace = {"人工调查_1", "视频识别_2", "高德爬取_3", "其他_0"})
     private String type;
 
     @Excel(name = "pcu/h", width = 30, isImportField = "wayId")
@@ -129,6 +129,6 @@ public class LinkStats {
     /**
      * 是否是双向
      */
-    private Boolean isTwoWay;
+    private Boolean isTwoWay = false;
 
 }

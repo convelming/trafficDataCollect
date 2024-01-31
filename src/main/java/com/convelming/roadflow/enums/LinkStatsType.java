@@ -18,6 +18,7 @@ public enum LinkStatsType {
      * 视频识别
      */
     VIDEO_RECOGNITION("视频识别", "2"),
+    GD_CRAWL("高德地图爬取", "3"),
 
     /**
      * 其他

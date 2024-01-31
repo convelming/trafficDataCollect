@@ -79,7 +79,7 @@ public class LinkMapperTest {
     public void initLink() {
         // 文件中 srid 为 3857
         // 1373440 16:38:33
-        String path = "C:\\Users\\zengren\\Documents\\WeChat Files\\wxid_xg6cuaubu03v22\\FileStorage\\File\\2024-01\\gz_idRemap_subway_pt_remod_240124_slice.xml";
+        String path = "C:\\Users\\zengren\\Documents\\WeChat Files\\wxid_xg6cuaubu03v22\\FileStorage\\File\\2024-01\\gzInpoly240126.xml";
         Network network = NetworkUtils.readNetwork(path);
         int count = 0, total = network.getLinks().values().size();
         List<MatsimLink> links = new ArrayList<>();
@@ -138,7 +138,7 @@ public class LinkMapperTest {
 
     //    @Test
     public void validLinkId() {
-        String fileName = "C:\\Users\\zengren\\Documents\\WeChat Files\\wxid_xg6cuaubu03v22\\FileStorage\\File\\2024-01\\gz230427_fullPath_4526_h9_withSubwayPtMapped.xml";
+        String fileName = "C:\\Users\\zengren\\Documents\\WeChat Files\\wxid_xg6cuaubu03v22\\FileStorage\\File\\2024-01\\gzInpoly240126.xml";
         Network network = NetworkUtils.readNetwork(fileName);
 
         Map<String, Integer> map = new HashMap<>();

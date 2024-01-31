@@ -19,7 +19,7 @@ public class LinkStatsMapper {
 
     private static final String BASE_FIELD = " id, link_id, way_id, begin_time, end_time, \"type\", pcu_h, scar, struck, mcar, mtruck, lcar, ltruck, video, is_two_way, x, y, remark, ip_addr, version, deleted, create_time, update_time ";
 
-    private static final String INSERT_SQL = " insert into " + TABLE_NAME + " ( " + BASE_FIELD + " ) values ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ) ";
+    public static final String INSERT_SQL = " insert into " + TABLE_NAME + " ( " + BASE_FIELD + " ) values ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ) ";
 
     private static final String LIMIT_SQL = " limit ? offset ? ";
 
@@ -30,7 +30,6 @@ public class LinkStatsMapper {
 
     public boolean insert(LinkStats stats) {
         stats.setId(idUtil.getId(TABLE_NAME));
-
         Object[] args = new Object[]{
                 stats.getId(),
                 stats.getLinkId(),
@@ -56,7 +55,11 @@ public class LinkStatsMapper {
                 new Date(),
                 new Date()
         };
-
+//        String sql = INSERT_SQL;
+//        for(int i=0; i<args.length; i++){
+//            sql = sql.replace("?", String.valueOf(args[i]));
+//        }
+//        System.out.println(sql);
         int row = jdbcTemplate.update(INSERT_SQL, args);
         return row > 0;
     }
@@ -157,6 +160,16 @@ public class LinkStatsMapper {
                 "    avg(mtruck / (extract(epoch from end_time - begin_time) / 3600)) as \"mtruck\", " +
                 "    avg(ltruck / (extract(epoch from end_time - begin_time) / 3600)) as \"ltruck\" " +
                 " from link_stats where deleted = 0 ";
+//        String sql = " select " +
+//                "    to_char(begin_time, 'HH24') as \"hour\", " +
+//                "    avg(pcu_h) as \"pcu_h\", " +
+//                "    case when avg(scar) = 0 then 0 else avg(scar / (extract(epoch from end_time - begin_time) / 3600)) end  as \"scar\", " +
+//                "    case when avg(mcar) = 0 then 0 else avg(mcar / (extract(epoch from end_time - begin_time) / 3600)) end as \"mcar\", " +
+//                "    case when avg(lcar) = 0 then 0 else avg(lcar / (extract(epoch from end_time - begin_time) / 3600)) end as \"lcar\", " +
+//                "    case when avg(struck) = 0 then 0 else avg(struck / (extract(epoch from end_time - begin_time) / 3600)) end as \"struck\", " +
+//                "    case when avg(mtruck) = 0 then 0 else avg(mtruck / (extract(epoch from end_time - begin_time) / 3600)) end as \"mtruck\", " +
+//                "    case when avg(ltruck) = 0 then 0 else avg(ltruck / (extract(epoch from end_time - begin_time) / 3600)) end as \"ltruck\" " +
+//                " from link_stats where deleted = 0 ";
         if (ids == null || ids.length == 0) {
             sql += " and link_id = ? group by to_char(begin_time, 'HH24') ";
             return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(LinkStatsAvg.class), linkId);
@@ -241,6 +254,39 @@ public class LinkStatsMapper {
     public boolean delete(Long id) {
         int row = jdbcTemplate.update(" update " + TABLE_NAME + " set deleted = 1, version = version + 1, update_time = now() where id = ? ", id);
         return row > 0;
+    }
+
+    public static List<Object[]> genArgs(List<LinkStats> list){
+        List<Object[]> result = new ArrayList<>();
+        list.forEach(stats->{
+            Object[] args = new Object[]{
+                    stats.getId(),
+                    stats.getLinkId(),
+                    stats.getWayId(),
+                    stats.getBeginTime(),
+                    stats.getEndTime(),
+                    stats.getType(),
+                    stats.getPcuH(),
+                    stats.getScar(),
+                    stats.getStruck(),
+                    stats.getMcar(),
+                    stats.getMtruck(),
+                    stats.getLcar(),
+                    stats.getLtruck(),
+                    stats.getVideo(),
+                    stats.getIsTwoWay(),
+                    stats.getX(),
+                    stats.getY(),
+                    stats.getRemark(),
+                    stats.getIpAddr(),
+                    1,
+                    0,
+                    new Date(),
+                    new Date()
+            };
+            result.add(args);
+        });
+        return result;
     }
 
 }
