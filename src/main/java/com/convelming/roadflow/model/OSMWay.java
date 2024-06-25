@@ -1,5 +1,11 @@
 package com.convelming.roadflow.model;
 
+import com.convelming.roadflow.model.proxy.OSMWayProxy;
+import com.easy.query.core.annotation.Column;
+import com.easy.query.core.annotation.ColumnIgnore;
+import com.easy.query.core.annotation.EntityProxy;
+import com.easy.query.core.annotation.Table;
+import com.easy.query.core.proxy.ProxyEntityAvailable;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,8 +17,13 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class OSMWay {
 
+@Table("osm_way")
+@EntityProxy
+public class OSMWay implements ProxyEntityAvailable<OSMWay, OSMWayProxy> {
+
+
+    @Column(primaryKey = true)
     private String id;
 
     /**
@@ -31,6 +42,7 @@ public class OSMWay {
 
     private String user;
 
+    @ColumnIgnore
     private Long chageset;
 
     /**

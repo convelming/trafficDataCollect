@@ -3,6 +3,7 @@ package com.convelming.roadflow.mapper;
 import com.alibaba.fastjson.JSONArray;
 import com.convelming.roadflow.model.OSMWay;
 import com.convelming.roadflow.model.vo.OSMWayVo;
+import com.easy.query.api.proxy.client.EasyEntityQuery;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import net.postgis.jdbc.PGgeometry;
@@ -27,21 +28,24 @@ public class OSMWayMapper {
     @Resource
     private JdbcTemplate jdbcTemplate;
 
+    @Resource
+    private EasyEntityQuery eeq;
+
     public boolean insert(OSMWay way) {
-        int row = jdbcTemplate.update(INSERT_SQL, genArgs(way));
+        long row = eeq.insertable(way).executeRows();
         return row > 0;
     }
 
-    public boolean deleteById(Object id) {
-        int row = jdbcTemplate.update("delete from " + TABLE_NAME + " where id = ?", id);
+    public boolean deleteById(String id) {
+        long row = eeq.deletable(OSMWay.class).where(t -> t.id().eq(id)).executeRows();
         return row > 0;
     }
 
-    public OSMWay selectById(Object id) {
-        return jdbcTemplate.queryForObject(" select * from " + TABLE_NAME + " where id = ? ", new BeanPropertyRowMapper<>(OSMWay.class), id);
+    public OSMWay selectById(String id) {
+        return eeq.queryable(OSMWay.class).where(t -> t.id().eq(id)).singleOrNull();
     }
 
-    public Long queryStartNode(Object id) {
+    public Long queryStartNode(String id) {
         OSMWay way = this.selectById(id);
         List<Long> nodes = JSONArray.parseArray(way.getNodes(), Long.class);
         return nodes.get(0);
@@ -56,10 +60,6 @@ public class OSMWayMapper {
         return true;
     }
 
-    public double[] queryWayCenterByName() {
-        String sql = "select ST_ClosestPoint(geom4326, ST_Centroid(geom4326)) from osm_way where name like '%建设四马路%' and highway is not null;";
-        return null;
-    }
 
     /**
      * 查询一个多边形内所有的路
@@ -68,11 +68,11 @@ public class OSMWayMapper {
      * @return 路
      */
     public List<OSMWay> queryByPolygon(PGgeometry geometry) {
-        String sql = "";
-        if(geometry == null){
+        String sql;
+        if (geometry == null) {
             sql = " select * from " + TABLE_NAME + " where highway is not null";
             return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(OSMWay.class));
-        }else{
+        } else {
             sql = " select * from " + TABLE_NAME + " where st_intersects(?, geom3857) and highway is not null and id in (select origid from matsim_link) ";
             return jdbcTemplate.queryForList(sql, OSMWay.class, geometry);
         }

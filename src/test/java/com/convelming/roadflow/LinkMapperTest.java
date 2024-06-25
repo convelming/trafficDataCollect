@@ -66,7 +66,7 @@ public class LinkMapperTest {
 
 
     public void sqlTest() throws SQLException {
-        long id = -1;
+        String id = "-1";
         MatsimLink node = new MatsimLink();
 //        MatsimLink node = new MatsimLink(id, 1, 1L, 1L, 1., 1., 1., new PGgeometry("LINESTRING((1 1),(2 2))"), 1L, "", null);
         linkMapper.deleteById(id);
@@ -98,7 +98,7 @@ public class LinkMapperTest {
             l.setLane((int) link.getNumberOfLanes());
             Attributes attributes = link.getAttributes();
             l.setType(String.valueOf(attributes.getAttribute("type")));
-            l.setOrigid(Long.valueOf(attributes.getAttribute("origid") == null ? "-1" : attributes.getAttribute("origid").toString()));
+            l.setOrigid(attributes.getAttribute("origid") == null ? "-1" : attributes.getAttribute("origid").toString());
             l.setGeom(GeomUtil.genLine(
                     ct_4526to3857.transform(link.getFromNode().getCoord()),
                     ct_4526to3857.transform(link.getToNode().getCoord()),

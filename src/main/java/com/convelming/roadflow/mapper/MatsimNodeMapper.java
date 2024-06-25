@@ -1,8 +1,9 @@
 package com.convelming.roadflow.mapper;
 
 import com.convelming.roadflow.model.MatsimNode;
+import com.easy.query.api.proxy.client.EasyEntityQuery;
 import jakarta.annotation.Resource;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import net.postgis.jdbc.PGgeometry;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -15,49 +16,44 @@ public class MatsimNodeMapper {
 
     private final String TABLE_NAME = " matsim_node ";
 
+    private final String FIELD = "id, srid, x, y, geom";
     //    private final String INSERT_SQL = "insert into " + TABLE_NAME + "(srid, x, y, geom) values (?, ?, ?, ?)";
-    private final String INSERT_SQL = "insert into " + TABLE_NAME + "(id, srid, x, y, geom) values (?, ?, ?, ?, ?)";
+    private final String INSERT_SQL = "insert into " + TABLE_NAME + "(" + FIELD + ") values (?, ?, ?, ?, ?)";
 
     @Resource
     JdbcTemplate jdbcTemplate;
+    @Resource
+    EasyEntityQuery eeq;
 
     public boolean insert(MatsimNode node) {
-        Object[] args = {
-                node.getId(),
-                node.getSrid(),
-                node.getX(),
-                node.getY(),
-                node.getGeom()
-        };
-        int row = jdbcTemplate.update(INSERT_SQL, args);
+        long row = eeq.insertable(node).executeRows();
         return row > 0;
     }
 
-    public boolean deleteById(Object id) {
-        int row = jdbcTemplate.update("delete from " + TABLE_NAME + " where id = ?", id);
+    public boolean deleteById(String id) {
+        long row = eeq.deletable(MatsimNode.class).where(t -> t.id().eq(id)).executeRows();
         return row > 0;
     }
 
-    public MatsimNode selectById(Object id) {
-        return jdbcTemplate.queryForObject("select * from " + TABLE_NAME + " where id = ?", new BeanPropertyRowMapper<>(MatsimNode.class), id);
+    public MatsimNode selectById(String id) {
+        return eeq.queryable(MatsimNode.class).where(t -> t.id().eq(id)).singleOrNull();
     }
 
     public List<MatsimNode> selectByIds(Collection<String> ids) {
 
-        if(ids.isEmpty()){
+        if (ids.isEmpty()) {
             return new ArrayList<>();
         }
 
-        StringBuilder sql = new StringBuilder("select * from ").append(TABLE_NAME).append(" where id in ( ");
-        for (int i = 0, len = ids.size(); i < len; i++) {
-            if (i != len - 1) {
-                sql.append("? ,");
-            } else {
-                sql.append("?");
-            }
+        return eeq.queryable(MatsimNode.class).where(t -> t.id().in(ids)).toList();
+    }
+
+    public List<MatsimNode> selectIntersects(PGgeometry ggeometry) {
+        if (ggeometry == null) {
+            return new ArrayList<>();
         }
-        sql.append(" )");
-        return jdbcTemplate.query(sql.toString(), new BeanPropertyRowMapper<>(MatsimNode.class), ids.toArray());
+        String sql = "select * from " + TABLE_NAME + " where ST_Intersects(?, geom)";
+        return eeq.sqlQuery(sql, MatsimNode.class, List.of(ggeometry));
     }
 
     public boolean batchInsert(List<MatsimNode> nodes) {

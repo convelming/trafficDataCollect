@@ -1,13 +1,17 @@
 package com.convelming.roadflow.mapper;
 
+import com.convelming.roadflow.model.LinkStats;
 import com.convelming.roadflow.model.MatsimLink;
+import com.convelming.roadflow.model.proxy.MatsimLinkProxy;
+import com.easy.query.api.proxy.client.EasyEntityQuery;
+import com.easy.query.core.proxy.sql.GroupKeys;
 import jakarta.annotation.Resource;
+import net.postgis.jdbc.PGgeometry;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Repository
 public class MatsimLinkMapper {
@@ -18,6 +22,8 @@ public class MatsimLinkMapper {
 
     @Resource
     JdbcTemplate jdbcTemplate;
+    @Resource
+    private EasyEntityQuery eeq;
 
     /**
      * 新增
@@ -26,7 +32,8 @@ public class MatsimLinkMapper {
      * @return
      */
     public boolean insert(MatsimLink link) {
-        int row = jdbcTemplate.update(INSERT_SQL, genArgs(link));
+//        int row = jdbcTemplate.update(INSERT_SQL, genArgs(link));
+        long row = eeq.insertable(link).executeRows();
         return row > 0;
     }
 
@@ -36,8 +43,8 @@ public class MatsimLinkMapper {
      * @param id
      * @return
      */
-    public boolean deleteById(Object id) {
-        int row = jdbcTemplate.update("delete from " + TABLE_NAME + " where id = ?", id);
+    public boolean deleteById(String id) {
+        long row = eeq.deletable(MatsimLink.class).where(t -> t.id().eq(id)).executeRows();
         return row > 0;
     }
 
@@ -47,13 +54,14 @@ public class MatsimLinkMapper {
      * @param id
      * @return
      */
-    public MatsimLink selectById(Object id) {
-        return jdbcTemplate.queryForObject("select * from " + TABLE_NAME + " where id = ?", new BeanPropertyRowMapper<>(MatsimLink.class), id);
+    public MatsimLink selectById(String id) {
+        return eeq.queryable(MatsimLink.class).where(t -> t.id().eq(id)).singleOrNull();
     }
 
-    public List<MatsimLink> selectLikeId(Object id) {
-        String sql = "select id, origid from " + TABLE_NAME + " where id||'' like ? order by id limit 1000";
-        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(MatsimLink.class), "%" + id + "%");
+
+    public List<MatsimLink> selectLikeId(String id) {
+        List<MatsimLink> list = eeq.queryable(MatsimLink.class).where(t -> t.id().like(id)).limit(100).toList();
+        return list;
     }
 
     /**
@@ -72,6 +80,15 @@ public class MatsimLinkMapper {
         return true;
     }
 
+    public List<MatsimLink> selectIntersects(PGgeometry ggeometry) {
+        if (ggeometry == null) {
+            return new ArrayList<>();
+        }
+        String sql = "select * from " + TABLE_NAME + " where ST_Intersects(?, geom)";
+        return eeq.sqlQuery(sql, MatsimLink.class, List.of(ggeometry));
+//        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(MatsimLink.class), ggeometry);
+    }
+
     /**
      * 根据origid查询
      *
@@ -79,8 +96,18 @@ public class MatsimLinkMapper {
      * @return
      */
     public List<MatsimLink> queryByOrigid(String origid) {
-        String sql = "select ml.*, string_agg(distinct ls.type, ',') as \"statsType\" from " + TABLE_NAME + " ml left join link_stats ls on ml.id = ls.link_id and ls.deleted = 0 where ml.origid = ? group by ml.id";
-        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(MatsimLink.class), origid);
+        List<MatsimLink> list = eeq.queryable(MatsimLink.class).where(t -> t.origid().eq(origid)).toList(MatsimLink.class);
+        List<Map<String, Object>> types = eeq.queryable(LinkStats.class)
+                .where(t -> {
+                    t.type().ne("3");
+                    t.linkId().in(list.stream().map(MatsimLink::getId).toList());
+                })
+                .groupBy(t -> GroupKeys.TABLE1.of(t.linkId()))
+                .select("link_id, string_agg(distinct type, ',') type").toMaps();
+        Map<String, String> linkTypeMap = new HashMap<>();
+        types.forEach(map -> linkTypeMap.put((String) map.get("link_id"), (String) map.get("type")));
+        list.forEach(link -> link.setStatsType(linkTypeMap.get(link.getId())));
+        return list;
     }
 
     /**
@@ -90,8 +117,15 @@ public class MatsimLinkMapper {
      * @return
      */
     public MatsimLink queryReverseLink(String id) {
-        String sql = "select a.* from " + TABLE_NAME + " a left join " + TABLE_NAME + " b on a.to_node = b.from_node and a.from_node = b.to_node where b.id = ?";
-        return jdbcTemplate.queryForObject(sql, new BeanPropertyRowMapper<>(MatsimLink.class), id);
+        MatsimLink link = eeq.queryable(MatsimLink.class).leftJoin(MatsimLink.class, (a, b) -> {
+            a.fromNode().eq(b.toNode());
+            a.toNode().eq(b.fromNode());
+        }).where((a, b) -> b.id().eq(id)).select((a, b) -> {
+            MatsimLinkProxy proxy = new MatsimLinkProxy();
+            proxy.selectAll(a);
+            return proxy;
+        }).singleOrNull();
+        return link;
     }
 
     /**
@@ -100,54 +134,24 @@ public class MatsimLinkMapper {
      * @param link
      * @return
      */
-    public int update(MatsimLink link) {
-        String sql = "update " + TABLE_NAME + " set ";
-
-        sql += " name = ?,";       // 道路名称
-        sql += " lane = ?,";       // 车道数
-        sql += " type = ?,";       // 道路类型
-        sql += " freespeed = ?,";   // 自由流量
-
-        sql = sql.substring(0, sql.length() - 1);
-
-        sql += " where id = ?";
-
-        int row = jdbcTemplate.update(sql, new Object[]{
-                link.getName(),
-                link.getLane(),
-                link.getType(),
-                link.getFreespeed(),
-                link.getId()});
-
+    public long update(MatsimLink link) {
+        long row = eeq.updatable(MatsimLink.class).setColumns(t -> {
+            t.name().set(link.getName());
+            t.lane().set(link.getLane());
+            t.type().set(link.getType());
+            t.freespeed().set(link.getFreespeed());
+        }).where(t -> t.id().eq(link.getId())).executeRows();
         return row;
     }
 
-    public int updateInWay(MatsimLink link) {
-        String sql = " update " + TABLE_NAME + " set ";
+    public long updateInWay(MatsimLink link) {
+        long row = eeq.updatable(MatsimLink.class).setColumns(t -> {
+            t.name().set(link.getName());
+            t.lane().set(link.getLane());
+            t.type().set(link.getType());
+            t.freespeed().set(link.getFreespeed());
+        }).where(t -> t.origid().eq(link.getOrigid())).executeRows();
 
-        sql += " name = ?,";       // 道路名称
-        sql += " lane = ?,";       // 车道数
-        sql += " type = ?,";       // 道路类型
-        sql += " freespeed = ?,";   // 自由流量
-
-        sql = sql.substring(0, sql.length() - 1);
-
-        sql += " where origid = ?";
-
-        // 修改 link
-        int row = jdbcTemplate.update(sql, new Object[]{
-                link.getName(),
-                link.getLane(),
-                link.getType(),
-                link.getFreespeed(),
-                link.getOrigid()});
-
-        // 修改 way
-        jdbcTemplate.update("update osm_way set name = ?, highway = ? where id = ?", new Object[]{
-                link.getName(),
-                link.getType(),
-                link.getOrigid()
-        });
 
         return row;
     }

@@ -1,5 +1,9 @@
 package com.convelming.roadflow.model;
 
+import com.convelming.roadflow.model.proxy.OSMNodeProxy;
+import com.easy.query.core.annotation.EntityProxy;
+import com.easy.query.core.annotation.Table;
+import com.easy.query.core.proxy.ProxyEntityAvailable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,7 +14,10 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class OSMNode {
+
+@Table("osm_node")
+@EntityProxy
+public class OSMNode implements ProxyEntityAvailable<OSMNode, OSMNodeProxy> {
 
     private Long id;
 

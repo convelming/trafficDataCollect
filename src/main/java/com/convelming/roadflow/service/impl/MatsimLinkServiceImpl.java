@@ -93,6 +93,9 @@ public class MatsimLinkServiceImpl implements MatsimLinkService {
     @Override
     public MatsimLink queryReverseLink(String id) {
         MatsimLink link = matsimLinkMapper.queryReverseLink(id);
+        if(link == null){
+            throw new RuntimeException("单行道没有反向道路");
+        }
         MatsimNode to = matsimNodeMapper.selectById(link.getToNode());
         MatsimNode from = matsimNodeMapper.selectById(link.getFromNode());
         link.setToxy(new Double[]{to.getX(), to.getY()});
@@ -101,12 +104,12 @@ public class MatsimLinkServiceImpl implements MatsimLinkService {
     }
 
     @Override
-    public int update(MatsimLink link) {
+    public long update(MatsimLink link) {
         return matsimLinkMapper.update(link);
     }
 
     @Override
-    public int updateInWay(MatsimLink link) {
+    public long updateInWay(MatsimLink link) {
         return matsimLinkMapper.updateInWay(link);
     }
 

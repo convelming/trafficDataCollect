@@ -2,8 +2,8 @@ package com.convelming.roadflow.mapper;
 
 
 import com.convelming.roadflow.model.OSMNode;
+import com.easy.query.api.proxy.client.EasyEntityQuery;
 import jakarta.annotation.Resource;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -20,23 +20,26 @@ public class OSMNodeMapper {
     @Resource
     private JdbcTemplate jdbcTemplate;
 
+    @Resource
+    private EasyEntityQuery eeq;
+
     public boolean insert(OSMNode node) {
-        int row = jdbcTemplate.update(INSERT_SQL, genArgs(node));
+        long row = eeq.insertable(node).executeRows();
         return row > 0;
     }
 
-    public boolean deleteById(Object id) {
-        int row = jdbcTemplate.update("delete from " + TABLE_NAME + " where id = ?", id);
+    public boolean deleteById(Long id) {
+        long row = eeq.deletable(OSMNode.class).where(t -> t.id().eq(id)).executeRows();
         return row > 0;
     }
 
-    public OSMNode selectById(Object id){
-        return jdbcTemplate.queryForObject("select * from " + TABLE_NAME + " where id = ?", new BeanPropertyRowMapper<>(OSMNode.class), id);
+    public OSMNode selectById(Long id) {
+        return eeq.queryable(OSMNode.class).where(t -> t.id().eq(id)).singleOrNull();
     }
 
-    public boolean batchInsert(List<OSMNode> nodes){
+    public boolean batchInsert(List<OSMNode> nodes) {
         List<Object[]> args = new ArrayList<>();
-        for(OSMNode node : nodes){
+        for (OSMNode node : nodes) {
             args.add(genArgs(node));
         }
         jdbcTemplate.batchUpdate(INSERT_SQL, args);

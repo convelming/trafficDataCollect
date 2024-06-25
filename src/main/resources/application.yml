@@ -24,3 +24,11 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+easy-query:
+  enable: true
+  database: pgsql
+  name-conversion: underlined
+  delete-throw: true
+  print-sql: true
+  keep-native-style: true

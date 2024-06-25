@@ -2,10 +2,16 @@ package com.convelming.roadflow.mapper;
 
 import com.convelming.roadflow.common.Page;
 import com.convelming.roadflow.model.LinkStats;
+import com.convelming.roadflow.model.MatsimLink;
+import com.convelming.roadflow.model.OSMWay;
 import com.convelming.roadflow.model.vo.LinkStatsAvg;
 import com.convelming.roadflow.util.IdUtil;
+import com.easy.query.api.proxy.base.MapProxy;
+import com.easy.query.api.proxy.client.EasyEntityQuery;
+import com.easy.query.core.proxy.sql.GroupKeys;
 import jakarta.annotation.Resource;
 import net.postgis.jdbc.PGgeometry;
+import org.springframework.beans.BeanUtils;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -24,129 +30,157 @@ public class LinkStatsMapper {
     private static final String LIMIT_SQL = " limit ? offset ? ";
 
     @Resource
+    private IdUtil idUtil;
+    @Resource
     private JdbcTemplate jdbcTemplate;
     @Resource
-    private IdUtil idUtil;
+    private EasyEntityQuery eeq;
 
     public boolean insert(LinkStats stats) {
         stats.setId(idUtil.getId(TABLE_NAME));
-        Object[] args = new Object[]{
-                stats.getId(),
-                stats.getLinkId(),
-                stats.getWayId(),
-                stats.getBeginTime(),
-                stats.getEndTime(),
-                stats.getType(),
-                stats.getPcuH(),
-                stats.getScar(),
-                stats.getStruck(),
-                stats.getMcar(),
-                stats.getMtruck(),
-                stats.getLcar(),
-                stats.getLtruck(),
-                stats.getVideo(),
-                stats.getIsTwoWay(),
-                stats.getX(),
-                stats.getY(),
-                stats.getRemark(),
-                stats.getIpAddr(),
-                1,
-                0,
-                new Date(),
-                new Date()
-        };
+        stats.setVersion(1);
+        stats.setDeleted(0L);
+//        Object[] args = new Object[]{
+//                stats.getId(),
+//                stats.getLinkId(),
+//                stats.getWayId(),
+//                stats.getBeginTime(),
+//                stats.getEndTime(),
+//                stats.getType(),
+//                stats.getPcuH(),
+//                stats.getScar(),
+//                stats.getStruck(),
+//                stats.getMcar(),
+//                stats.getMtruck(),
+//                stats.getLcar(),
+//                stats.getLtruck(),
+//                stats.getVideo(),
+//                stats.getIsTwoWay(),
+//                stats.getX(),
+//                stats.getY(),
+//                stats.getRemark(),
+//                stats.getIpAddr(),
+//                1,
+//                0,
+//                new Date(),
+//                new Date()
+//        };
 //        String sql = INSERT_SQL;
 //        for(int i=0; i<args.length; i++){
 //            sql = sql.replace("?", String.valueOf(args[i]));
 //        }
 //        System.out.println(sql);
-        int row = jdbcTemplate.update(INSERT_SQL, args);
+//        int row = jdbcTemplate.update(INSERT_SQL, args);
+        long row = eeq.insertable(stats).executeRows();
         return row > 0;
     }
 
     public boolean update(LinkStats stats) {
-        String sql = " update " + TABLE_NAME + " set ";
+//        String sql = " update " + TABLE_NAME + " set ";
+//
+//        sql += " link_id = ?, ";
+//        sql += " way_id = ?, ";
+//        sql += " begin_time = ?, ";
+//        sql += " end_time = ?, ";
+//        sql += " \"type\" = ?, ";
+//        sql += " pcu_h = ?, ";
+//        sql += " scar = ?, ";
+//        sql += " struck = ?, ";
+//        sql += " mcar = ?, ";
+//        sql += " mtruck = ?, ";
+//        sql += " lcar = ?, ";
+//        sql += " ltruck = ?, ";
+//        sql += " remark = ?, ";
+//        sql += " ip_addr = ?, ";
+//        sql += " version = version + 1, ";
+//        sql += " video = ?, ";
+//        sql += " is_two_way = ?, ";
+//        sql += " update_time = now() ";
+//
+//        sql += " where id = ? ";
 
-        sql += " link_id = ?, ";
-        sql += " way_id = ?, ";
-        sql += " begin_time = ?, ";
-        sql += " end_time = ?, ";
-        sql += " \"type\" = ?, ";
-        sql += " pcu_h = ?, ";
-        sql += " scar = ?, ";
-        sql += " struck = ?, ";
-        sql += " mcar = ?, ";
-        sql += " mtruck = ?, ";
-        sql += " lcar = ?, ";
-        sql += " ltruck = ?, ";
-        sql += " remark = ?, ";
-        sql += " ip_addr = ?, ";
-        sql += " version = version + 1, ";
-        sql += " video = ?, ";
-        sql += " is_two_way = ?, ";
-        sql += " update_time = now() ";
+//        int row = jdbcTemplate.update(sql, new Object[]{
+//                stats.getLinkId(),
+//                stats.getWayId(),
+//                stats.getBeginTime(),
+//                stats.getEndTime(),
+//                stats.getType(),
+//                stats.getPcuH(),
+//                stats.getScar(),
+//                stats.getStruck(),
+//                stats.getMcar(),
+//                stats.getMtruck(),
+//                stats.getLcar(),
+//                stats.getLtruck(),
+//                stats.getRemark(),
+//                stats.getIpAddr(),
+//                stats.getVideo(),
+//                stats.getIsTwoWay(),
+//                stats.getId()
+//        });
 
-        sql += " where id = ? ";
+        LinkStats org = selectById(stats.getId());
 
-        int row = jdbcTemplate.update(sql, new Object[]{
-                stats.getLinkId(),
-                stats.getWayId(),
-                stats.getBeginTime(),
-                stats.getEndTime(),
-                stats.getType(),
-                stats.getPcuH(),
-                stats.getScar(),
-                stats.getStruck(),
-                stats.getMcar(),
-                stats.getMtruck(),
-                stats.getLcar(),
-                stats.getLtruck(),
-                stats.getRemark(),
-                stats.getIpAddr(),
-                stats.getVideo(),
-                stats.getIsTwoWay(),
-                stats.getId()
-        });
+        stats.setUpdateTime(new Date());
+        stats.setVersion(org.getVersion() + 1);
 
+        long row = eeq.updatable(stats).executeRows();
         return row > 0;
     }
 
     public LinkStats selectById(Long id) {
-        return jdbcTemplate.queryForObject(" select * from " + TABLE_NAME + " where id = ? and deleted = 0", new BeanPropertyRowMapper<>(LinkStats.class), id);
+        return eeq.queryable(LinkStats.class).where(s -> s.id().eq(id)).singleOrNull();
+//        return jdbcTemplate.queryForObject(" select * from " + TABLE_NAME + " where id = ? and deleted = 0", new BeanPropertyRowMapper<>(LinkStats.class), id);
     }
 
     public List<LinkStats> queryAllMaker(Date beginTime, Date endTime, String type) {
-        String sql = " select distinct link_id, x, y, max(pcu_h) \"pcu_h\", string_agg(distinct type, ',') as \"type\" from " + TABLE_NAME + " ls where ls.deleted = 0 ";
-        List<Object> args = new ArrayList<>();
-        if (type != null && !"".equals(type)) {
-            sql += " and ls.type = ? ";
-            args.add(type);
-        }
-        if (beginTime != null) {
-            sql += " and ls.begin_time >= ? ";
-            args.add(beginTime);
-        }
-        if (endTime != null) {
-            sql += " and ls.end_time <= ? ";
-            args.add(endTime);
-        }
-        sql += " group by link_id, x, y ";
+//        String sql = " select distinct link_id, x, y, max(pcu_h) \"pcu_h\", string_agg(distinct type, ',') as \"type\" from " + TABLE_NAME + " ls where ls.deleted = 0 ";
+//        sql += " and type != '3' ";
+//        List<Object> args = new ArrayList<>();
+//        if (type != null && !"".equals(type)) {
+//            sql += " and ls.type = ? ";
+//            args.add(type);
+//        }
+//        if (beginTime != null) {
+//            sql += " and ls.begin_time >= ? ";
+//            args.add(beginTime);
+//        }
+//        if (endTime != null) {
+//            sql += " and ls.end_time <= ? ";
+//            args.add(endTime);
+//        }
+//        sql += " group by link_id, x, y ";
 
-        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(LinkStats.class), args.toArray());
+//        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(LinkStats.class), args.toArray());
+        String columns = "distinct link_id, x, y, max(pcu_h) as \"pcu_h\", string_agg(distinct type, ',') as \"type\"";
+        List<LinkStats> list = eeq.queryable(LinkStats.class)
+                .where(s -> {
+                    s.type().ne("3");
+                    s.type().eq(type != null && !type.isEmpty(), type);
+                    s.beginTime().ge(beginTime != null, beginTime);
+                    s.endTime().le(endTime != null, endTime);
+                })
+                .groupBy(s -> GroupKeys.TABLE1.of(s.linkId(), s.x(), s.y()))
+                .select(columns).toList(LinkStats.class);
+        return list;
     }
 
     public List<LinkStats> queryByIds(Collection<Long> ids) {
-//        StringBuilder sql = new StringBuilder(" select " + BASE_FIELD + " from " + TABLE_NAME + " where id in (");
-        StringBuilder sql = new StringBuilder("select ls.*, st_asewkt(ml.geom) \"linkLineString\", st_asewkt(ow.geom3857) \"wayLineString\" from link_stats ls left join matsim_link ml on ls.link_id=ml.id left join osm_way ow on ml.origid=ow.id  where ls.id in (");
-        for (int i = 0, len = ids.size(); i < len; i++) {
-            if (i == len - 1) {
-                sql.append("?");
-            } else {
-                sql.append("?,");
-            }
-        }
-        sql.append(") and deleted = 0");
-        return jdbcTemplate.query(sql.toString(), new BeanPropertyRowMapper<>(LinkStats.class), ids.toArray());
+        List<Map<String, Object>> maps = eeq.queryable(LinkStats.class)
+                .leftJoin(MatsimLink.class, (a, b) -> a.linkId().eq(b.id()))
+                .leftJoin(OSMWay.class, (a, b, c) -> b.origid().eq(c.id()))
+                .where(a -> a.id().in(ids))
+                .select((a, b, c) -> {
+                    MapProxy result = new MapProxy();
+                    result.put("linkLineString", b.geom());
+                    result.put("wayLineString", c.geom3857());
+                    result.selectAll(a);
+                    return result;
+                })
+                .toMaps();
+        List<LinkStats> list = new ArrayList<>();
+        maps.forEach(map -> list.add(new LinkStats(map)));
+        return list;
     }
 
     public List<LinkStatsAvg> queryAvgStats(Long[] ids, String linkId) {
@@ -252,13 +286,14 @@ public class LinkStatsMapper {
     }
 
     public boolean delete(Long id) {
-        int row = jdbcTemplate.update(" update " + TABLE_NAME + " set deleted = 1, version = version + 1, update_time = now() where id = ? ", id);
+        long row = eeq.deletable(LinkStats.class).where(s -> s.id().eq(id)).executeRows();
+//        int row = jdbcTemplate.update(" update " + TABLE_NAME + " set deleted = 1, version = version + 1, update_time = now() where id = ? ", id);
         return row > 0;
     }
 
-    public static List<Object[]> genArgs(List<LinkStats> list){
+    public static List<Object[]> genArgs(List<LinkStats> list) {
         List<Object[]> result = new ArrayList<>();
-        list.forEach(stats->{
+        list.forEach(stats -> {
             Object[] args = new Object[]{
                     stats.getId(),
                     stats.getLinkId(),

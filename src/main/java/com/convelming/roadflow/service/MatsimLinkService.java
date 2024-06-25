@@ -13,8 +13,8 @@ public interface MatsimLinkService {
 
     MatsimLink queryReverseLink(String id);
 
-    int update(MatsimLink link);
+    long update(MatsimLink link);
 
-    int updateInWay(MatsimLink link);
+    long updateInWay(MatsimLink link);
 
 }
