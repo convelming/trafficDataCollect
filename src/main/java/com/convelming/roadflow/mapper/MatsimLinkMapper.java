@@ -99,8 +99,8 @@ public class MatsimLinkMapper {
         List<MatsimLink> list = eeq.queryable(MatsimLink.class).where(t -> t.origid().eq(origid)).toList(MatsimLink.class);
         List<Map<String, Object>> types = eeq.queryable(LinkStats.class)
                 .where(t -> {
-                    t.type().ne("3");
                     t.linkId().in(list.stream().map(MatsimLink::getId).toList());
+                    t.type().ne("3");
                 })
                 .groupBy(t -> GroupKeys.TABLE1.of(t.linkId()))
                 .select("link_id, string_agg(distinct type, ',') type").toMaps();

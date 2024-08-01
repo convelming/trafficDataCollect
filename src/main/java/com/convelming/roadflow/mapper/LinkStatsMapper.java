@@ -11,8 +11,6 @@ import com.easy.query.api.proxy.client.EasyEntityQuery;
 import com.easy.query.core.proxy.sql.GroupKeys;
 import jakarta.annotation.Resource;
 import net.postgis.jdbc.PGgeometry;
-import org.springframework.beans.BeanUtils;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -206,7 +204,8 @@ public class LinkStatsMapper {
 //                " from link_stats where deleted = 0 ";
         if (ids == null || ids.length == 0) {
             sql += " and link_id = ? group by to_char(begin_time, 'HH24') ";
-            return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(LinkStatsAvg.class), linkId);
+//            return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(LinkStatsAvg.class), linkId);
+            return eeq.sqlQuery(sql, LinkStatsAvg.class, Collections.singletonList(linkId));
         } else {
             sql += " and id in (";
             for (int i = 0, len = ids.length; i < len; i++) {
@@ -214,20 +213,23 @@ public class LinkStatsMapper {
             }
             sql = sql.substring(0, sql.length() - 1);
             sql += " ) group by to_char(begin_time, 'HH24') ";
-            return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(LinkStatsAvg.class), ids);
+//            return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(LinkStatsAvg.class), ids);
+            return eeq.sqlQuery(sql, LinkStatsAvg.class, Arrays.asList(ids));
         }
     }
 
     public Page<LinkStats> queryByGeometry(PGgeometry geometry, Boolean all, Page<LinkStats> page) {
         if (all) {
             String sql = " select #{col} from " + TABLE_NAME + " ls left join matsim_link ml on ls.link_id = ml.id where ls.deleted = 0 ";
-            Long total = jdbcTemplate.queryForObject(sql.replace("#{col}", "count(1)"), Long.class);
-            List<LinkStats> data = jdbcTemplate.query(sql.replace("#{col}", "ls.*"), new BeanPropertyRowMapper<>(LinkStats.class));
-            return page.build(data, total);
+//            Long total = jdbcTemplate.queryForObject(sql.replace("#{col}", "count(1)"), Long.class);
+            List<Long> total = eeq.sqlQuery(sql.replace("#{col}", "count(1)"), Long.class);
+//            List<LinkStats> data = jdbcTemplate.query(sql.replace("#{col}", "ls.*"), new BeanPropertyRowMapper<>(LinkStats.class));
+            List<LinkStats> data = eeq.sqlQuery(sql.replace("#{col}", "ls.*"), LinkStats.class);
+            return page.build(data, total.get(0));
         } else {
             List<Object> args = new ArrayList<>();
             args.add(geometry);
-            String sql = " select #{col} from " + TABLE_NAME + " ls left join matsim_link ml on ls.link_id = ml.id where st_intersects(?, ml.geom) and ls.deleted = 0 ";
+            String sql = " select #{col} from " + TABLE_NAME + " ls left join matsim_link ml on ls.link_id = ml.id where st_intersects(?, ml.geom) and ls.deleted = 0";
 
             Map<String, Object> param = page.getParam();
             if (param.get("type") != null && !"".equals(param.get("type"))) {
@@ -243,14 +245,17 @@ public class LinkStatsMapper {
                 args.add(param.get("endTime"));
             }
 
-            Long total = jdbcTemplate.queryForObject(sql.replace("#{col}", "count(1)"), Long.class, args.toArray());
+//            Long total = jdbcTemplate.queryForObject(sql.replace("#{col}", "count(1)"), Long.class, args.toArray());
+            List<Long> total = eeq.sqlQuery(sql.replace("#{col}", "count(1)"), Long.class, args);
             args.add(page.getPageSize());
             args.add(page.getOffset());
-            List<LinkStats> data = jdbcTemplate.query(sql.replace("#{col}", "ls.*") + LIMIT_SQL,
-                    new BeanPropertyRowMapper<>(LinkStats.class),
-                    args.toArray()
-            );
-            return page.build(data, total);
+
+//            List<LinkStats> data = jdbcTemplate.query(sql.replace("#{col}", "ls.*") + LIMIT_SQL,
+//                    new BeanPropertyRowMapper<>(LinkStats.class),
+//                    args.toArray()
+//            );
+            List<LinkStats> data = eeq.sqlQuery(sql.replace("#{col}", "ls.*") + LIMIT_SQL, LinkStats.class, args);
+            return page.build(data, total.get(0));
         }
     }
 
@@ -279,9 +284,12 @@ public class LinkStatsMapper {
         sql += " order by update_time desc ";
         args.add(page.getPageSize());
         args.add(page.getOffset());
-        List<LinkStats> data = jdbcTemplate.query(sql.replace("#{col}", BASE_FIELD) + LIMIT_SQL,
-                new BeanPropertyRowMapper<>(LinkStats.class),
-                args.toArray());
+
+        List<LinkStats> data = eeq.sqlQuery(sql.replace("#{col}", BASE_FIELD) + LIMIT_SQL, LinkStats.class, args);
+
+//        List<LinkStats> data = jdbcTemplate.query(sql.replace("#{col}", BASE_FIELD) + LIMIT_SQL,
+//                new BeanPropertyRowMapper<>(),
+//                args.toArray());
         return page.build(data, total);
     }
 
