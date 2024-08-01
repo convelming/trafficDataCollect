@@ -11,7 +11,6 @@ import com.easy.query.api.proxy.client.EasyEntityQuery;
 import com.easy.query.core.proxy.sql.GroupKeys;
 import jakarta.annotation.Resource;
 import net.postgis.jdbc.PGgeometry;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
@@ -29,8 +28,6 @@ public class LinkStatsMapper {
 
     @Resource
     private IdUtil idUtil;
-    @Resource
-    private JdbcTemplate jdbcTemplate;
     @Resource
     private EasyEntityQuery eeq;
 
@@ -153,7 +150,7 @@ public class LinkStatsMapper {
         String columns = "distinct link_id, x, y, max(pcu_h) as \"pcu_h\", string_agg(distinct type, ',') as \"type\"";
         List<LinkStats> list = eeq.queryable(LinkStats.class)
                 .where(s -> {
-                    s.type().ne("3");
+                    s.type().in(List.of("0", "1", "2")); // 除去3高德爬取
                     s.type().eq(type != null && !type.isEmpty(), type);
                     s.beginTime().ge(beginTime != null, beginTime);
                     s.endTime().le(endTime != null, endTime);
@@ -279,7 +276,8 @@ public class LinkStatsMapper {
             args.add(param.get("endTime"));
         }
 
-        Long total = jdbcTemplate.queryForObject(sql.replace("#{col}", "count(1)"), Long.class, args.toArray());
+//        Long total = jdbcTemplate.queryForObject(sql.replace("#{col}", "count(1)"), Long.class, args.toArray());
+        List<Long> total = eeq.sqlQuery(sql.replace("#{col}", "count(1)"), Long.class, args);
 
         sql += " order by update_time desc ";
         args.add(page.getPageSize());
@@ -290,7 +288,7 @@ public class LinkStatsMapper {
 //        List<LinkStats> data = jdbcTemplate.query(sql.replace("#{col}", BASE_FIELD) + LIMIT_SQL,
 //                new BeanPropertyRowMapper<>(),
 //                args.toArray());
-        return page.build(data, total);
+        return page.build(data, total.get(0));
     }
 
     public boolean delete(Long id) {

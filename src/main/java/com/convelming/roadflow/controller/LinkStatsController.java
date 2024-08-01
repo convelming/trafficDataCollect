@@ -90,8 +90,8 @@ public class LinkStatsController {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date begin = null, end = null;
         try {
-            if (beginTime != null && !"".equals(beginTime)) begin = sdf.parse(beginTime);
-            if (endTime != null && !"".equals(endTime)) end = sdf.parse(endTime);
+            if (beginTime != null && !beginTime.isEmpty()) begin = sdf.parse(beginTime);
+            if (endTime != null && !endTime.isEmpty()) end = sdf.parse(endTime);
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -70,11 +70,13 @@ public class OSMWayMapper {
     public List<OSMWay> queryByPolygon(PGgeometry geometry) {
         String sql;
         if (geometry == null) {
-            sql = " select * from " + TABLE_NAME + " where highway is not null";
-            return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(OSMWay.class));
+//            sql = " select * from " + TABLE_NAME + " where highway is not null";
+//            return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(OSMWay.class));
+            return eeq.queryable(OSMWay.class).where(w -> w.highway().isNotNull()).toList();
         } else {
             sql = " select * from " + TABLE_NAME + " where st_intersects(?, geom3857) and highway is not null and id in (select origid from matsim_link) ";
-            return jdbcTemplate.queryForList(sql, OSMWay.class, geometry);
+//            return jdbcTemplate.queryForList(sql, OSMWay.class, geometry);
+            return eeq.sqlQuery(sql, OSMWay.class, List.of(geometry));
         }
     }
 
@@ -102,14 +104,19 @@ public class OSMWayMapper {
             sql += " where st_intersects(?, geom3857) " +
                     " and t.id in (select origid from matsim_link) ";
         }
-        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(OSMWayVo.class));
+//        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(OSMWayVo.class));
+        return eeq.sqlQuery(sql, OSMWayVo.class);
 //        log.info("sql ==> :{}", sql);
 //        log.info("param ==> :{}", geometry);
     }
 
     public List<OSMWay> queryByName(String name) {
-        String sql = " select * from " + TABLE_NAME + " where name like ? and highway is not null";
-        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(OSMWay.class), "%" + name + "%");
+//        String sql = " select * from " + TABLE_NAME + " where name like ? and highway is not null";
+//        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(OSMWay.class), "%" + name + "%");
+        return eeq.queryable(OSMWay.class).where(o -> {
+            o.highway().isNotNull();
+            o.name().like(name);
+        }).toList();
     }
 
     private Object[] genArgs(OSMWay way) {
