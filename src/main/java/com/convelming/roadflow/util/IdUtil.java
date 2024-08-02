@@ -17,17 +17,19 @@ public class IdUtil {
     @Resource
     private JdbcTemplate jdbcTemplate;
 
-    public synchronized Long getId(String table){
-        Long id = idMap.get(table);
-        if(id == null){
-            String sql = SELECT_SQL.replace("#{table}", table);
-            Long maxId = jdbcTemplate.queryForObject(sql, Long.class);
-            id = maxId == null ? 1 : maxId + 1;
-        }else{
-            id = id + 1;
+    public Long getId(String table) {
+        synchronized (IdUtil.class) {
+            Long id = idMap.get(table);
+            if (id == null) {
+                String sql = SELECT_SQL.replace("#{table}", table);
+                Long maxId = jdbcTemplate.queryForObject(sql, Long.class);
+                id = maxId == null ? 1 : maxId + 1;
+            } else {
+                id = id + 1;
+            }
+            idMap.put(table, id);
+            return id;
         }
-        idMap.put(table, id);
-        return id;
     }
 
 

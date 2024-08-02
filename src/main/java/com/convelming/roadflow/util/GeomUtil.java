@@ -3,6 +3,11 @@ package com.convelming.roadflow.util;
 import com.convelming.roadflow.model.OSMNode;
 import lombok.extern.slf4j.Slf4j;
 import net.postgis.jdbc.PGgeometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Node;
@@ -18,9 +23,23 @@ public class GeomUtil {
      */
     public static final int MKT = 3857;
 
+    private static GeometryFactory geometryFactory = new GeometryFactory();
+
     public static void main(String[] args) throws SQLException {
 //        PGgeometry ggeometry = new PGgeometry("POINT(1 2)");
 //        System.out.println(Arrays.toString(point2xy(ggeometry)));
+    }
+
+    public static double[] getCentroid(PGgeometry pg) {
+        WKTReader reader = new WKTReader(geometryFactory);
+        try {
+            Polygon polygon = (Polygon) reader.read(pg.toString().replace("SRID=3857;", ""));
+            Point point = polygon.getCentroid();
+            return new double[]{point.getX(), point.getY()};
+        } catch (ParseException e) {
+            log.error(e.getMessage(), e);
+            throw new RuntimeException();
+        }
     }
 
     public static PGgeometry genPolygon(double[][] xyarr, int srid) {

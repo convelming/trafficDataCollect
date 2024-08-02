@@ -42,7 +42,7 @@ public class LinkStatsController {
     @PostMapping("/insert")
     public Result insert(@RequestBody LinkStats stats, HttpServletRequest request) {
         stats.setIpAddr(request.getRemoteAddr());
-        return Result.fialOrOk(linkStatsService.insert(stats));
+        return Result.failOrOk(linkStatsService.insert(stats));
     }
 
     /**
@@ -53,7 +53,7 @@ public class LinkStatsController {
     @PostMapping("/update")
     public Result update(@RequestBody LinkStats stats, HttpServletRequest request) {
         stats.setIpAddr(request.getRemoteAddr());
-        return Result.fialOrOk(linkStatsService.update(stats));
+        return Result.failOrOk(linkStatsService.update(stats));
     }
 
     /**

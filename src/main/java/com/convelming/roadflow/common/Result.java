@@ -16,7 +16,7 @@ public class Result {
     }
 
 
-    public static Result fialOrOk(boolean ok){
+    public static Result failOrOk(boolean ok){
         return ok ? Result.ok() : Result.fail();
     }
     public static Result ok(){
