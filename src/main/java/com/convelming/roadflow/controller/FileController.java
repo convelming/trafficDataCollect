@@ -32,7 +32,7 @@ public class FileController {
         try (OutputStream os = new FileOutputStream(out)) {
             InputStream is = file.getInputStream();
             int len;
-            byte[] bytes = new byte[4096];
+            byte[] bytes = new byte[1024 * 10];
             while ((len = is.read(bytes)) > 0) {
                 os.write(bytes, 0, len);
             }
@@ -40,8 +40,7 @@ public class FileController {
             is.close();
             FileCopyUtils.copy(file.getBytes(), out);
         } catch (Exception e) {
-            log.error(e.getMessage());
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
             return Result.fail();
         }
         return Result.ok(result);
@@ -57,7 +56,7 @@ public class FileController {
                 FileInputStream is = new FileInputStream(Constant.VIDEO_PATH + "/" + url)
         ) {
             int len;
-            byte[] b = new byte[2048];
+            byte[] b = new byte[1024 * 10];
             while ((len = is.read(b)) > -1) {
                 os.write(b, 0, len);
             }

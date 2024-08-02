@@ -1,16 +1,14 @@
 package com.convelming.roadflow;
 
-import com.convelming.roadflow.model.LinkStats;
 import com.convelming.roadflow.model.MatsimLink;
-import com.convelming.roadflow.model.proxy.MatsimLinkProxy;
-import com.easy.query.api.proxy.base.MapProxy;
+import com.convelming.roadflow.util.VideoUtil;
 import com.easy.query.api.proxy.client.EasyEntityQuery;
 import jakarta.annotation.Resource;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
@@ -21,6 +19,11 @@ public class Test {
 
     // AVRO
     private final BigDecimal HOURS = new BigDecimal("3600000");
+
+    @org.junit.Test
+    public void videoFrame() throws IOException {
+        VideoUtil.saveImage("F:\\流量视频\\IMG_7802.MOV", "F:\\流量视频\\IMG_7802.MOV.jpg", VideoUtil.ImageType.JPG);
+    }
 
     @org.junit.Test
     public void pcu() {
