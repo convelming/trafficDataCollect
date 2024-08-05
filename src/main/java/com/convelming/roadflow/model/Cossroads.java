@@ -2,7 +2,6 @@ package com.convelming.roadflow.model;
 
 import cn.afterturn.easypoi.excel.annotation.ExcelTarget;
 import com.alibaba.fastjson.annotation.JSONField;
-import com.alibaba.fastjson2.JSON;
 import com.convelming.roadflow.model.proxy.CossroadsProxy;
 import com.easy.query.core.annotation.*;
 import com.easy.query.core.basic.extension.logicdel.LogicDeleteStrategyEnum;
@@ -56,6 +55,11 @@ public class Cossroads implements ProxyEntityAvailable<Cossroads, CossroadsProxy
      * 绘制状态
      */
     private Integer status;
+
+    /**
+     * 绘制线数据
+     */
+    private String lines;
 
     /**
      * 开始时间

@@ -8,6 +8,7 @@ import org.bytedeco.javacv.Java2DFrameConverter;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 
 @Slf4j
 public class VideoUtil {
@@ -59,6 +60,24 @@ public class VideoUtil {
             grabber.close();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 获取封面宽高
+     *
+     * @param image 图片全地址
+     * @return [width, hegiht]
+     */
+    public static int[] widthight(String image) {
+        File imageFile = new File(image);
+        try {
+            BufferedImage img = ImageIO.read(imageFile);
+            int width = img.getWidth();
+            int height = img.getHeight();
+            return new int[]{width, height};
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 

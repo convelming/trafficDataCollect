@@ -30,5 +30,16 @@ public class CossroadsMapper {
         return row > 0;
     }
 
+    public Cossroads selectById(Long id) {
+        return eeq.queryable(Cossroads.class).where(t -> t.id().eq(id)).singleOrNull();
+    }
+
+    public int saveLines(Cossroads cossroads) {
+        return (int) eeq.updatable(Cossroads.class).setColumns(t -> {
+            t.lines().set(cossroads.getLines());
+            t.version().set(cossroads.getVersion());
+            t.updateTime().set(cossroads.getUpdateTime());
+        }).where(t -> t.id().eq(cossroads.getId())).executeRows();
+    }
 
 }

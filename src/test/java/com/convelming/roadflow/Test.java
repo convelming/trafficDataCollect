@@ -22,7 +22,9 @@ public class Test {
 
     @org.junit.Test
     public void videoFrame() throws IOException {
+        long time = System.currentTimeMillis();
         VideoUtil.saveImage("F:\\流量视频\\IMG_7802.MOV", "F:\\流量视频\\IMG_7802.MOV.jpg", VideoUtil.ImageType.JPG);
+        System.out.println("time: " + (System.currentTimeMillis() - time));
     }
 
     @org.junit.Test
