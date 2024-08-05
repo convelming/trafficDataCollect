@@ -90,10 +90,10 @@ public class CossroadsServiceImpl implements CossroadsService {
             if (!LineUtil.crossJudgment(vertex, new Coord[]{link.getFromNode().getCoord(), link.getToNode().getCoord()})) { // 边界相交
                 return;
             }
-            if (link.getFromNode().getOutLinks().size() == 1) {
+            if (link.getFromNode().getInLinks().isEmpty()) {
                 ins.add(link);
             }
-            if (link.getToNode().getInLinks().size() == 1) {
+            if (link.getToNode().getOutLinks().isEmpty()) {
                 outs.add(link);
             }
         }));
@@ -104,7 +104,6 @@ public class CossroadsServiceImpl implements CossroadsService {
             MatsimLink inLink = linkMap.get(in.getId().toString());
             for (Link out : outs) {
                 MatsimLink outLink = linkMap.get(out.getId().toString());
-                // 默认车辆
                 CossroadsStats cossroadsStats = new CossroadsStats();
                 cossroadsStats.setCossroadsId(cossroads.getId());
                 cossroadsStats.setOutLink(outLink.getId());
