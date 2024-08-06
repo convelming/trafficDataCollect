@@ -26,6 +26,7 @@ import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.network.NetworkUtils;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -66,12 +67,11 @@ public class CossroadsServiceImpl implements CossroadsService {
         cossroads.setInLinkId(JSON.toJSONString(links.stream().map(MatsimLink::getId).toList()));
         mapper.insert(cossroads);
 
-        // 十字路所有进出口
         List<String> nodeIds = new ArrayList<>(links.stream().map(MatsimLink::getToNode).toList());
         nodeIds.addAll(links.stream().map(MatsimLink::getFromNode).toList());
         List<MatsimNode> nodes = nodeMapper.selectByIds(nodeIds);
 
-
+        // 圈出来的路网
         Network miniNetWork = NetworkUtils.createNetwork();
         nodes.forEach(node -> {
             miniNetWork.addNode(NetworkUtils.createNode(Id.createNodeId(node.getId()), new Coord(node.getX(), node.getY())));
@@ -84,7 +84,7 @@ public class CossroadsServiceImpl implements CossroadsService {
                     miniNetWork, link.getLength(), link.getFreespeed(), link.getCapacity(), link.getLane()
             ));
         });
-        // 每个进口 * 出口构成一个流量数据
+        // 十字路所有进出口
         List<Link> ins = new ArrayList<>(), outs = new ArrayList<>();
         miniNetWork.getLinks().forEach(((id, link) -> {
             if (!LineUtil.crossJudgment(vertex, new Coord[]{link.getFromNode().getCoord(), link.getToNode().getCoord()})) { // 边界相交
@@ -98,6 +98,7 @@ public class CossroadsServiceImpl implements CossroadsService {
             }
         }));
 
+        // 每个进口 * 出口构成一个流量数据
         Map<String, MatsimLink> linkMap = links.stream().collect(Collectors.toMap(MatsimLink::getId, x -> x));
         List<CossroadsStats> stats = new ArrayList<>();
         for (Link in : ins) {
@@ -124,15 +125,23 @@ public class CossroadsServiceImpl implements CossroadsService {
         if (cossroads == null) {
             return Collections.emptyList();
         }
-        String video = cossroads.getVideo();
+        String video = Constant.VIDEO_PATH + cossroads.getVideo();
+        File vf = new File(video);
+        if (!vf.exists()) {
+            throw new RuntimeException("视频文件不存在");
+        }
+
         String toimage = video + "_0.jpg";
-        VideoUtil.saveImage(video, toimage, VideoUtil.ImageType.JPG);
+        File tif = new File(toimage);
+        if (!tif.exists()) {
+            VideoUtil.saveImage(video, toimage, VideoUtil.ImageType.JPG);
+        }
         int[] wh = VideoUtil.widthight(toimage);
         VoideFrameVo vo = new VoideFrameVo();
-        vo.setUrl(toimage.replace(Constant.VIDEO_PATH, ""));
-        vo.setName(toimage.substring(toimage.lastIndexOf("/")));
-        vo.setHeight(wh[0]);
-        vo.setWidth(wh[1]);
+        vo.setUrl("/file/download/" + toimage.replace(Constant.VIDEO_PATH, ""));
+        vo.setName(toimage.substring(toimage.lastIndexOf("/") + 1));
+        vo.setWidth(wh[0]);
+        vo.setHeight(wh[1]);
         return List.of(vo);
     }
 

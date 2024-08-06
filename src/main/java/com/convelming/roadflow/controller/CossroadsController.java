@@ -18,14 +18,12 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping("/link/cossroads")
+@RequestMapping("/cossroads")
 public class CossroadsController {
 
     @Resource
     private CossroadsService service;
 
-
-    private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     /**
      * 新增十字路数据
@@ -54,15 +52,6 @@ public class CossroadsController {
         return Result.ok(service.frame(id));
     }
 
-    /**
-     * 画线后获取经过线的linkId
-     * @return
-     */
-    @PostMapping("/getLineLink")
-    public Result getLineLink(@RequestBody double[][] xyarr) {
-
-        return null;
-    }
 
     /**
      * 保存绘制线
