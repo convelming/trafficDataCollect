@@ -3,6 +3,7 @@ package com.convelming.roadflow.model;
 import cn.afterturn.easypoi.excel.annotation.ExcelTarget;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.convelming.roadflow.model.proxy.CossroadsProxy;
+import com.convelming.roadflow.model.proxy.CrossroadsProxy;
 import com.easy.query.core.annotation.*;
 import com.easy.query.core.basic.extension.logicdel.LogicDeleteStrategyEnum;
 import com.easy.query.core.proxy.ProxyEntityAvailable;
@@ -19,9 +20,9 @@ import java.util.Date;
 @AllArgsConstructor
 @ExcelTarget("cossroads")
 
-@Table("cossroads")
+@Table("crossroads")
 @EntityProxy
-public class Cossroads implements ProxyEntityAvailable<Cossroads, CossroadsProxy> {
+public class Crossroads implements ProxyEntityAvailable<Crossroads, CrossroadsProxy> {
 
     @Column(primaryKey = true)
     private Long id;

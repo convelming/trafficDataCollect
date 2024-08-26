@@ -1,14 +1,16 @@
 package com.convelming.roadflow.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.convelming.roadflow.common.Constant;
-import com.convelming.roadflow.controller.CossroadsController;
-import com.convelming.roadflow.mapper.CossroadsMapper;
-import com.convelming.roadflow.mapper.CossroadsStatsMapper;
+import com.convelming.roadflow.controller.CrossroadsController;
+import com.convelming.roadflow.mapper.CrossroadsMapper;
+import com.convelming.roadflow.mapper.CrossroadsStatsMapper;
 import com.convelming.roadflow.mapper.MatsimLinkMapper;
 import com.convelming.roadflow.mapper.MatsimNodeMapper;
-import com.convelming.roadflow.model.Cossroads;
-import com.convelming.roadflow.model.CossroadsStats;
+import com.convelming.roadflow.model.Crossroads;
+import com.convelming.roadflow.model.CrossroadsStats;
 import com.convelming.roadflow.model.MatsimLink;
 import com.convelming.roadflow.model.MatsimNode;
 import com.convelming.roadflow.model.vo.VoideFrameVo;
@@ -27,6 +29,7 @@ import org.matsim.core.network.NetworkUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -37,10 +40,10 @@ public class CossroadsServiceImpl implements CossroadsService {
     private HttpServletRequest request;
 
     @Resource
-    private CossroadsMapper mapper;
+    private CrossroadsMapper mapper;
 
     @Resource
-    private CossroadsStatsMapper statsMapper;
+    private CrossroadsStatsMapper statsMapper;
 
     @Resource
     private MatsimLinkMapper linkMapper;
@@ -49,23 +52,23 @@ public class CossroadsServiceImpl implements CossroadsService {
     private MatsimNodeMapper nodeMapper;
 
     @Override
-    public boolean insert(CossroadsController.CossroadsBo bo, double[][] vertex) {
+    public boolean insert(CrossroadsController.CossroadsBo bo, double[][] vertex) {
 
-        Cossroads cossroads = new Cossroads();
-        cossroads.setVideo(bo.getVideo());
-        cossroads.setType(bo.getType());
-        cossroads.setRemark(bo.getRemark());
-        cossroads.setIpAddr(request.getRemoteAddr());
+        Crossroads crossroads = new Crossroads();
+        crossroads.setVideo(bo.getVideo());
+        crossroads.setType(bo.getType());
+        crossroads.setRemark(bo.getRemark());
+        crossroads.setIpAddr(request.getRemoteAddr());
 
-        cossroads.setBeginTime(bo.getBeginTime());
-        cossroads.setEndTime(bo.getEndTime());
+        crossroads.setBeginTime(bo.getBeginTime());
+        crossroads.setEndTime(bo.getEndTime());
 
         PGgeometry polygon = GeomUtil.genPolygon(vertex, GeomUtil.MKT);
         List<MatsimLink> links = linkMapper.selectIntersects(polygon);
-        cossroads.setVertex(JSON.toJSONString(vertex));
-        cossroads.setCenter(JSON.toJSONString(GeomUtil.getCentroid(polygon)));
-        cossroads.setInLinkId(JSON.toJSONString(links.stream().map(MatsimLink::getId).toList()));
-        mapper.insert(cossroads);
+        crossroads.setVertex(JSON.toJSONString(vertex));
+        crossroads.setCenter(JSON.toJSONString(GeomUtil.getCentroid(polygon)));
+        crossroads.setInLinkId(JSON.toJSONString(links.stream().map(MatsimLink::getId).toList()));
+        mapper.insert(crossroads);
 
         List<String> nodeIds = new ArrayList<>(links.stream().map(MatsimLink::getToNode).toList());
         nodeIds.addAll(links.stream().map(MatsimLink::getFromNode).toList());
@@ -100,32 +103,31 @@ public class CossroadsServiceImpl implements CossroadsService {
 
         // 每个进口 * 出口构成一个流量数据
         Map<String, MatsimLink> linkMap = links.stream().collect(Collectors.toMap(MatsimLink::getId, x -> x));
-        List<CossroadsStats> stats = new ArrayList<>();
+        List<CrossroadsStats> stats = new ArrayList<>();
         for (Link in : ins) {
             MatsimLink inLink = linkMap.get(in.getId().toString());
             for (Link out : outs) {
                 MatsimLink outLink = linkMap.get(out.getId().toString());
-                CossroadsStats cossroadsStats = new CossroadsStats();
-                cossroadsStats.setCossroadsId(cossroads.getId());
+                CrossroadsStats cossroadsStats = new CrossroadsStats();
+                cossroadsStats.setCossroadsId(crossroads.getId());
                 cossroadsStats.setOutLink(outLink.getId());
                 cossroadsStats.setInLink(inLink.getId());
-                cossroadsStats.setPcuDetail(CossroadsStats.DEFAULT_DETAIL); // 默认小中大客/货车
+                cossroadsStats.setPcuDetail(CrossroadsStats.DEFAULT_DETAIL); // 默认小中大客/货车
                 stats.add(cossroadsStats);
             }
         }
         // 新增全部流量
         statsMapper.batchInsert(stats);
-
         return true;
     }
 
     @Override
-    public List<VoideFrameVo> frame(Long id) {
-        Cossroads cossroads = mapper.selectById(id);
-        if (cossroads == null) {
+    public List<VoideFrameVo> frame(Long cossroadsId) {
+        Crossroads crossroads = mapper.selectById(cossroadsId);
+        if (crossroads == null) {
             return Collections.emptyList();
         }
-        String video = Constant.VIDEO_PATH + cossroads.getVideo();
+        String video = Constant.VIDEO_PATH + crossroads.getVideo();
         File vf = new File(video);
         if (!vf.exists()) {
             throw new RuntimeException("视频文件不存在");
@@ -146,18 +148,76 @@ public class CossroadsServiceImpl implements CossroadsService {
     }
 
     @Override
-    public boolean saveline(List<CossroadsController.LineBo> lines) {
+    public boolean saveline(List<CrossroadsController.LineBo> lines) {
         if (lines.isEmpty()) {
             return false;
         }
         Long id = lines.get(0).getCossroadsId();
-        Cossroads cossroads = mapper.selectById(id);
+        Crossroads cossroads = mapper.selectById(id);
         if (cossroads.getLines() != null) {
             cossroads.setVersion(cossroads.getVersion() + 1);
         }
         cossroads.setUpdateTime(new Date());
         cossroads.setLines(JSON.toJSONString(lines));
         return mapper.saveLines(cossroads) > 0;
+    }
+
+    @Override
+    public List<CrossroadsStats> corssStatsTable(Long cossroadsId) {
+        return statsMapper.selectByCossroadsId(cossroadsId);
+    }
+
+    @Override
+    public boolean deleteStats(Long crossroadStatsId) {
+        return statsMapper.deleteByCossroadsId(crossroadStatsId);
+    }
+
+    @Override
+    public boolean insertStats(CrossroadsStats stats) {
+
+        if (statsMapper.countCossroadsInOutLink(stats.getCossroadsId(), stats.getInLink(), stats.getOutLink()) > 0) {
+            throw new RuntimeException("该进出link已存在");
+        }
+
+        // 计算pcu/h
+        if (stats.getPcuDetail() != null && !stats.getPcuDetail().isEmpty()) {
+            BigDecimal pcuh = new BigDecimal("0");
+            JSONArray pcus = JSONArray.parse(stats.getPcuDetail());
+            for (Object obj : pcus) {
+                JSONObject pcu = (JSONObject) obj;
+                Integer num = pcu.getInteger(CrossroadsStats.DETAIL_NUM);
+                BigDecimal ratio = pcu.getBigDecimal(CrossroadsStats.DETAIL_RATIO);
+                pcuh = pcuh.add(ratio.multiply(BigDecimal.valueOf(num)));
+            }
+            stats.setPcuH(pcuh.doubleValue());
+        }
+        return statsMapper.insert(stats);
+    }
+
+    @Override
+    public boolean updateStats(CrossroadsStats stats) {
+        // 计算pcu/h
+        if (stats.getPcuDetail() != null && !stats.getPcuDetail().isEmpty()) {
+            BigDecimal pcuh = new BigDecimal("0");
+            JSONArray pcus = JSONArray.parse(stats.getPcuDetail());
+            for (Object obj : pcus) {
+                JSONObject pcu = (JSONObject) obj;
+                Integer num = pcu.getInteger(CrossroadsStats.DETAIL_NUM);
+                BigDecimal ratio = pcu.getBigDecimal(CrossroadsStats.DETAIL_RATIO);
+                pcuh = pcuh.add(ratio.multiply(BigDecimal.valueOf(num)));
+            }
+            stats.setPcuH(pcuh.doubleValue());
+        }
+        return statsMapper.updateById(stats);
+    }
+
+    @Override
+    public Map<String, List<String>> inoutlink(Long cossroadsId) {
+        List<CrossroadsStats> stats = statsMapper.selectByCossroadsId(cossroadsId);
+        return new HashMap<>() {{
+                put("inlink", stats.stream().map(CrossroadsStats::getInLink).toList());
+                put("outlink", stats.stream().map(CrossroadsStats::getOutLink).toList());
+            }};
     }
 
 
