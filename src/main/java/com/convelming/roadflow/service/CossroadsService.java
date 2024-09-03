@@ -1,22 +1,28 @@
 package com.convelming.roadflow.service;
 
+import com.convelming.roadflow.common.Page;
 import com.convelming.roadflow.controller.CrossroadsController;
+import com.convelming.roadflow.model.Crossroads;
 import com.convelming.roadflow.model.CrossroadsStats;
 import com.convelming.roadflow.model.vo.VoideFrameVo;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.List;
 import java.util.Map;
 
 public interface CossroadsService {
 
-    boolean insert(CrossroadsController.CossroadsBo cossroads, double[][] vertex);
+    Page<Crossroads> list(Page<Crossroads> page);
+    Crossroads insert(CrossroadsController.CossroadsBo cossroads);
     List<VoideFrameVo> frame(Long cossroadsId);
-    boolean saveline(List<CrossroadsController.LineBo> lines);
+    boolean saveline(CrossroadsController.CossroadsLineBo lines);
     List<CrossroadsStats> corssStatsTable(Long cossroadsId);
     boolean deleteStats(Long crossroadStatsId);
     boolean insertStats(CrossroadsStats stats);
     boolean updateStats(CrossroadsStats stats);
     Map<String, List<String>> inoutlink(Long cossroadsId);
+    boolean runVehicleCounts(Long cossroadsId);
+    void analyzeVideo(Long cossroadsId, HttpServletResponse response);
 
 
 //    CossroadsStats select(Long id);

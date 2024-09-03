@@ -2,7 +2,6 @@ package com.convelming.roadflow.model;
 
 import cn.afterturn.easypoi.excel.annotation.ExcelTarget;
 import com.alibaba.fastjson.annotation.JSONField;
-import com.convelming.roadflow.model.proxy.CossroadsProxy;
 import com.convelming.roadflow.model.proxy.CrossroadsProxy;
 import com.easy.query.core.annotation.*;
 import com.easy.query.core.basic.extension.logicdel.LogicDeleteStrategyEnum;
@@ -48,12 +47,17 @@ public class Crossroads implements ProxyEntityAvailable<Crossroads, CrossroadsPr
     private String video;
 
     /**
+     * 拍摄类型（1俯视航拍，2侧面路拍，3正斜角拍摄
+     */
+    private Integer videoType;
+
+    /**
      * 类型
      */
     private String type;
 
     /**
-     * 绘制状态
+     * 绘制状态（0等待划线，1等待运行，2正在运行，3运行成功，4运行失败
      */
     private Integer status;
 

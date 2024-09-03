@@ -1,15 +1,22 @@
 package com.convelming.roadflow.controller;
 
+import com.convelming.roadflow.common.Constant;
+import com.convelming.roadflow.common.Page;
 import com.convelming.roadflow.common.Result;
+import com.convelming.roadflow.model.Crossroads;
 import com.convelming.roadflow.model.CrossroadsStats;
 import com.convelming.roadflow.service.CossroadsService;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.OutputStream;
+import java.net.URLEncoder;
 import java.util.Date;
 import java.util.List;
 
@@ -24,6 +31,15 @@ public class CrossroadsController {
     @Resource
     private CossroadsService service;
 
+    /**
+     * 十字路列表
+     * @param param 分页参数
+     */
+    @PostMapping("/list")
+    public Result list(@RequestBody QueryParam param) {
+        Page<Crossroads> page = new Page<>(param.getPageNum(), param.getPageSize());
+        return Result.ok(service.list(page));
+    }
 
     /**
      * 新增十字路数据
@@ -32,15 +48,14 @@ public class CrossroadsController {
      */
     @PostMapping("/insert")
     public Result insert(@RequestBody CossroadsBo bo) {
-        if (bo.vertex.length <= 2) {
-            Result.fail("至少需要三个顶点");
-        }
-        // 把最后一个点设置为第一个点，连成一个封闭图行
-        double[][] vertex = Arrays.copyOf(bo.vertex, bo.vertex.length + 1);
-        vertex[vertex.length - 1] = bo.vertex[0];
-        bo.vertex = vertex;
-
-        return Result.failOrOk(service.insert(bo, vertex));
+//        if (bo.vertex.length <= 2) {
+//            Result.fail("至少需要三个顶点");
+//        }
+//        // 把最后一个点设置为第一个点，连成一个封闭图行
+//        double[][] vertex = Arrays.copyOf(bo.vertex, bo.vertex.length + 1);
+//        vertex[vertex.length - 1] = bo.vertex[0];
+//        bo.vertex = vertex;
+        return Result.ok(service.insert(bo));
     }
 
     /**
@@ -61,7 +76,7 @@ public class CrossroadsController {
      * @param bo 线数据
      */
     @PostMapping("/saveline")
-    public Result saveline(@RequestBody List<LineBo> bo) {
+    public Result saveline(@RequestBody CossroadsLineBo bo) {
         return Result.failOrOk(service.saveline(bo));
     }
 
@@ -116,6 +131,35 @@ public class CrossroadsController {
     }
 
     /**
+     * 下载分析视频
+     *
+     * @param cossroadsId 十字路id
+     */
+    @GetMapping("/analyzeVideo/{cossroadsId}")
+    public void analyzeVideo(@PathVariable Long cossroadsId, HttpServletResponse response) {
+        String video = Constant.DATA_PATH + "/data/" + cossroadsId + "/output_result/output_video.mp4";
+        if (!new File(video).exists()) {
+            throw new RuntimeException("未生成分析视频");
+        }
+        String fileName = "output_video.mp4";
+//        response.addHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.addHeader("Content-Disposition", "attachment; filename=" + URLEncoder.encode(fileName));
+        try (
+                OutputStream os = response.getOutputStream();
+                FileInputStream is = new FileInputStream(video)
+        ) {
+            int len;
+            byte[] b = new byte[1024 * 10];
+            while ((len = is.read(b)) > 0) {
+                os.write(b, 0, len);
+            }
+            os.flush();
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    /**
      * 十字路流量表
      *
      * @param cossroadsId 十字路id
@@ -125,14 +169,18 @@ public class CrossroadsController {
         return Result.ok(cossroadsId);
     }
 
+    /**
+     * 运行视频识别
+     *
+     * @param cossroadsId 十字路id
+     */
+    @GetMapping("/runVehicleCounts/{cossroadsId}")
+    public Result runVehicleCounts(@PathVariable Long cossroadsId) {
+        return Result.failOrOk(service.runVehicleCounts(cossroadsId));
+    }
 
     @Data
     public static class CossroadsBo {
-
-        /**
-         * 多边形点
-         */
-        double[][] vertex;
 
         /**
          * 视频地址
@@ -140,7 +188,7 @@ public class CrossroadsController {
         String video;
 
         /**
-         * 拍摄角度
+         * 录入类型（手动录入，视频录入）
          */
         String type;
 
@@ -155,19 +203,62 @@ public class CrossroadsController {
          */
         String remark;
 
+        /**
+         * 中心点
+         */
+        double[] center;
+
+        /**
+         * 拍摄类型（1俯视航拍，2侧面路拍，3正斜角拍摄
+         */
+        Integer videoType;
+
+    }
+
+    @Data
+    public static class QueryParam {
+        /**
+         * 分页每页大小
+         */
+        private Integer pageSize = 10;
+        /**
+         * 分页第几页
+         */
+        private Integer pageNum = 1;
+    }
+
+    @Data
+    public static class CossroadsLineBo {
+
+        Long cossroadsId;
+
+        /**
+         * 多边形点
+         */
+        double[][] vertex;
+
+        /**
+         * 绘制线
+         */
+        List<LineBo> lines;
     }
 
     @Data
     public static class LineBo {
-        Long cossroadsId;
         String lineName;
         String imageName;
-        Integer beginx;
-        Integer beginy;
-        Integer endx;
-        Integer endy;
-        Integer width;
-        Integer height;
+        int beginx;
+        int beginy;
+        int endx;
+        int endy;
+        int width;
+        int height;
+
+        double mktBeginx;
+        double mktBeginy;
+        double mktEndx;
+        double mktEndy;
     }
+
 
 }

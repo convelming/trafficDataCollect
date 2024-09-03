@@ -7,10 +7,11 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component // 默认单例
 public class IdUtil {
-    private final Map<String, Long> idMap = new HashMap<>();
+    private final Map<String, Long> idMap = new ConcurrentHashMap<>();
 
     private static final String SELECT_SQL = " select max(id) from #{table} ";
 

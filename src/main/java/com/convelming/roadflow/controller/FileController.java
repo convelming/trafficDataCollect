@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.net.URLEncoder;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
@@ -50,14 +51,14 @@ public class FileController {
     public void download(String url, HttpServletResponse response) throws IOException {
         String fileName = url.substring(url.lastIndexOf("/") + 1);
 //        response.addHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        response.addHeader("Content-Disposition", "attachment; filename=" + fileName);
+        response.addHeader("Content-Disposition", "attachment; filename=" + URLEncoder.encode(fileName));
         try (
                 OutputStream os = response.getOutputStream();
                 FileInputStream is = new FileInputStream(Constant.VIDEO_PATH + "/" + url)
         ) {
             int len;
             byte[] b = new byte[1024 * 10];
-            while ((len = is.read(b)) > -1) {
+            while ((len = is.read(b)) > 0) {
                 os.write(b, 0, len);
             }
             os.flush();

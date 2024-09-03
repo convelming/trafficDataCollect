@@ -73,9 +73,9 @@ public class CrossroadsStatsMapper {
 
     /**
      * 统计十字路进出link是否已被添加
-     * @param cossroadsId
-     * @param inLink
-     * @param outLink
+     * @param cossroadsId 十字路id
+     * @param inLink      inlink
+     * @param outLink     outlink
      * @return
      */
     public long countCossroadsInOutLink(Long cossroadsId, String inLink, String outLink) {
@@ -85,6 +85,23 @@ public class CrossroadsStatsMapper {
                     t.inLink().eq(inLink);
                     t.outLink().eq(outLink);
                     t.deleted().eq(0L);
+                })
+                .count();
+    }
+
+    /**
+     * 统计inoutlink是否在十字路中
+     * @param cossroadsId 十字路id
+     * @param inLink      inlink
+     * @param outLink     outlink
+     * @return
+     */
+    public long countCossroadsInOrOutLink(Long cossroadsId, String inLink, String outLink) {
+        return eeq.queryable(CrossroadsStats.class)
+                .where(t -> {
+                    t.cossroadsId().eq(cossroadsId);
+                    t.inLink().eq(inLink);
+                    t.outLink().eq(outLink);
                 })
                 .count();
     }

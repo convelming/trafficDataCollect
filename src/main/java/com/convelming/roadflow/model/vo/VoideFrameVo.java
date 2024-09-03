@@ -29,4 +29,9 @@ public class VoideFrameVo {
      */
     private Integer height;
 
+    /**
+     * 中心点
+     */
+    private double[] center;
+
 }

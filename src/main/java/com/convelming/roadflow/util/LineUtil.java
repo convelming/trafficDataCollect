@@ -1,5 +1,6 @@
 package com.convelming.roadflow.util;
 
+import com.convelming.roadflow.controller.CrossroadsController;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -198,6 +199,21 @@ public class LineUtil {
                 isCollinearIntersection(lineSegment1.getLastPoint(), lineSegment2),
                 isCollinearIntersection(lineSegment2.getPrePoint(), lineSegment1),
                 isCollinearIntersection(lineSegment2.getLastPoint(), lineSegment1)});
+    }
+
+    public static boolean isPointOnline(Coord[] coords1, List<CrossroadsController.LineBo> lines) {
+        LineSegment lineSegment1 = new LineSegment(new Point(coords1[0].getX(), coords1[0].getY()), new Point(coords1[1].getX(), coords1[1].getY()));
+        boolean result = false;
+        for (int i = 0; i < lines.size() && !result; i++) {
+            CrossroadsController.LineBo line = lines.get(i);
+            LineSegment lineSegment2 = new LineSegment(new Point(line.getMktBeginx(), line.getMktBeginy()), new Point(line.getMktEndx(), line.getMktEndy()));
+            result = isExistTrue(new boolean[]{
+                    isCollinearIntersection(lineSegment1.getPrePoint(), lineSegment2),
+                    isCollinearIntersection(lineSegment1.getLastPoint(), lineSegment2),
+                    isCollinearIntersection(lineSegment2.getPrePoint(), lineSegment1),
+                    isCollinearIntersection(lineSegment2.getLastPoint(), lineSegment1)});
+        }
+        return result;
     }
 
     /**
