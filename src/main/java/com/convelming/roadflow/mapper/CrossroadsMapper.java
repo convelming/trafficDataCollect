@@ -51,6 +51,7 @@ public class CrossroadsMapper {
         return (int) eeq.updatable(Crossroads.class).setColumns(t -> {
             t.lines().set(cossroads.getLines());
             t.version().set(cossroads.getVersion());
+            t.status().set(cossroads.getStatus());
             t.updateTime().set(cossroads.getUpdateTime());
         }).where(t -> t.id().eq(cossroads.getId())).executeRows();
     }

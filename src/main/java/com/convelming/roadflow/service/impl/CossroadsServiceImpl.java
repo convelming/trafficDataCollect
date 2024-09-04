@@ -139,9 +139,15 @@ public class CossroadsServiceImpl implements CossroadsService {
                     miniNetWork, link.getLength(), link.getFreespeed(), link.getCapacity(), link.getLane()
             ));
         });
-        // 十字路所有进出口
-        List<Link> ins = new ArrayList<>(), outs = new ArrayList<>();
+        List<Link> ins = new ArrayList<>(), outs = new ArrayList<>(); // 进入、离开框选范围的link
+        Collection<MatsimLink> lineIntersect = new ArrayList<>(); // 与绘制线相交的link
+        for (CrossroadsController.LineBo line : bo.getLines()) {
+            lineIntersect.addAll(linkMapper.selectIntersects(GeomUtil.genLine(new Coord(line.getMktBeginx(), line.getMktBeginy()), new Coord(line.getMktEndx(), line.getMktEndy()), 3857)));
+        }
+
+
         miniNetWork.getLinks().forEach(((id, link) -> {
+            // 十字路所有进出口
             if (!LineUtil.crossJudgment(bo.getVertex(), new Coord[]{link.getFromNode().getCoord(), link.getToNode().getCoord()})) { // 边界相交
 //                    && !LineUtil.isPointOnline(new Coord[]{link.getFromNode().getCoord(), link.getToNode().getCoord()}, bo.getLines())) { // 绘制线相交
 //            if (!LineUtil.isPointOnline(new Coord[]{link.getFromNode().getCoord(), link.getToNode().getCoord()}, bo.getLines())) { // 绘制线相交
@@ -161,8 +167,34 @@ public class CossroadsServiceImpl implements CossroadsService {
         Map<String, MatsimLink> linkMap = links.stream().collect(Collectors.toMap(MatsimLink::getId, x -> x));
         List<CrossroadsStats> stats = new ArrayList<>();
         for (Link in : ins) {
+            boolean inIntersect = false;
+            while (in.getToNode().getOutLinks().size() > 1 && !inIntersect) {
+                for (MatsimLink ml : lineIntersect) {
+                    if (in.getToNode().getOutLinks().containsKey(Id.createLinkId(ml.getId()))) {
+                        inIntersect = true;
+                    }
+                }
+                Id<Link> inId = in.getId();
+                in = in.getToNode().getOutLinks().values().stream().filter(link -> !link.getId().equals(inId)).toList().get(0);
+            }
+            if(!inIntersect){
+                continue;
+            }
             MatsimLink inLink = linkMap.get(in.getId().toString());
             for (Link out : outs) {
+                boolean outIntersect = false;
+                while (out.getFromNode().getInLinks().size() > 1 && !outIntersect) {
+                    for (MatsimLink ml : lineIntersect) {
+                        if (out.getFromNode().getInLinks().containsKey(Id.createLinkId(ml.getId()))) {
+                            outIntersect = true;
+                        }
+                    }
+                    Id<Link> outId = out.getId();
+                    out = out.getFromNode().getInLinks().values().stream().filter(link -> !link.getId().equals(outId)).toList().get(0);
+                }
+                if(!outIntersect){
+                    continue;
+                }
                 MatsimLink outLink = linkMap.get(out.getId().toString());
                 CrossroadsStats cossroadsStats = new CrossroadsStats();
                 cossroadsStats.setCossroadsId(bo.getCossroadsId());
@@ -274,8 +306,10 @@ public class CossroadsServiceImpl implements CossroadsService {
             if (result) { // 成功运行
                 // 后续操作
                 mapper.updateStatus(cossroadsId, 3); // 运行成功
+                log.info("运行视频失败成功");
             } else {
                 mapper.updateStatus(cossroadsId, 4); // 运行失败
+                log.error("运行视频识别失败");
             }
             return result;
         }

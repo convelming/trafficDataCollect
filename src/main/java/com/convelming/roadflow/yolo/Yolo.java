@@ -24,7 +24,8 @@ import java.util.Arrays;
 public class Yolo {
 
 
-    private static final String _log = Constant.DATA_PATH + "/data/{id}/err.log";
+    private static final String _log = Constant.DATA_PATH + "/data/{id}/run.log";
+    private static final String errlog = Constant.DATA_PATH + "/data/{id}/err.log";
 
     private static void initialization(Crossroads crossroads) {
         String strId = String.valueOf(crossroads.getId());
@@ -47,22 +48,36 @@ public class Yolo {
         boolean result = false;
         try {
             String[] command = {"docker", "exec", "yolo", "python", "/data/code/VehicleCounts.py", "/data/data/{id}/input_line/", "/data/data/{id}/input_video", "/data/data/{id}/input_model", "/data/data/{id}/output_result"};
-            OutputStream logout = new FileOutputStream(_log.replace("{id}", strId)); // 输出日志
             command[5] = command[5].replace("{id}", strId);
             command[6] = command[6].replace("{id}", strId);
             command[7] = command[7].replace("{id}", strId);
             command[8] = command[8].replace("{id}", strId);
             log.info("运行命令：{}", Arrays.toString(command).replace(",", ""));
             Process process = new ProcessBuilder(command).start();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            // 输出错误日志
+            new Thread(() -> {
+                BufferedReader error = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+                String errlog;
+                // 输出错误日志
+                try (OutputStream errout = new FileOutputStream(_log.replace("{id}", strId))) {
+                    while ((errlog = error.readLine()) != null) {
+                        errout.write((errlog + "\n").getBytes(StandardCharsets.UTF_8));
+                    }
+                    errout.flush();
+                } catch (IOException e) {
+                    log.error(e.getMessage(), e);
+                }
+            }).start();
+
+            OutputStream logout = new FileOutputStream(_log.replace("{id}", strId)); // 输出日志
             String line;
             while ((line = reader.readLine()) != null) {
-                if(line.contains("successfully")){
+                if (line.contains("successfully")) {
                     result = true;
                 }
-//                log.info(line);
+                log.info(line);
                 logout.write((line + "\n").getBytes(StandardCharsets.UTF_8));
-                logout.flush();
             }
             logout.flush();
             logout.close();
