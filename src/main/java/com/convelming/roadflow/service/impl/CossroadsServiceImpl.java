@@ -32,8 +32,12 @@ import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.network.NetworkUtils;
 import org.springframework.stereotype.Service;
 
+import java.awt.*;
+import java.awt.geom.CubicCurve2D;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -121,6 +125,9 @@ public class CossroadsServiceImpl implements CossroadsService {
         cossroads.setLines(JSON.toJSONString(bo.getLines()));
 
         PGgeometry polygon = GeomUtil.genPolygon(bo.getVertex(), GeomUtil.MKT);
+        double[] center = GeomUtil.getCentroid(polygon);
+        Coord centerCoord = new Coord(center);
+        cossroads.setCenter(JSON.toJSONString(center));
         List<MatsimLink> links = linkMapper.selectIntersects(polygon);
         List<String> nodeIds = new ArrayList<>(links.stream().map(MatsimLink::getToNode).toList());
         nodeIds.addAll(links.stream().map(MatsimLink::getFromNode).toList());
@@ -140,11 +147,13 @@ public class CossroadsServiceImpl implements CossroadsService {
             ));
         });
         List<Link> ins = new ArrayList<>(), outs = new ArrayList<>(); // 进入、离开框选范围的link
+        List<Link> intersectIns = new ArrayList<>(), intersectOuts = new ArrayList<>(); // 绘制线相交的in, out
         Collection<MatsimLink> lineIntersect = new ArrayList<>(); // 与绘制线相交的link
         for (CrossroadsController.LineBo line : bo.getLines()) {
             lineIntersect.addAll(linkMapper.selectIntersects(GeomUtil.genLine(new Coord(line.getMktBeginx(), line.getMktBeginy()), new Coord(line.getMktEndx(), line.getMktEndy()), 3857)));
         }
 
+        Map<String, MatsimLink> linkMap = links.stream().collect(Collectors.toMap(MatsimLink::getId, x -> x));
 
         miniNetWork.getLinks().forEach(((id, link) -> {
             // 十字路所有进出口
@@ -160,55 +169,40 @@ public class CossroadsServiceImpl implements CossroadsService {
                 outs.add(link);
             }
         }));
+        for (MatsimLink link : lineIntersect) {
+            Link l = miniNetWork.getLinks().get(Id.createLinkId(link.getId()));
+            double todist = calcDistance3857(l.getToNode().getCoord(), centerCoord);
+            double fromdist = calcDistance3857(l.getFromNode().getCoord(), centerCoord);
+            if (todist > fromdist) {
+                intersectOuts.add(l);
+            } else {
+                intersectIns.add(l);
+            }
+        }
 
-        // todo link匹配绘制线
 
-        // 每个进口 * 出口构成一个流量数据
-        Map<String, MatsimLink> linkMap = links.stream().collect(Collectors.toMap(MatsimLink::getId, x -> x));
+        // 每个进口 * 出口构成一个流量数据 129171
         List<CrossroadsStats> stats = new ArrayList<>();
-        for (Link in : ins) {
-            boolean inIntersect = false;
-            while (in.getToNode().getOutLinks().size() > 1 && !inIntersect) {
-                for (MatsimLink ml : lineIntersect) {
-                    if (in.getToNode().getOutLinks().containsKey(Id.createLinkId(ml.getId()))) {
-                        inIntersect = true;
-                    }
-                }
-                Id<Link> inId = in.getId();
-                in = in.getToNode().getOutLinks().values().stream().filter(link -> !link.getId().equals(inId)).toList().get(0);
-            }
-            if(!inIntersect){
-                continue;
-            }
+        for (Link in : intersectIns) {
             MatsimLink inLink = linkMap.get(in.getId().toString());
-            for (Link out : outs) {
-                boolean outIntersect = false;
-                while (out.getFromNode().getInLinks().size() > 1 && !outIntersect) {
-                    for (MatsimLink ml : lineIntersect) {
-                        if (out.getFromNode().getInLinks().containsKey(Id.createLinkId(ml.getId()))) {
-                            outIntersect = true;
-                        }
-                    }
-                    Id<Link> outId = out.getId();
-                    out = out.getFromNode().getInLinks().values().stream().filter(link -> !link.getId().equals(outId)).toList().get(0);
+            for (Link out : intersectOuts) {
+                // in -> out 能在mininetwork中走通才添加
+                if (calcRouteAccessible(in, out, new Stack<>())) {
+                    MatsimLink outLink = linkMap.get(out.getId().toString());
+                    CrossroadsStats cossroadsStats = new CrossroadsStats();
+                    cossroadsStats.setCossroadsId(bo.getCossroadsId());
+                    cossroadsStats.setOutLink(outLink.getId());
+                    cossroadsStats.setInLink(inLink.getId());
+                    cossroadsStats.setPcuDetail(CrossroadsStats.DEFAULT_DETAIL); // 默认小中大客/货车
+                    stats.add(cossroadsStats);
                 }
-                if(!outIntersect){
-                    continue;
-                }
-                MatsimLink outLink = linkMap.get(out.getId().toString());
-                CrossroadsStats cossroadsStats = new CrossroadsStats();
-                cossroadsStats.setCossroadsId(bo.getCossroadsId());
-                cossroadsStats.setOutLink(outLink.getId());
-                cossroadsStats.setInLink(inLink.getId());
-                cossroadsStats.setPcuDetail(CrossroadsStats.DEFAULT_DETAIL); // 默认小中大客/货车
-                stats.add(cossroadsStats);
             }
         }
         // 新增全部流量
         statsMapper.deleteByCossroadsId(cossroads.getId()); // 调整位置之后把之前新增全部删除
         statsMapper.batchInsert(stats);
         boolean f = mapper.saveLines(cossroads) > 0;
-        if (f) {
+        if (f && cossroads.getType().equals("2")) { // 只有视频录入才支持视频识别
             new Thread(() -> runVehicleCounts(cossroads.getId())).start();
         }
         return f;
@@ -323,5 +317,58 @@ public class CossroadsServiceImpl implements CossroadsService {
 
     }
 
+    @Override
+    public void statusFlowImage(Long cossroadsId, HttpServletResponse response) {
+        int width = 600, height = 600;
+//        Crossroads crossroads = mapper.selectById(cossroadsId);
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2d = image.createGraphics();
+        List<CrossroadsStats> stats = statsMapper.selectByCossroadsId(cossroadsId);
+
+        for (CrossroadsStats stat : stats) {
+            // 获取from to link 位置
+            CubicCurve2D.Double bezierCurve = new CubicCurve2D.Double(
+                    10.0, 10.0, // P0 x,y
+                    100.0, 10.0, // P1 x,y
+                    100.0, 100.0, // P2 x,y
+                    10.0, 100.0); // P3 x,y);
+            g2d.draw(bezierCurve);
+        }
+
+    }
+
+    /**
+     * 计算墨卡托坐标距离
+     */
+    private static double calcDistance3857(Coord coord1, Coord coord2) {
+        return Math.sqrt(Math.pow(coord1.getX() - coord2.getX(), 2) + Math.pow(coord1.getY() - coord2.getY(), 2));
+    }
+
+    /**
+     * 计算link直接是否连通
+     *
+     * @param start 起点
+     * @param end   终点
+     * @param stack 存储路径
+     */
+    private static boolean calcRouteAccessible(Link start, Link end, Stack<Id<Link>> stack) {
+        stack.push(start.getId());
+        if (start.getId().equals(end.getId())) {
+            return true;
+        }
+        for (Map.Entry<Id<Link>, ? extends Link> entry : start.getToNode().getOutLinks().entrySet()) {
+            Id<Link> id = entry.getKey();
+            if (stack.contains(id) && !id.equals(start.getId())) {
+                stack.pop();
+                return false;
+            }
+            Link link = entry.getValue();
+            if (calcRouteAccessible(link, end, stack)) {
+                return true;
+            }
+            stack.pop();
+        }
+        return false;
+    }
 
 }

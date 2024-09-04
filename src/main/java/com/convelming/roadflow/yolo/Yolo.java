@@ -25,7 +25,7 @@ public class Yolo {
 
 
     private static final String _log = Constant.DATA_PATH + "/data/{id}/run.log";
-    private static final String errlog = Constant.DATA_PATH + "/data/{id}/err.log";
+    private static final String _errlog = Constant.DATA_PATH + "/data/{id}/err.log";
 
     private static void initialization(Crossroads crossroads) {
         String strId = String.valueOf(crossroads.getId());
@@ -60,7 +60,7 @@ public class Yolo {
                 BufferedReader error = new BufferedReader(new InputStreamReader(process.getErrorStream()));
                 String errlog;
                 // 输出错误日志
-                try (OutputStream errout = new FileOutputStream(_log.replace("{id}", strId))) {
+                try (OutputStream errout = new FileOutputStream(_errlog.replace("{id}", strId))) {
                     while ((errlog = error.readLine()) != null) {
                         errout.write((errlog + "\n").getBytes(StandardCharsets.UTF_8));
                     }

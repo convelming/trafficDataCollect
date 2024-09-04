@@ -58,6 +58,10 @@ public class MatsimLinkMapper {
         return eeq.queryable(MatsimLink.class).where(t -> t.id().eq(id)).singleOrNull();
     }
 
+    public List<MatsimLink> selectInId(List<String> id) {
+        return eeq.queryable(MatsimLink.class).where(t -> t.id().in(id)).toList();
+    }
+
 
     public List<MatsimLink> selectLikeId(String id) {
         List<MatsimLink> list = eeq.queryable(MatsimLink.class).where(t -> t.id().like(id)).limit(100).toList();

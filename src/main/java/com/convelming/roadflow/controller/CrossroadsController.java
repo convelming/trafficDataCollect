@@ -160,13 +160,21 @@ public class CrossroadsController {
     }
 
     /**
+     * 流量流向图
+     */
+    @GetMapping("/statusFlowImage/{cossroadsId}")
+    public void statusFlowImage(@PathVariable Long cossroadsId, HttpServletResponse response){
+        service.statusFlowImage(cossroadsId, response);
+    }
+
+    /**
      * 十字路流量表
      *
      * @param cossroadsId 十字路id
      */
     @GetMapping("/carLegTable/{cossroadsId}")
-    public Result carLegTable(@PathVariable String cossroadsId) {
-        return Result.ok(cossroadsId);
+    public Result carLegTable(@PathVariable Long cossroadsId) {
+        return Result.ok(service.corssStatsTable(cossroadsId));
     }
 
     /**

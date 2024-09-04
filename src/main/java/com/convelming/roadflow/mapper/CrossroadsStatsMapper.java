@@ -57,7 +57,7 @@ public class CrossroadsStatsMapper {
     public boolean deleteByCossroadsId(Long cossroadsId) {
         return eeq.updatable(CrossroadsStats.class)
                 .setColumns(t -> t.deleted().set(1L))
-                .where(t -> t.id().eq(cossroadsId))
+                .where(t -> t.cossroadsId().eq(cossroadsId))
                 .executeRows() > 0;
 //        return eeq.deletable(CrossroadsStats.class).where(t -> t.cossroadsId().eq(cossroadsId)).executeRows() > 0;
     }
@@ -68,7 +68,7 @@ public class CrossroadsStatsMapper {
      * @param cossroadsId 十字路id
      */
     public List<CrossroadsStats> selectByCossroadsId(Long cossroadsId) {
-        return eeq.queryable(CrossroadsStats.class).where(t -> t.cossroadsId().eq(cossroadsId)).toList();
+        return eeq.queryable(CrossroadsStats.class).where(t -> {t.cossroadsId().eq(cossroadsId);t.deleted().eq(0L);}).toList();
     }
 
     /**

@@ -50,6 +50,7 @@ public class CrossroadsMapper {
     public int saveLines(Crossroads cossroads) {
         return (int) eeq.updatable(Crossroads.class).setColumns(t -> {
             t.lines().set(cossroads.getLines());
+            t.vertex().set(cossroads.getVertex());
             t.version().set(cossroads.getVersion());
             t.status().set(cossroads.getStatus());
             t.updateTime().set(cossroads.getUpdateTime());

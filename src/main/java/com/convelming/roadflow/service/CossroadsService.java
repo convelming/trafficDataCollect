@@ -24,7 +24,7 @@ public interface CossroadsService {
     boolean runVehicleCounts(Long cossroadsId);
     void analyzeVideo(Long cossroadsId, HttpServletResponse response);
 
-
+    void statusFlowImage(Long cossroadsId, HttpServletResponse response);
 //    CossroadsStats select(Long id);
 
 }

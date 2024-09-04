@@ -38,6 +38,9 @@ public class MatsimNodeMapper {
     public MatsimNode selectById(String id) {
         return eeq.queryable(MatsimNode.class).where(t -> t.id().eq(id)).singleOrNull();
     }
+    public List<MatsimNode> selectInId(List<String> id) {
+        return eeq.queryable(MatsimNode.class).where(t -> t.id().in(id)).toList();
+    }
 
     public List<MatsimNode> selectByIds(Collection<String> ids) {
 

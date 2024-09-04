@@ -52,7 +52,7 @@ public class Crossroads implements ProxyEntityAvailable<Crossroads, CrossroadsPr
     private Integer videoType;
 
     /**
-     * 类型
+     * 录入类型，0其他，1人工，2视频
      */
     private String type;
 
