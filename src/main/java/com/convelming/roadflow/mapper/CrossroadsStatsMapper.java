@@ -6,6 +6,7 @@ import com.easy.query.api.proxy.client.EasyEntityQuery;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 
 @Repository
@@ -38,6 +39,13 @@ public class CrossroadsStatsMapper {
     }
 
     /**
+     * 批量修改
+     */
+    public boolean batchUpdate(Collection<CrossroadsStats> list) {
+        return eeq.updatable(list).executeRows() > 0;
+    }
+
+    /**
      * 批量新增十字路流量
      *
      * @param list 流量数据
@@ -58,6 +66,19 @@ public class CrossroadsStatsMapper {
         return eeq.updatable(CrossroadsStats.class)
                 .setColumns(t -> t.deleted().set(1L))
                 .where(t -> t.cossroadsId().eq(cossroadsId))
+                .executeRows() > 0;
+//        return eeq.deletable(CrossroadsStats.class).where(t -> t.cossroadsId().eq(cossroadsId)).executeRows() > 0;
+    }
+
+    /**
+     * 删除十字路流量数据
+     *
+     * @param id crossroadStatsId
+     */
+    public boolean deleteById(Long id) {
+        return eeq.updatable(CrossroadsStats.class)
+                .setColumns(t -> t.deleted().set(1L))
+                .where(t -> t.id().eq(id))
                 .executeRows() > 0;
 //        return eeq.deletable(CrossroadsStats.class).where(t -> t.cossroadsId().eq(cossroadsId)).executeRows() > 0;
     }

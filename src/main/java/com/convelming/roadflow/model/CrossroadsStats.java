@@ -1,5 +1,6 @@
 package com.convelming.roadflow.model;
 
+import cn.afterturn.easypoi.excel.annotation.Excel;
 import cn.afterturn.easypoi.excel.annotation.ExcelTarget;
 import com.convelming.roadflow.model.proxy.CrossroadsStatsProxy;
 import com.easy.query.core.annotation.Column;
@@ -23,26 +24,36 @@ public class CrossroadsStats implements ProxyEntityAvailable<CrossroadsStats, Cr
     @Column(primaryKey = true)
     private Long id;
 
+
     private Long cossroadsId;
 
+    @Excel(name = "进入linkId")
     private String inLink;
 
+    @Excel(name = "离开linkId")
     private String outLink;
 
+    @Excel(name = "pcu/h", width = 30, isImportField = "wayId")
     private Double pcuH;
 
+    @Excel(name = "小客车")
     private int car;
 
+    @Excel(name = "大客车")
     private int bus;
 
+    @Excel(name = "小货车")
     private int van;
 
+    @Excel(name = "大货车")
     private int truck;
 
+    @Excel(name = "方向")
     private String resultId;
 
     private String pcuDetail;
 
+    @Excel(name = "总数")
     private int count;
 
     @JsonIgnore

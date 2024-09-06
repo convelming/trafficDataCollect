@@ -1,5 +1,7 @@
 package com.convelming.roadflow.controller;
 
+import cn.afterturn.easypoi.excel.ExcelExportUtil;
+import cn.afterturn.easypoi.excel.entity.ExportParams;
 import com.convelming.roadflow.common.Constant;
 import com.convelming.roadflow.common.Page;
 import com.convelming.roadflow.common.Result;
@@ -11,11 +13,15 @@ import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 
@@ -204,6 +210,24 @@ public class CrossroadsController {
     @GetMapping("/carLegTable/{cossroadsId}")
     public Result carLegTable(@PathVariable Long cossroadsId) {
         return Result.ok(service.corssStatsTable(cossroadsId));
+    }
+
+    /**
+     * 导出十字路流量表
+     *
+     * @param cossroadsId 十字路id
+     */
+    @GetMapping("/exportCorssStatsTable/{cossroadsId}")
+    public void exportStatsTable(@PathVariable Long cossroadsId, HttpServletResponse response) {
+        try (Workbook workbook = ExcelExportUtil.exportExcel(new ExportParams("流量流向表", "流量流向表"),
+                CrossroadsStats.class, service.corssStatsTable(cossroadsId))) {
+            String fileName = cossroadsId + "_流量表.xls";
+            response.addHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            response.addHeader("Content-Disposition", "attachment; filename=" + URLEncoder.encode(fileName, StandardCharsets.UTF_8));
+            workbook.write(response.getOutputStream());
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     /**

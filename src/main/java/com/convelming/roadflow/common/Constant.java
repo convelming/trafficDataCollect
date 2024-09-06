@@ -11,6 +11,11 @@ public class Constant {
     public final static String DATA_PATH;
     public final static String VIDEO_PATH;
 
+    /**
+     * 十字路框选最大面积
+     */
+    public final static double MAX_AREA = 50000.;
+
     static {
         String os = System.getProperty("os.name");
         if (os.contains("Windows")) {

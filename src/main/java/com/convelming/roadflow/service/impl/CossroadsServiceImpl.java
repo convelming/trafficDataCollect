@@ -126,6 +126,9 @@ public class CossroadsServiceImpl implements CossroadsService {
         cossroads.setLines(JSON.toJSONString(bo.getLines()));
 
         PGgeometry polygon = GeomUtil.genPolygon(bo.getVertex(), GeomUtil.MKT);
+        if (GeomUtil.getArea(polygon) > Constant.MAX_AREA) {
+            throw new RuntimeException("范围过大，请缩小范围再提交");
+        }
         double[] center = GeomUtil.getCentroid(polygon);
         Coord centerCoord = new Coord(center);
         cossroads.setCenter(JSON.toJSONString(center));
@@ -219,7 +222,7 @@ public class CossroadsServiceImpl implements CossroadsService {
 
     @Override
     public boolean deleteStats(Long crossroadStatsId) {
-        return statsMapper.deleteByCossroadsId(crossroadStatsId);
+        return statsMapper.deleteById(crossroadStatsId);
     }
 
     @Override
@@ -318,7 +321,7 @@ public class CossroadsServiceImpl implements CossroadsService {
                     while ((row = raf.readLine()) != null) {
                         String[] data = row.split(","); //id,car,bus,van,truck
                         CrossroadsStats stats = maps.get(data[0]);
-                        if(stats == null){
+                        if (stats == null) {
                             continue;
                         }
                         stats.setCar(Integer.parseInt(data[1]));
@@ -327,12 +330,12 @@ public class CossroadsServiceImpl implements CossroadsService {
                         stats.setTruck(Integer.parseInt(data[4]));
                         stats.setPcuH(calcPch(stats));
                         stats.setCount(stats.getCar() + stats.getBus() + stats.getVan() + stats.getTruck());
-                        statsMapper.updateById(stats);
                     }
+                    statsMapper.batchUpdate(maps.values());
                 } catch (IOException e) {
                     log.error("读取results.csv失败");
                 }
-                log.info("运行视频失败成功");
+                log.info("运行视频识别成功");
             } else {
                 mapper.updateStatus(cossroadsId, 4); // 运行失败
                 log.error("运行视频识别失败");

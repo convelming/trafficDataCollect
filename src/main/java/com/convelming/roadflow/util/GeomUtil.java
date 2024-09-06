@@ -30,6 +30,17 @@ public class GeomUtil {
 //        System.out.println(Arrays.toString(point2xy(ggeometry)));
     }
 
+    public static double getArea(PGgeometry pg){
+        WKTReader reader = new WKTReader(geometryFactory);
+        try {
+            Polygon polygon = (Polygon) reader.read(pg.toString().replace("SRID=3857;", ""));
+            return polygon.getArea();
+        } catch (ParseException e) {
+            log.error(e.getMessage(), e);
+            throw new RuntimeException();
+        }
+    }
+
     public static double[] getCentroid(PGgeometry pg) {
         WKTReader reader = new WKTReader(geometryFactory);
         try {
