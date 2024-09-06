@@ -33,7 +33,7 @@ public class CrossroadsStatsMapper {
      * @param stats 流量数据
      */
     public boolean updateById(CrossroadsStats stats) {
-        return eeq.updatable(CrossroadsStats.class).where(t -> t.id().eq(stats.getId())).executeRows() > 0;
+        return eeq.updatable(stats).executeRows() > 0;
 //        return eeq.updatable(stats).executeRows() > 0;
     }
 
@@ -68,11 +68,15 @@ public class CrossroadsStatsMapper {
      * @param cossroadsId 十字路id
      */
     public List<CrossroadsStats> selectByCossroadsId(Long cossroadsId) {
-        return eeq.queryable(CrossroadsStats.class).where(t -> {t.cossroadsId().eq(cossroadsId);t.deleted().eq(0L);}).toList();
+        return eeq.queryable(CrossroadsStats.class).where(t -> {
+            t.cossroadsId().eq(cossroadsId);
+            t.deleted().eq(0L);
+        }).toList();
     }
 
     /**
      * 统计十字路进出link是否已被添加
+     *
      * @param cossroadsId 十字路id
      * @param inLink      inlink
      * @param outLink     outlink
@@ -91,6 +95,7 @@ public class CrossroadsStatsMapper {
 
     /**
      * 统计inoutlink是否在十字路中
+     *
      * @param cossroadsId 十字路id
      * @param inLink      inlink
      * @param outLink     outlink

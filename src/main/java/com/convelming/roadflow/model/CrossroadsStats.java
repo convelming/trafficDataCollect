@@ -31,9 +31,19 @@ public class CrossroadsStats implements ProxyEntityAvailable<CrossroadsStats, Cr
 
     private Double pcuH;
 
+    private int car;
+
+    private int bus;
+
+    private int van;
+
+    private int truck;
+
+    private String resultId;
+
     private String pcuDetail;
 
-    private Double count;
+    private int count;
 
     @JsonIgnore
     private Long deleted;

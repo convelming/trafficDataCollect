@@ -1,8 +1,6 @@
 package com.convelming.roadflow.service.impl;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson2.JSONArray;
-import com.alibaba.fastjson2.JSONObject;
 import com.convelming.roadflow.common.Constant;
 import com.convelming.roadflow.common.Page;
 import com.convelming.roadflow.controller.CrossroadsController;
@@ -36,7 +34,10 @@ import java.awt.*;
 import java.awt.geom.CubicCurve2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -150,10 +151,12 @@ public class CossroadsServiceImpl implements CossroadsService {
         List<Link> intersectIns = new ArrayList<>(), intersectOuts = new ArrayList<>(); // 绘制线相交的in, out
         Collection<MatsimLink> lineIntersect = new ArrayList<>(); // 与绘制线相交的link
         for (CrossroadsController.LineBo line : bo.getLines()) {
-            lineIntersect.addAll(linkMapper.selectIntersects(GeomUtil.genLine(new Coord(line.getMktBeginx(), line.getMktBeginy()), new Coord(line.getMktEndx(), line.getMktEndy()), 3857)));
+            List<MatsimLink> intersectsLinks = linkMapper.selectIntersects(GeomUtil.genLine(new Coord(line.getMktBeginx(), line.getMktBeginy()), new Coord(line.getMktEndx(), line.getMktEndy()), 3857));
+            intersectsLinks.forEach(link -> link.setLineName(line.getLineName()));
+            lineIntersect.addAll(intersectsLinks);
         }
 
-        Map<String, MatsimLink> linkMap = links.stream().collect(Collectors.toMap(MatsimLink::getId, x -> x));
+        Map<String, MatsimLink> linkMap = lineIntersect.stream().collect(Collectors.toMap(MatsimLink::getId, x -> x));
 
         miniNetWork.getLinks().forEach(((id, link) -> {
             // 十字路所有进出口
@@ -193,7 +196,8 @@ public class CossroadsServiceImpl implements CossroadsService {
                     cossroadsStats.setCossroadsId(bo.getCossroadsId());
                     cossroadsStats.setOutLink(outLink.getId());
                     cossroadsStats.setInLink(inLink.getId());
-                    cossroadsStats.setPcuDetail(CrossroadsStats.DEFAULT_DETAIL); // 默认小中大客/货车
+//                    cossroadsStats.setPcuDetail(CrossroadsStats.DEFAULT_DETAIL); // 默认小中大客/货车
+                    cossroadsStats.setResultId(inLink.getLineName() + outLink.getLineName());
                     stats.add(cossroadsStats);
                 }
             }
@@ -234,34 +238,40 @@ public class CossroadsServiceImpl implements CossroadsService {
         }
 
         // 计算pcu/h
-        if (stats.getPcuDetail() != null && !stats.getPcuDetail().isEmpty()) {
-            BigDecimal pcuh = new BigDecimal("0");
-            JSONArray pcus = JSONArray.parse(stats.getPcuDetail());
-            for (Object obj : pcus) {
-                JSONObject pcu = (JSONObject) obj;
-                Integer num = pcu.getInteger(CrossroadsStats.DETAIL_NUM);
-                BigDecimal ratio = pcu.getBigDecimal(CrossroadsStats.DETAIL_RATIO);
-                pcuh = pcuh.add(ratio.multiply(BigDecimal.valueOf(num)));
-            }
-            stats.setPcuH(pcuh.doubleValue());
-        }
+//        if (stats.getPcuDetail() != null && !stats.getPcuDetail().isEmpty()) {
+//            BigDecimal pcuh = new BigDecimal("0");
+//            JSONArray pcus = JSONArray.parse(stats.getPcuDetail());
+//            for (Object obj : pcus) {
+//                JSONObject pcu = (JSONObject) obj;
+//                Integer num = pcu.getInteger(CrossroadsStats.DETAIL_NUM);
+//                BigDecimal ratio = pcu.getBigDecimal(CrossroadsStats.DETAIL_RATIO);
+//                pcuh = pcuh.add(ratio.multiply(BigDecimal.valueOf(num)));
+//            }
+//            stats.setPcuH(pcuh.doubleValue());
+//        }
+
+        stats.setPcuH(calcPch(stats));
+
         return statsMapper.insert(stats);
     }
 
     @Override
     public boolean updateStats(CrossroadsStats stats) {
         // 计算pcu/h
-        if (stats.getPcuDetail() != null && !stats.getPcuDetail().isEmpty()) {
-            BigDecimal pcuh = new BigDecimal("0");
-            JSONArray pcus = JSONArray.parse(stats.getPcuDetail());
-            for (Object obj : pcus) {
-                JSONObject pcu = (JSONObject) obj;
-                Integer num = pcu.getInteger(CrossroadsStats.DETAIL_NUM);
-                BigDecimal ratio = pcu.getBigDecimal(CrossroadsStats.DETAIL_RATIO);
-                pcuh = pcuh.add(ratio.multiply(BigDecimal.valueOf(num)));
-            }
-            stats.setPcuH(pcuh.doubleValue());
-        }
+//        if (stats.getPcuDetail() != null && !stats.getPcuDetail().isEmpty()) {
+//            BigDecimal pcuh = new BigDecimal("0");
+//            JSONArray pcus = JSONArray.parse(stats.getPcuDetail());
+//            for (Object obj : pcus) {
+//                JSONObject pcu = (JSONObject) obj;
+//                Integer num = pcu.getInteger(CrossroadsStats.DETAIL_NUM);
+//                BigDecimal ratio = pcu.getBigDecimal(CrossroadsStats.DETAIL_RATIO);
+//                pcuh = pcuh.add(ratio.multiply(BigDecimal.valueOf(num)));
+//            }
+//            stats.setPcuH(pcuh.doubleValue());
+//        }
+
+        stats.setPcuH(calcPch(stats));
+
         return statsMapper.updateById(stats);
     }
 
@@ -298,8 +308,30 @@ public class CossroadsServiceImpl implements CossroadsService {
             mapper.updateStatus(cossroadsId, 2);
             boolean result = Yolo.run(crossroads);
             if (result) { // 成功运行
-                // 后续操作
                 mapper.updateStatus(cossroadsId, 3); // 运行成功
+                // 更新车辆数量
+                Map<String, CrossroadsStats> maps = statsMapper.selectByCossroadsId(cossroadsId).stream().collect(Collectors.toMap(CrossroadsStats::getResultId, x -> x, (a, b) -> a)); // todo 如果有重复去掉
+                File results_csv = new File(Constant.DATA_PATH + "/data/" + cossroadsId + "/output_result/results.csv");
+                try (RandomAccessFile raf = new RandomAccessFile(results_csv, "rw")) {
+                    raf.readLine(); // 跳过标题行
+                    String row;
+                    while ((row = raf.readLine()) != null) {
+                        String[] data = row.split(","); //id,car,bus,van,truck
+                        CrossroadsStats stats = maps.get(data[0]);
+                        if(stats == null){
+                            continue;
+                        }
+                        stats.setCar(Integer.parseInt(data[1]));
+                        stats.setBus(Integer.parseInt(data[2]));
+                        stats.setVan(Integer.parseInt(data[3]));
+                        stats.setTruck(Integer.parseInt(data[4]));
+                        stats.setPcuH(calcPch(stats));
+                        stats.setCount(stats.getCar() + stats.getBus() + stats.getVan() + stats.getTruck());
+                        statsMapper.updateById(stats);
+                    }
+                } catch (IOException e) {
+                    log.error("读取results.csv失败");
+                }
                 log.info("运行视频失败成功");
             } else {
                 mapper.updateStatus(cossroadsId, 4); // 运行失败
@@ -369,6 +401,15 @@ public class CossroadsServiceImpl implements CossroadsService {
             stack.pop();
         }
         return false;
+    }
+
+    private static double calcPch(CrossroadsStats stats) {
+        BigDecimal pcuh = new BigDecimal("0");
+        pcuh = pcuh.add(BigDecimal.valueOf(stats.getCar()));
+        pcuh = pcuh.add(BigDecimal.valueOf(stats.getBus()).multiply(BigDecimal.valueOf(2)));
+        pcuh = pcuh.add(BigDecimal.valueOf(stats.getVan()));
+        pcuh = pcuh.add(BigDecimal.valueOf(stats.getTruck()).multiply(BigDecimal.valueOf(2)));
+        return pcuh.setScale(2, RoundingMode.DOWN).doubleValue();
     }
 
 }

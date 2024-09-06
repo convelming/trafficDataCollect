@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.OutputStream;
-import java.net.URLEncoder;
 import java.util.Date;
 import java.util.List;
 
@@ -33,6 +32,7 @@ public class CrossroadsController {
 
     /**
      * 十字路列表
+     *
      * @param param 分页参数
      */
     @PostMapping("/list")
@@ -141,9 +141,38 @@ public class CrossroadsController {
         if (!new File(video).exists()) {
             throw new RuntimeException("未生成分析视频");
         }
-        String fileName = "output_video.mp4";
+        String fileName = cossroadsId + "_output_video.mp4";
 //        response.addHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        response.addHeader("Content-Disposition", "attachment; filename=" + URLEncoder.encode(fileName));
+        response.addHeader("Content-Disposition", "attachment; filename=" + fileName);
+        try (
+                OutputStream os = response.getOutputStream();
+                FileInputStream is = new FileInputStream(video)
+        ) {
+            int len;
+            byte[] b = new byte[1024 * 10];
+            while ((len = is.read(b)) > 0) {
+                os.write(b, 0, len);
+            }
+            os.flush();
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 下载轨迹图
+     *
+     * @param cossroadsId 十字路id
+     */
+    @GetMapping("/trackImage/{cossroadsId}")
+    public void trackImage(@PathVariable Long cossroadsId, HttpServletResponse response) {
+        String video = Constant.DATA_PATH + "/data/" + cossroadsId + "/output_result/track.jpg";
+        if (!new File(video).exists()) {
+            throw new RuntimeException("未生成轨迹图");
+        }
+        String fileName = cossroadsId + "_track.jpg";
+//        response.addHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.addHeader("Content-Disposition", "attachment; filename=" + fileName);
         try (
                 OutputStream os = response.getOutputStream();
                 FileInputStream is = new FileInputStream(video)
@@ -163,7 +192,7 @@ public class CrossroadsController {
      * 流量流向图
      */
     @GetMapping("/statusFlowImage/{cossroadsId}")
-    public void statusFlowImage(@PathVariable Long cossroadsId, HttpServletResponse response){
+    public void statusFlowImage(@PathVariable Long cossroadsId, HttpServletResponse response) {
         service.statusFlowImage(cossroadsId, response);
     }
 

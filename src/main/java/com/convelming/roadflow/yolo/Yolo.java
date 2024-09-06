@@ -13,11 +13,8 @@ import java.util.Arrays;
 /**
  * <p>docker运行车辆视频识别python</p>
  * <p>使用ultralytics/ultralytics镜像</p>
- * <p>python代码cp值镜像/code目录</p>
- * <p>视频识别所需文件从目录映射到/data目录</p>
- * docker run -it -v F:\link_stats:/data --name yolo ultralytics/ultralytics:8.2.86 /bin/bash; exit;
- * docker start yolo
- * docker exec yolo python /code/VehicleCounts.py /data/{id}/input_line/ /data/{id}/input_video /data/{id}/input_model /data/{id}/output_result
+ * docker run -it -v /home/link_stats/:/data --name yolo ultralytics/ultralytics:8.2.86  /bin/bash  # 创建容器并将/home/link_stats映射到容器/data
+ * cd /data/code && pip install *.whl # 安装依赖, 直接运行会有两个依赖版本不对
  */
 
 @Slf4j

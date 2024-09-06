@@ -1,10 +1,7 @@
 package com.convelming.roadflow.model;
 
 import com.convelming.roadflow.model.proxy.MatsimLinkProxy;
-import com.easy.query.core.annotation.Column;
-import com.easy.query.core.annotation.ColumnIgnore;
-import com.easy.query.core.annotation.EntityProxy;
-import com.easy.query.core.annotation.Table;
+import com.easy.query.core.annotation.*;
 import com.easy.query.core.proxy.ProxyEntityAvailable;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
@@ -100,6 +97,10 @@ public class MatsimLink implements ProxyEntityAvailable<MatsimLink, MatsimLinkPr
 
     @ColumnIgnore
     private Double[] fromxy;
+
+    @InsertIgnore
+    @ColumnIgnore
+    private String lineName;
 
     public MatsimLink(MatsimLink link) {
         BeanUtils.copyProperties(link, this);
