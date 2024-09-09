@@ -62,10 +62,10 @@ public class CrossroadsStatsMapper {
      *
      * @param cossroadsId 十字路id
      */
-    public boolean deleteByCossroadsId(Long cossroadsId) {
+    public boolean deleteByCrossroadsId(Long cossroadsId) {
         return eeq.updatable(CrossroadsStats.class)
                 .setColumns(t -> t.deleted().set(1L))
-                .where(t -> t.cossroadsId().eq(cossroadsId))
+                .where(t -> t.crossroadsId().eq(cossroadsId))
                 .executeRows() > 0;
 //        return eeq.deletable(CrossroadsStats.class).where(t -> t.cossroadsId().eq(cossroadsId)).executeRows() > 0;
     }
@@ -86,11 +86,23 @@ public class CrossroadsStatsMapper {
     /**
      * 查询十字路流量数据
      *
-     * @param cossroadsId 十字路id
+     * @param crossroadsId 十字路id
      */
-    public List<CrossroadsStats> selectByCossroadsId(Long cossroadsId) {
+    public List<CrossroadsStats> selectByCrossroadsId(Long crossroadsId) {
         return eeq.queryable(CrossroadsStats.class).where(t -> {
-            t.cossroadsId().eq(cossroadsId);
+            t.crossroadsId().eq(crossroadsId);
+            t.deleted().eq(0L);
+        }).toList();
+    }
+    /**
+     * 查询十字路流量数据
+     *
+     * @param crossroadsId 十字路id
+     */
+    public List<CrossroadsStats> selectByCrossroadsIdAndPuchIsNotNull(Long crossroadsId) {
+        return eeq.queryable(CrossroadsStats.class).where(t -> {
+            t.crossroadsId().eq(crossroadsId);
+            t.pcuH().isNotNull();
             t.deleted().eq(0L);
         }).toList();
     }
@@ -98,15 +110,15 @@ public class CrossroadsStatsMapper {
     /**
      * 统计十字路进出link是否已被添加
      *
-     * @param cossroadsId 十字路id
+     * @param crossroadsId 十字路id
      * @param inLink      inlink
      * @param outLink     outlink
      * @return
      */
-    public long countCossroadsInOutLink(Long cossroadsId, String inLink, String outLink) {
+    public long countCrossroadsInOutLink(Long crossroadsId, String inLink, String outLink) {
         return eeq.queryable(CrossroadsStats.class)
                 .where(t -> {
-                    t.cossroadsId().eq(cossroadsId);
+                    t.crossroadsId().eq(crossroadsId);
                     t.inLink().eq(inLink);
                     t.outLink().eq(outLink);
                     t.deleted().eq(0L);
@@ -117,15 +129,15 @@ public class CrossroadsStatsMapper {
     /**
      * 统计inoutlink是否在十字路中
      *
-     * @param cossroadsId 十字路id
+     * @param crossroadsId 十字路id
      * @param inLink      inlink
      * @param outLink     outlink
      * @return
      */
-    public long countCossroadsInOrOutLink(Long cossroadsId, String inLink, String outLink) {
+    public long countCrossroadsInOrOutLink(Long crossroadsId, String inLink, String outLink) {
         return eeq.queryable(CrossroadsStats.class)
                 .where(t -> {
-                    t.cossroadsId().eq(cossroadsId);
+                    t.crossroadsId().eq(crossroadsId);
                     t.inLink().eq(inLink);
                     t.outLink().eq(outLink);
                 })

@@ -39,7 +39,6 @@ public class FileController {
             }
             os.flush();
             is.close();
-            FileCopyUtils.copy(file.getBytes(), out);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return Result.fail();

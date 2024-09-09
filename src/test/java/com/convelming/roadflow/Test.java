@@ -1,8 +1,12 @@
 package com.convelming.roadflow;
 
+import com.alibaba.fastjson.JSON;
+import com.convelming.roadflow.controller.CrossroadsController;
+import com.convelming.roadflow.mapper.CrossroadsMapper;
 import com.convelming.roadflow.mapper.CrossroadsStatsMapper;
 import com.convelming.roadflow.mapper.MatsimLinkMapper;
 import com.convelming.roadflow.mapper.MatsimNodeMapper;
+import com.convelming.roadflow.model.Crossroads;
 import com.convelming.roadflow.model.CrossroadsStats;
 import com.convelming.roadflow.model.MatsimLink;
 import com.convelming.roadflow.model.MatsimNode;
@@ -10,6 +14,7 @@ import com.convelming.roadflow.util.VideoUtil;
 import com.easy.query.api.proxy.client.EasyEntityQuery;
 import jakarta.annotation.Resource;
 import org.junit.runner.RunWith;
+import org.matsim.api.core.v01.Coord;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -39,12 +44,50 @@ public class Test {
     private MatsimLinkMapper linkMapper;
     @Resource
     private MatsimNodeMapper nodeMapper;
+    @Resource
+    private CrossroadsMapper roadsMapper;
+
+    @org.junit.Test
+    public void updateStatusPoint() {
+        Long crossroadsId = 1L;
+        Crossroads roads = roadsMapper.selectById(crossroadsId);
+        List<CrossroadsStats> stats = statsMapper.selectByCrossroadsId(crossroadsId);
+        List<CrossroadsController.LineBo> lines = JSON.parseArray(roads.getLines(), CrossroadsController.LineBo.class);
+        for (CrossroadsStats stat : stats) {
+            // 计算交点
+            Coord inIntersect = null, outIntersect = null;
+            MatsimLink link = linkMapper.selectById(stat.getInLink());
+            MatsimNode startNode = nodeMapper.selectById(link.getFromNode());
+            MatsimNode endNode = nodeMapper.selectById(link.getToNode());
+            for (int i = 0; i < lines.size() && inIntersect == null; i++) {
+                CrossroadsController.LineBo line = lines.get(i);
+                inIntersect = doIntersect(new Coord[]{new Coord(line.getMktBeginx(), line.getMktBeginy()), new Coord(line.getMktEndx(), line.getMktEndy())},
+                        new Coord[]{new Coord(startNode.getX(), startNode.getY()), new Coord(endNode.getX(), endNode.getY())});
+            }
+            if (inIntersect != null) {
+                stat.setStartPoint(JSON.toJSONString(new double[]{inIntersect.getX(), inIntersect.getY()}));
+            }
+
+            link = linkMapper.selectById(stat.getOutLink());
+            startNode = nodeMapper.selectById(link.getFromNode());
+            endNode = nodeMapper.selectById(link.getToNode());
+            for (int i = 0; i < lines.size() && outIntersect == null; i++) {
+                CrossroadsController.LineBo line = lines.get(i);
+                outIntersect = doIntersect(new Coord[]{new Coord(line.getMktBeginx(), line.getMktBeginy()), new Coord(line.getMktEndx(), line.getMktEndy())},
+                        new Coord[]{new Coord(startNode.getX(), startNode.getY()), new Coord(endNode.getX(), endNode.getY())});
+            }
+            if (outIntersect != null) {
+                stat.setEndPoint(JSON.toJSONString(new double[]{outIntersect.getX(), outIntersect.getY()}));
+            }
+        }
+        statsMapper.batchUpdate(stats);
+    }
 
     @org.junit.Test
     public void outputBezier() {
-        int width = 2000;
-        int height = 2000;
-        Long cossroadsId = 2L;
+        int width = 4000;
+        int height = 4000;
+        Long cossroadsId = 1L;
         // 创建一个类型为预定义图像类型之一的 BufferedImage
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         // 获取图形上下文以于绘制
@@ -55,7 +98,7 @@ public class Test {
 //                100.0, 100.0, // P2 x,y
 //                10.0, 100.0); // P3 x,y
 //        g2d.draw(bezierCurve);
-        List<CrossroadsStats> stats = statsMapper.selectByCossroadsId(cossroadsId);
+        List<CrossroadsStats> stats = statsMapper.selectByCrossroadsIdAndPuchIsNotNull(cossroadsId);
         List<String> linkIds = new ArrayList<>();
         linkIds.addAll(stats.stream().map(CrossroadsStats::getInLink).toList());
         linkIds.addAll(stats.stream().map(CrossroadsStats::getOutLink).toList());
@@ -145,6 +188,33 @@ public class Test {
             t.id().like(keyword);
         }).toList();
         System.out.println(list);
+    }
+
+    private static Coord doIntersect(Coord[] line1, Coord[] line2) {
+        double[] p1 = {line1[0].getX(), line1[0].getY()};
+        double[] v1 = {line1[1].getX() - line1[0].getX(), line1[1].getY() - line1[0].getY()};
+        double[] p2 = {line2[0].getX(), line2[0].getY()};
+        double[] v2 = {line2[1].getX() - line2[0].getX(), line2[1].getY() - line2[0].getY()};
+        double[] intersection = new double[2];
+        // 计算两条线段的方向向量的叉积
+        double crossProduct = v1[0] * v2[1] - v1[1] * v2[0];
+        // 如果叉积接近于零，则两条线段平行，没有交点
+        if (Math.abs(crossProduct) <= 1e-9) {
+            intersection[0] = -1.0;
+            intersection[1] = -1.0;
+        }
+        // 计算参数 t1 和 t2
+        // 计算参数 t1 和 t2
+        double t1 = ((p2[0] - p1[0]) * v2[1] - (p2[1] - p1[1]) * v2[0]) / crossProduct;
+        // 计算交点坐标
+        intersection[0] = p1[0] + t1 * v1[0];
+        intersection[1] = p1[1] + t1 * v1[1];
+        if (intersection[0] == -1.0 && intersection[1] == -1.0) {
+            // 没有交点
+            return null;
+        } else {
+            return new Coord(intersection);
+        }
     }
 
 }

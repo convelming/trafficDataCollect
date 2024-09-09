@@ -24,8 +24,10 @@ public class CrossroadsStats implements ProxyEntityAvailable<CrossroadsStats, Cr
     @Column(primaryKey = true)
     private Long id;
 
-
-    private Long cossroadsId;
+    /**
+     * 十字路id
+     */
+    private Long crossroadsId;
 
     @Excel(name = "进入linkId")
     private String inLink;
@@ -58,6 +60,16 @@ public class CrossroadsStats implements ProxyEntityAvailable<CrossroadsStats, Cr
 
     @JsonIgnore
     private Long deleted;
+
+    /**
+     * 贝塞尔曲线起点
+     */
+    private String startPoint;
+
+    /**
+     * 贝塞尔曲线终点
+     */
+    private String endPoint;
 
     public static String DETAIL_NUM = "num";
     public static String DETAIL_RATIO = "ratio";

@@ -15,9 +15,10 @@ import com.convelming.roadflow.model.MatsimNode;
 import com.convelming.roadflow.model.vo.VoideFrameVo;
 import com.convelming.roadflow.service.CossroadsService;
 import com.convelming.roadflow.util.GeomUtil;
-import com.convelming.roadflow.util.LineUtil;
 import com.convelming.roadflow.util.VideoUtil;
 import com.convelming.roadflow.yolo.Yolo;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -106,7 +107,7 @@ public class CossroadsServiceImpl implements CossroadsService {
         }
         int[] wh = VideoUtil.widthight(toimage);
         VoideFrameVo vo = new VoideFrameVo();
-        vo.setUrl("/file/download?url=" + toimage.replace(Constant.DATA_PATH, ""));
+        vo.setUrl("/file/download?url=" + toimage.replace(Constant.VIDEO_PATH, ""));
         vo.setName(toimage.substring(toimage.lastIndexOf("/") + 1));
         vo.setWidth(wh[0]);
         vo.setHeight(wh[1]);
@@ -150,7 +151,7 @@ public class CossroadsServiceImpl implements CossroadsService {
                     miniNetWork, link.getLength(), link.getFreespeed(), link.getCapacity(), link.getLane()
             ));
         });
-        List<Link> ins = new ArrayList<>(), outs = new ArrayList<>(); // 进入、离开框选范围的link
+//        List<Link> ins = new ArrayList<>(), outs = new ArrayList<>(); // 进入、离开框选范围的link
         List<Link> intersectIns = new ArrayList<>(), intersectOuts = new ArrayList<>(); // 绘制线相交的in, out
         Collection<MatsimLink> lineIntersect = new ArrayList<>(); // 与绘制线相交的link
         for (CrossroadsController.LineBo line : bo.getLines()) {
@@ -161,31 +162,42 @@ public class CossroadsServiceImpl implements CossroadsService {
 
         Map<String, MatsimLink> linkMap = lineIntersect.stream().collect(Collectors.toMap(MatsimLink::getId, x -> x));
 
-        miniNetWork.getLinks().forEach(((id, link) -> {
-            // 十字路所有进出口
-            if (!LineUtil.crossJudgment(bo.getVertex(), new Coord[]{link.getFromNode().getCoord(), link.getToNode().getCoord()})) { // 边界相交
-//                    && !LineUtil.isPointOnline(new Coord[]{link.getFromNode().getCoord(), link.getToNode().getCoord()}, bo.getLines())) { // 绘制线相交
-//            if (!LineUtil.isPointOnline(new Coord[]{link.getFromNode().getCoord(), link.getToNode().getCoord()}, bo.getLines())) { // 绘制线相交
-                return;
-            }
-            if (link.getFromNode().getInLinks().isEmpty()) {
-                ins.add(link);
-            }
-            if (link.getToNode().getOutLinks().isEmpty()) {
-                outs.add(link);
-            }
-        }));
+//        miniNetWork.getLinks().forEach(((id, link) -> {
+//            // 十字路所有进出口
+//            if (!LineUtil.crossJudgment(bo.getVertex(), new Coord[]{link.getFromNode().getCoord(), link.getToNode().getCoord()})) { // 边界相交
+////                    && !LineUtil.isPointOnline(new Coord[]{link.getFromNode().getCoord(), link.getToNode().getCoord()}, bo.getLines())) { // 绘制线相交
+////            if (!LineUtil.isPointOnline(new Coord[]{link.getFromNode().getCoord(), link.getToNode().getCoord()}, bo.getLines())) { // 绘制线相交
+//                return;
+//            }
+//            if (link.getFromNode().getInLinks().isEmpty()) {
+//                ins.add(link);
+//            }
+//            if (link.getToNode().getOutLinks().isEmpty()) {
+//                outs.add(link);
+//            }
+//        }));
+        Table<String, Id<Link>, Coord> pointIntersect = HashBasedTable.create();
         for (MatsimLink link : lineIntersect) {
             Link l = miniNetWork.getLinks().get(Id.createLinkId(link.getId()));
             double todist = calcDistance3857(l.getToNode().getCoord(), centerCoord);
             double fromdist = calcDistance3857(l.getFromNode().getCoord(), centerCoord);
+
+            // 计算交点
+            Coord intersect = null;
+            for (int i = 0; i < bo.getLines().size() && intersect == null; i++) {
+                CrossroadsController.LineBo line = bo.getLines().get(i);
+                intersect = doIntersect(new Coord[]{new Coord(line.getMktBeginx(), line.getMktBeginy()), new Coord(line.getMktEndx(), line.getMktEndy())},
+                        new Coord[]{l.getFromNode().getCoord(), l.getToNode().getCoord()});
+            }
+
             if (todist > fromdist) {
                 intersectOuts.add(l);
+                pointIntersect.put("out", l.getId(), intersect);
             } else {
                 intersectIns.add(l);
+                pointIntersect.put("in", l.getId(), intersect);
             }
         }
-
 
         // 每个进口 * 出口构成一个流量数据 129171
         List<CrossroadsStats> stats = new ArrayList<>();
@@ -196,17 +208,27 @@ public class CossroadsServiceImpl implements CossroadsService {
                 if (calcRouteAccessible(in, out, new Stack<>())) {
                     MatsimLink outLink = linkMap.get(out.getId().toString());
                     CrossroadsStats cossroadsStats = new CrossroadsStats();
-                    cossroadsStats.setCossroadsId(bo.getCossroadsId());
+                    cossroadsStats.setCrossroadsId(bo.getCossroadsId());
                     cossroadsStats.setOutLink(outLink.getId());
                     cossroadsStats.setInLink(inLink.getId());
 //                    cossroadsStats.setPcuDetail(CrossroadsStats.DEFAULT_DETAIL); // 默认小中大客/货车
                     cossroadsStats.setResultId(inLink.getLineName() + outLink.getLineName());
+                    // 绘制线与link交点作为贝塞尔曲线的起点与终点
+                    // in 为起点，out为终点
+                    Coord startCoord = pointIntersect.get("in", in.getId());
+                    if (startCoord != null) {
+                        cossroadsStats.setStartPoint(JSON.toJSONString(new double[]{startCoord.getX(), startCoord.getY()}));
+                    }
+                    Coord endCoord = pointIntersect.get("out", out.getId());
+                    if (endCoord != null) {
+                        cossroadsStats.setEndPoint(JSON.toJSONString(new double[]{endCoord.getX(), endCoord.getY()}));
+                    }
                     stats.add(cossroadsStats);
                 }
             }
         }
         // 新增全部流量
-        statsMapper.deleteByCossroadsId(cossroads.getId()); // 调整位置之后把之前新增全部删除
+        statsMapper.deleteByCrossroadsId(cossroads.getId()); // 调整位置之后把之前新增全部删除
         statsMapper.batchInsert(stats);
         boolean f = mapper.saveLines(cossroads) > 0;
         if (f && cossroads.getType().equals("2")) { // 只有视频录入才支持视频识别
@@ -217,7 +239,7 @@ public class CossroadsServiceImpl implements CossroadsService {
 
     @Override
     public List<CrossroadsStats> corssStatsTable(Long cossroadsId) {
-        return statsMapper.selectByCossroadsId(cossroadsId);
+        return statsMapper.selectByCrossroadsId(cossroadsId);
     }
 
     @Override
@@ -228,15 +250,15 @@ public class CossroadsServiceImpl implements CossroadsService {
     @Override
     public boolean insertStats(CrossroadsStats stats) {
 
-        if (mapper.selectById(stats.getCossroadsId()) == null) {
+        if (mapper.selectById(stats.getCrossroadsId()) == null) {
             throw new RuntimeException("十字路不存在");
         }
 
-        if (statsMapper.countCossroadsInOrOutLink(stats.getCossroadsId(), stats.getInLink(), stats.getOutLink()) <= 0) {
+        if (statsMapper.countCrossroadsInOrOutLink(stats.getCrossroadsId(), stats.getInLink(), stats.getOutLink()) <= 0) {
             throw new RuntimeException("所选link不在十字路范围内");
         }
 
-        if (statsMapper.countCossroadsInOutLink(stats.getCossroadsId(), stats.getInLink(), stats.getOutLink()) > 0) {
+        if (statsMapper.countCrossroadsInOutLink(stats.getCrossroadsId(), stats.getInLink(), stats.getOutLink()) > 0) {
             throw new RuntimeException("该进出link已存在");
         }
 
@@ -253,7 +275,7 @@ public class CossroadsServiceImpl implements CossroadsService {
 //            stats.setPcuH(pcuh.doubleValue());
 //        }
 
-        stats.setPcuH(calcPch(stats));
+        stats.setPcuH(calcPcu(stats));
 
         return statsMapper.insert(stats);
     }
@@ -273,17 +295,17 @@ public class CossroadsServiceImpl implements CossroadsService {
 //            stats.setPcuH(pcuh.doubleValue());
 //        }
 
-        stats.setPcuH(calcPch(stats));
+        stats.setPcuH(calcPcu(stats));
 
         return statsMapper.updateById(stats);
     }
 
     @Override
-    public Map<String, List<String>> inoutlink(Long cossroadsId) {
-        List<CrossroadsStats> stats = statsMapper.selectByCossroadsId(cossroadsId);
+    public Map<String, Collection<String>> inoutlink(Long cossroadsId) {
+        List<CrossroadsStats> stats = statsMapper.selectByCrossroadsId(cossroadsId);
         return new HashMap<>() {{
-            put("inlink", stats.stream().map(CrossroadsStats::getInLink).toList());
-            put("outlink", stats.stream().map(CrossroadsStats::getOutLink).toList());
+            put("inlink", stats.stream().map(CrossroadsStats::getInLink).collect(Collectors.toSet()));
+            put("outlink", stats.stream().map(CrossroadsStats::getOutLink).collect(Collectors.toSet()));
         }};
     }
 
@@ -313,7 +335,7 @@ public class CossroadsServiceImpl implements CossroadsService {
             if (result) { // 成功运行
                 mapper.updateStatus(cossroadsId, 3); // 运行成功
                 // 更新车辆数量
-                Map<String, CrossroadsStats> maps = statsMapper.selectByCossroadsId(cossroadsId).stream().collect(Collectors.toMap(CrossroadsStats::getResultId, x -> x, (a, b) -> a)); // todo 如果有重复去掉
+                Map<String, CrossroadsStats> maps = statsMapper.selectByCrossroadsId(cossroadsId).stream().collect(Collectors.toMap(CrossroadsStats::getResultId, x -> x, (a, b) -> a)); // todo 如果有重复去掉
                 File results_csv = new File(Constant.DATA_PATH + "/data/" + cossroadsId + "/output_result/results.csv");
                 try (RandomAccessFile raf = new RandomAccessFile(results_csv, "rw")) {
                     raf.readLine(); // 跳过标题行
@@ -328,7 +350,7 @@ public class CossroadsServiceImpl implements CossroadsService {
                         stats.setBus(Integer.parseInt(data[2]));
                         stats.setVan(Integer.parseInt(data[3]));
                         stats.setTruck(Integer.parseInt(data[4]));
-                        stats.setPcuH(calcPch(stats));
+                        stats.setPcuH(calcPcu(stats));
                         stats.setCount(stats.getCar() + stats.getBus() + stats.getVan() + stats.getTruck());
                     }
                     statsMapper.batchUpdate(maps.values());
@@ -358,7 +380,7 @@ public class CossroadsServiceImpl implements CossroadsService {
 //        Crossroads crossroads = mapper.selectById(cossroadsId);
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         Graphics2D g2d = image.createGraphics();
-        List<CrossroadsStats> stats = statsMapper.selectByCossroadsId(cossroadsId);
+        List<CrossroadsStats> stats = statsMapper.selectByCrossroadsId(cossroadsId);
 
         for (CrossroadsStats stat : stats) {
             // 获取from to link 位置
@@ -406,13 +428,49 @@ public class CossroadsServiceImpl implements CossroadsService {
         return false;
     }
 
-    private static double calcPch(CrossroadsStats stats) {
+
+    /**
+     * 计算pcu
+     *
+     * @param stats  流量
+     * @param second 时长
+     * @return
+     */
+    private static double calcPcu(CrossroadsStats stats) {
         BigDecimal pcuh = new BigDecimal("0");
         pcuh = pcuh.add(BigDecimal.valueOf(stats.getCar()));
         pcuh = pcuh.add(BigDecimal.valueOf(stats.getBus()).multiply(BigDecimal.valueOf(2)));
         pcuh = pcuh.add(BigDecimal.valueOf(stats.getVan()));
         pcuh = pcuh.add(BigDecimal.valueOf(stats.getTruck()).multiply(BigDecimal.valueOf(2)));
+//        return pcuh.multiply(BigDecimal.valueOf(3600)).divide(BigDecimal.valueOf(second), RoundingMode.HALF_UP).setScale(2, RoundingMode.DOWN).doubleValue();
         return pcuh.setScale(2, RoundingMode.DOWN).doubleValue();
+    }
+
+    private static Coord doIntersect(Coord[] line1, Coord[] line2) {
+        double[] p1 = {line1[0].getX(), line1[0].getY()};
+        double[] v1 = {line1[1].getX() - line1[0].getX(), line1[1].getY() - line1[0].getY()};
+        double[] p2 = {line2[0].getX(), line2[0].getY()};
+        double[] v2 = {line2[1].getX() - line2[0].getX(), line2[1].getY() - line2[0].getY()};
+        double[] intersection = new double[2];
+        // 计算两条线段的方向向量的叉积
+        double crossProduct = v1[0] * v2[1] - v1[1] * v2[0];
+        // 如果叉积接近于零，则两条线段平行，没有交点
+        if (Math.abs(crossProduct) <= 1e-9) {
+            intersection[0] = -1.0;
+            intersection[1] = -1.0;
+        }
+        // 计算参数 t1 和 t2
+        // 计算参数 t1 和 t2
+        double t1 = ((p2[0] - p1[0]) * v2[1] - (p2[1] - p1[1]) * v2[0]) / crossProduct;
+        // 计算交点坐标
+        intersection[0] = p1[0] + t1 * v1[0];
+        intersection[1] = p1[1] + t1 * v1[1];
+        if (intersection[0] == -1.0 && intersection[1] == -1.0) {
+            // 没有交点
+            return null;
+        } else {
+            return new Coord(intersection);
+        }
     }
 
 }
