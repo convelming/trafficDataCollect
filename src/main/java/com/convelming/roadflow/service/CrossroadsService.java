@@ -12,15 +12,17 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public interface CossroadsService {
+public interface CrossroadsService {
 
     Page<Crossroads> list(Page<Crossroads> page);
     Crossroads insert(CrossroadsController.CossroadsBo cossroads);
     CrossroadsVo detail(Long cossroadsId);
-    List<VoideFrameVo> frame(Long cossroadsId);
-    boolean saveline(CrossroadsController.CossroadsLineBo lines);
+    VoideFrameVo frame(Long cossroadsId);
+
+    boolean deleteByIds(String[] crossroadId);
+    boolean saveline(CrossroadsController.CrossroadsLineBo lines);
     List<CrossroadsStats> corssStatsTable(Long cossroadsId);
-    boolean deleteStats(Long crossroadStatsId);
+    boolean deleteStats(String[] crossroadStatsId);
     boolean insertStats(CrossroadsStats stats);
     boolean updateStats(CrossroadsStats stats);
     Map<String, Collection<String>> inoutlink(Long cossroadsId);

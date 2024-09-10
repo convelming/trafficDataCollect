@@ -3,9 +3,8 @@ package com.convelming.roadflow.model;
 import cn.afterturn.easypoi.excel.annotation.Excel;
 import cn.afterturn.easypoi.excel.annotation.ExcelTarget;
 import com.convelming.roadflow.model.proxy.CrossroadsStatsProxy;
-import com.easy.query.core.annotation.Column;
-import com.easy.query.core.annotation.EntityProxy;
-import com.easy.query.core.annotation.Table;
+import com.easy.query.core.annotation.*;
+import com.easy.query.core.basic.extension.logicdel.LogicDeleteStrategyEnum;
 import com.easy.query.core.proxy.ProxyEntityAvailable;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
@@ -35,8 +34,14 @@ public class CrossroadsStats implements ProxyEntityAvailable<CrossroadsStats, Cr
     @Excel(name = "进入linkId")
     private String inLink;
 
+    @ColumnIgnore
+    private MatsimLink inLinkInfo;
+
     @Excel(name = "离开linkId")
     private String outLink;
+
+    @ColumnIgnore
+    private MatsimLink outLinkInfo;
 
     @Excel(name = "pcu/h", width = 30, isImportField = "wayId")
     private Double pcuH;
@@ -62,6 +67,7 @@ public class CrossroadsStats implements ProxyEntityAvailable<CrossroadsStats, Cr
     private int count;
 
     @JsonIgnore
+    @LogicDelete(strategy = LogicDeleteStrategyEnum.DELETE_LONG_TIMESTAMP)
     private Long deleted;
 
     /**

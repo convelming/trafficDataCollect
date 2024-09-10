@@ -39,6 +39,10 @@ public class CrossroadsMapper {
         return row > 0;
     }
 
+    public boolean deleteByIds(Long[] ids){
+        return 0 < eeq.deletable(Crossroads.class).where(t -> t.id().in(ids)).executeRows();
+    }
+
     public Crossroads selectById(Long id) {
         return eeq.queryable(Crossroads.class).where(t -> t.id().eq(id)).singleOrNull();
     }
@@ -48,13 +52,7 @@ public class CrossroadsMapper {
     }
 
     public int saveLines(Crossroads cossroads) {
-        return (int) eeq.updatable(Crossroads.class).setColumns(t -> {
-            t.lines().set(cossroads.getLines());
-            t.vertex().set(cossroads.getVertex());
-            t.version().set(cossroads.getVersion());
-            t.status().set(cossroads.getStatus());
-            t.updateTime().set(cossroads.getUpdateTime());
-        }).where(t -> t.id().eq(cossroads.getId())).executeRows();
+        return (int) eeq.updatable(cossroads).executeRows();
     }
 
 }

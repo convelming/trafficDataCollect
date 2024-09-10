@@ -7,7 +7,7 @@ import com.convelming.roadflow.common.Page;
 import com.convelming.roadflow.common.Result;
 import com.convelming.roadflow.model.Crossroads;
 import com.convelming.roadflow.model.CrossroadsStats;
-import com.convelming.roadflow.service.CossroadsService;
+import com.convelming.roadflow.service.CrossroadsService;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
@@ -34,7 +34,7 @@ import java.util.List;
 public class CrossroadsController {
 
     @Resource
-    private CossroadsService service;
+    private CrossroadsService service;
 
     /**
      * 十字路列表
@@ -49,14 +49,24 @@ public class CrossroadsController {
 
     /**
      * 十字路详细信息
+     *
      * @param cossroadsId 十字路id
      * @return
      */
     @GetMapping("/detail/{cossroadsId}")
-    public Result detail(@PathVariable Long cossroadsId){
+    public Result detail(@PathVariable Long cossroadsId) {
         return Result.ok(service.detail(cossroadsId));
     }
 
+    /**
+     * 删除十字路
+     * @param cossroadsIds 十字路id串
+     */
+    @DeleteMapping("/delete/{cossroadsIds}")
+    public Result delete(@PathVariable String cossroadsIds) {
+        String[] cossroadsId = cossroadsIds.split(",");
+        return Result.ok(service.deleteByIds(cossroadsId));
+    }
 
     /**
      * 新增十字路数据
@@ -93,7 +103,7 @@ public class CrossroadsController {
      * @param bo 线数据
      */
     @PostMapping("/saveline")
-    public Result saveline(@RequestBody CossroadsLineBo bo) {
+    public Result saveline(@RequestBody CrossroadsLineBo bo) {
         return Result.failOrOk(service.saveline(bo));
     }
 
@@ -110,10 +120,11 @@ public class CrossroadsController {
     /**
      * 删除十字路流量（删除行）
      *
-     * @param crossroadStatsId 十字路流量id
+     * @param crossroadStatsIds 十字路流量id
      */
-    @DeleteMapping("/deleteStats/{crossroadStatsId}")
-    public Result deleteStats(@PathVariable Long crossroadStatsId) {
+    @DeleteMapping("/deleteStats/{crossroadStatsIds}")
+    public Result deleteStats(@PathVariable String crossroadStatsIds) {
+        String[] crossroadStatsId = crossroadStatsIds.split(",");
         return Result.failOrOk(service.deleteStats(crossroadStatsId));
     }
 
@@ -285,6 +296,11 @@ public class CrossroadsController {
          */
         Integer videoType;
 
+        /**
+         * 地图旋转缩放信息
+         */
+        String mapInfo;
+
     }
 
     @Data
@@ -300,7 +316,7 @@ public class CrossroadsController {
     }
 
     @Data
-    public static class CossroadsLineBo {
+    public static class CrossroadsLineBo {
 
         Long cossroadsId;
 

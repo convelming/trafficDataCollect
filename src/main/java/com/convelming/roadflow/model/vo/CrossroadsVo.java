@@ -14,6 +14,6 @@ public class CrossroadsVo {
 
     private Crossroads crossroads;
 
-    private List<VoideFrameVo> frame;
+    private VoideFrameVo frame;
 
 }
