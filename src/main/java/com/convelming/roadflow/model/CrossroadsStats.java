@@ -67,7 +67,6 @@ public class CrossroadsStats implements ProxyEntityAvailable<CrossroadsStats, Cr
     private int count;
 
     @JsonIgnore
-    @LogicDelete(strategy = LogicDeleteStrategyEnum.DELETE_LONG_TIMESTAMP)
     private Long deleted;
 
     /**

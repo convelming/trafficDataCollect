@@ -98,7 +98,7 @@ public class Test {
 //                100.0, 100.0, // P2 x,y
 //                10.0, 100.0); // P3 x,y
 //        g2d.draw(bezierCurve);
-        List<CrossroadsStats> stats = statsMapper.selectByCrossroadsIdAndPuchIsNotNull(cossroadsId);
+        List<CrossroadsStats> stats = statsMapper.selectByCrossroadsId(cossroadsId);
         List<String> linkIds = new ArrayList<>();
         linkIds.addAll(stats.stream().map(CrossroadsStats::getInLink).toList());
         linkIds.addAll(stats.stream().map(CrossroadsStats::getOutLink).toList());
@@ -107,26 +107,26 @@ public class Test {
         nodeIds.addAll(links.values().stream().map(MatsimLink::getFromNode).toList());
         nodeIds.addAll(links.values().stream().map(MatsimLink::getToNode).toList());
         Map<String, MatsimNode> nodes = nodeMapper.selectInId(nodeIds).stream().collect(Collectors.toMap(MatsimNode::getId, x -> x));
+
         double minx = nodes.values().stream().mapToDouble(MatsimNode::getX).min().orElse(0) - 5;
         double maxy = nodes.values().stream().mapToDouble(MatsimNode::getY).max().orElse(0) + 5;
+
         for (CrossroadsStats stat : stats) {
             // 获取from to link 位置
-            MatsimNode ibfn = nodes.get(links.get(stat.getInLink()).getFromNode());
+            List<Double> startPoint = JSON.parseArray(stat.getStartPoint(), Double.class);
             MatsimNode ibtn = nodes.get(links.get(stat.getInLink()).getToNode());
             MatsimNode obfn = nodes.get(links.get(stat.getOutLink()).getFromNode());
-            MatsimNode obtn = nodes.get(links.get(stat.getOutLink()).getToNode());
+            List<Double> endPoint = JSON.parseArray(stat.getEndPoint(), Double.class);
             CubicCurve2D.Double bezierCurve = new CubicCurve2D.Double(
-                    (ibfn.getX() - minx) * 10, (maxy - ibfn.getY()) * 10,
+                    (startPoint.get(0) - minx) * 10, (maxy - startPoint.get(1)) * 10,
                     (ibtn.getX() - minx) * 10, (maxy - ibtn.getY()) * 10,
                     (obfn.getX() - minx) * 10, (maxy - obfn.getY()) * 10,
-                    (obtn.getX() - minx) * 10, (maxy - obtn.getY()) * 10);
+                    (endPoint.get(0) - minx) * 10, (maxy - endPoint.get(1)) * 10);
 //            CubicCurve2D.Double bezierCurve = new CubicCurve2D.Double(
 //                    (obtn.getX() - minx) * 10, (obtn.getY() - miny) * 10, // P0 x,y
 //                    (obfn.getX() - minx) * 10, (obfn.getY() - miny) * 10, // P2 x,y
 //                    (ibfn.getX() - minx) * 10, (ibfn.getY() - miny) * 10,//
 //                    (ibtn.getX() - minx) * 10, (ibtn.getY() - miny) * 10); // P1 x,y
-            if ("703270".equals(stat.getInLink())) {
-            }
             g2d.setColor(Color.WHITE);
             g2d.draw(bezierCurve);
 

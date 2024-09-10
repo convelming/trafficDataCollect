@@ -89,7 +89,8 @@ public class CrossroadsStatsMapper {
      * @param id crossroadStatsId
      */
     public boolean deleteByIds(Long[] id) {
-        return eeq.deletable(CrossroadsStats.class)
+        return eeq.updatable(CrossroadsStats.class)
+                .setColumns(t -> t.deleted().set(1L))
                 .where(t -> t.id().in(id))
                 .executeRows() > 0;
 //        return eeq.deletable(CrossroadsStats.class).where(t -> t.cossroadsId().eq(cossroadsId)).executeRows() > 0;

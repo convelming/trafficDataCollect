@@ -508,7 +508,18 @@ public class CrossroadsServiceImpl implements CrossroadsService {
             // 没有交点
             return null;
         } else {
-            return new Coord(intersection);
+            if (Math.min(line2[0].getX(), line2[1].getX()) <= intersection[0] && 
+                    intersection[0] <= Math.max(line2[0].getX(), line2[1].getX()) && 
+                    Math.min(line2[0].getY(), line2[1].getY()) <= intersection[1] && 
+                    intersection[1] <= Math.max(line2[0].getY(), line2[1].getY()) && 
+                    Math.min(line1[0].getX(), line1[1].getX()) <= intersection[0] && 
+                    intersection[0] <= Math.max(line1[0].getX(), line1[1].getX()) && 
+                    Math.min(line1[0].getY(), line1[1].getY()) <= intersection[1] && 
+                    intersection[1] <= Math.max(line1[0].getY(), line1[1].getY())) {
+                return new Coord(intersection);
+            } else {
+                return null;
+            }
         }
     }
 
