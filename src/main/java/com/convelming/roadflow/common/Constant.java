@@ -14,7 +14,7 @@ public class Constant {
     /**
      * 十字路框选最大面积
      */
-    public final static double MAX_AREA = 50000.;
+    public final static double MAX_AREA = 1000 * 1000.;
 
     static {
         String os = System.getProperty("os.name");

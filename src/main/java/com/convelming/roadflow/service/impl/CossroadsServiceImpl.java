@@ -12,6 +12,7 @@ import com.convelming.roadflow.model.Crossroads;
 import com.convelming.roadflow.model.CrossroadsStats;
 import com.convelming.roadflow.model.MatsimLink;
 import com.convelming.roadflow.model.MatsimNode;
+import com.convelming.roadflow.model.vo.CrossroadsVo;
 import com.convelming.roadflow.model.vo.VoideFrameVo;
 import com.convelming.roadflow.service.CossroadsService;
 import com.convelming.roadflow.util.GeomUtil;
@@ -89,6 +90,13 @@ public class CossroadsServiceImpl implements CossroadsService {
     }
 
     @Override
+    public CrossroadsVo detail(Long cossroadsId) {
+        Crossroads crossroads = mapper.selectById(cossroadsId);
+        List<VoideFrameVo> frame = frame(cossroadsId);
+        return new CrossroadsVo(crossroads, frame);
+    }
+
+    @Override
     public List<VoideFrameVo> frame(Long cossroadsId) {
         Crossroads crossroads = mapper.selectById(cossroadsId);
         if (crossroads == null) {
@@ -97,7 +105,7 @@ public class CossroadsServiceImpl implements CossroadsService {
         String video = Constant.VIDEO_PATH + crossroads.getVideo();
         File vf = new File(video);
         if (!vf.exists()) {
-            throw new RuntimeException("视频文件不存在");
+            return Collections.emptyList();
         }
 
         String toimage = video + "_0.jpg";
@@ -125,6 +133,7 @@ public class CossroadsServiceImpl implements CossroadsService {
         cossroads.setUpdateTime(new Date());
         cossroads.setVertex(JSON.toJSONString(bo.getVertex()));
         cossroads.setLines(JSON.toJSONString(bo.getLines()));
+        cossroads.setMapInfo(bo.getMapInfo());
 
         PGgeometry polygon = GeomUtil.genPolygon(bo.getVertex(), GeomUtil.MKT);
         if (GeomUtil.getArea(polygon) > Constant.MAX_AREA) {
@@ -213,6 +222,7 @@ public class CossroadsServiceImpl implements CossroadsService {
                     cossroadsStats.setInLink(inLink.getId());
 //                    cossroadsStats.setPcuDetail(CrossroadsStats.DEFAULT_DETAIL); // 默认小中大客/货车
                     cossroadsStats.setResultId(inLink.getLineName() + outLink.getLineName());
+                    cossroadsStats.setName(cossroadsStats.getResultId());
                     // 绘制线与link交点作为贝塞尔曲线的起点与终点
                     // in 为起点，out为终点
                     Coord startCoord = pointIntersect.get("in", in.getId());

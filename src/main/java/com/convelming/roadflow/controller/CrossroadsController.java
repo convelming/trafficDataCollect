@@ -48,6 +48,17 @@ public class CrossroadsController {
     }
 
     /**
+     * 十字路详细信息
+     * @param cossroadsId 十字路id
+     * @return
+     */
+    @GetMapping("/detail/{cossroadsId}")
+    public Result detail(@PathVariable Long cossroadsId){
+        return Result.ok(service.detail(cossroadsId));
+    }
+
+
+    /**
      * 新增十字路数据
      *
      * @param bo 参数
@@ -292,6 +303,11 @@ public class CrossroadsController {
     public static class CossroadsLineBo {
 
         Long cossroadsId;
+
+        /**
+         * 地图旋转缩放信息
+         */
+        String mapInfo;
 
         /**
          * 多边形点

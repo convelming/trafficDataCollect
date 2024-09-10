@@ -4,6 +4,7 @@ import com.convelming.roadflow.common.Page;
 import com.convelming.roadflow.controller.CrossroadsController;
 import com.convelming.roadflow.model.Crossroads;
 import com.convelming.roadflow.model.CrossroadsStats;
+import com.convelming.roadflow.model.vo.CrossroadsVo;
 import com.convelming.roadflow.model.vo.VoideFrameVo;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -15,6 +16,7 @@ public interface CossroadsService {
 
     Page<Crossroads> list(Page<Crossroads> page);
     Crossroads insert(CrossroadsController.CossroadsBo cossroads);
+    CrossroadsVo detail(Long cossroadsId);
     List<VoideFrameVo> frame(Long cossroadsId);
     boolean saveline(CrossroadsController.CossroadsLineBo lines);
     List<CrossroadsStats> corssStatsTable(Long cossroadsId);

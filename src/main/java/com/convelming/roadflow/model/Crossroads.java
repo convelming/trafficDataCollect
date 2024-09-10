@@ -84,6 +84,11 @@ public class Crossroads implements ProxyEntityAvailable<Crossroads, CrossroadsPr
     private String remark;
 
     /**
+     * 地图旋转缩放信息
+     */
+    private String mapInfo;
+
+    /**
      * 登记ip地址
      */
     @JsonIgnore

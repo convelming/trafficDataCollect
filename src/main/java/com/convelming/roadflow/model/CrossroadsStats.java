@@ -29,6 +29,9 @@ public class CrossroadsStats implements ProxyEntityAvailable<CrossroadsStats, Cr
      */
     private Long crossroadsId;
 
+    @Excel(name = "名称")
+    private String name;
+
     @Excel(name = "进入linkId")
     private String inLink;
 
