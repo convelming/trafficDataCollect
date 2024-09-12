@@ -330,8 +330,12 @@ public class CrossroadsServiceImpl implements CrossroadsService {
 //            }
 //            stats.setPcuH(pcuh.doubleValue());
 //        }
-
-        stats.setPcuH(calcPcu(stats));
+        Crossroads crossroads = mapper.selectById(stats.getCrossroadsId());
+        long time = 3600;
+        if (crossroads != null) {
+            time = crossroads.getEndTime().toInstant().getEpochSecond() - crossroads.getBeginTime().toInstant().getEpochSecond();
+        }
+        stats.setPcuH(calcPcu(stats, time));
 
         return statsMapper.insert(stats);
     }
@@ -351,7 +355,12 @@ public class CrossroadsServiceImpl implements CrossroadsService {
 //            stats.setPcuH(pcuh.doubleValue());
 //        }
 
-        stats.setPcuH(calcPcu(stats));
+        Crossroads crossroads = mapper.selectById(stats.getCrossroadsId());
+        long time = 3600;
+        if (crossroads != null) {
+            time = crossroads.getEndTime().toInstant().getEpochSecond() - crossroads.getBeginTime().toInstant().getEpochSecond();
+        }
+        stats.setPcuH(calcPcu(stats, time));
 
         return statsMapper.updateById(stats);
     }
@@ -405,7 +414,8 @@ public class CrossroadsServiceImpl implements CrossroadsService {
                             stats.setBus(Integer.parseInt(data[2]));
                             stats.setVan(Integer.parseInt(data[3]));
                             stats.setTruck(Integer.parseInt(data[4]));
-                            stats.setPcuH(calcPcu(stats));
+                            long time = crossroads.getEndTime().toInstant().getEpochSecond() - crossroads.getBeginTime().toInstant().getEpochSecond();
+                            stats.setPcuH(calcPcu(stats, time));
                             stats.setCount(stats.getCar() + stats.getBus() + stats.getVan() + stats.getTruck());
                         }
                         statsMapper.batchUpdate(maps.values());
@@ -475,14 +485,17 @@ public class CrossroadsServiceImpl implements CrossroadsService {
      * @param second 时长
      * @return
      */
-    private static double calcPcu(CrossroadsStats stats) {
+    private static double calcPcu(CrossroadsStats stats, double second) {
+        if (second <= 0) {
+            second = 3600L; // 默认算一个小时
+        }
         BigDecimal pcuh = new BigDecimal("0");
         pcuh = pcuh.add(BigDecimal.valueOf(stats.getCar()));
         pcuh = pcuh.add(BigDecimal.valueOf(stats.getBus()).multiply(BigDecimal.valueOf(2)));
         pcuh = pcuh.add(BigDecimal.valueOf(stats.getVan()));
         pcuh = pcuh.add(BigDecimal.valueOf(stats.getTruck()).multiply(BigDecimal.valueOf(2)));
-//        return pcuh.multiply(BigDecimal.valueOf(3600)).divide(BigDecimal.valueOf(second), RoundingMode.HALF_UP).setScale(2, RoundingMode.DOWN).doubleValue();
-        return pcuh.setScale(2, RoundingMode.DOWN).doubleValue();
+        return pcuh.multiply(BigDecimal.valueOf(3600)).divide(BigDecimal.valueOf(second), RoundingMode.HALF_UP).setScale(2, RoundingMode.DOWN).doubleValue();
+//        return pcuh.setScale(2, RoundingMode.DOWN).doubleValue();
     }
 
     private static Coord doIntersect(Coord[] line1, Coord[] line2) {
@@ -508,13 +521,13 @@ public class CrossroadsServiceImpl implements CrossroadsService {
             // 没有交点
             return null;
         } else {
-            if (Math.min(line2[0].getX(), line2[1].getX()) <= intersection[0] && 
-                    intersection[0] <= Math.max(line2[0].getX(), line2[1].getX()) && 
-                    Math.min(line2[0].getY(), line2[1].getY()) <= intersection[1] && 
-                    intersection[1] <= Math.max(line2[0].getY(), line2[1].getY()) && 
-                    Math.min(line1[0].getX(), line1[1].getX()) <= intersection[0] && 
-                    intersection[0] <= Math.max(line1[0].getX(), line1[1].getX()) && 
-                    Math.min(line1[0].getY(), line1[1].getY()) <= intersection[1] && 
+            if (Math.min(line2[0].getX(), line2[1].getX()) <= intersection[0] &&
+                    intersection[0] <= Math.max(line2[0].getX(), line2[1].getX()) &&
+                    Math.min(line2[0].getY(), line2[1].getY()) <= intersection[1] &&
+                    intersection[1] <= Math.max(line2[0].getY(), line2[1].getY()) &&
+                    Math.min(line1[0].getX(), line1[1].getX()) <= intersection[0] &&
+                    intersection[0] <= Math.max(line1[0].getX(), line1[1].getX()) &&
+                    Math.min(line1[0].getY(), line1[1].getY()) <= intersection[1] &&
                     intersection[1] <= Math.max(line1[0].getY(), line1[1].getY())) {
                 return new Coord(intersection);
             } else {

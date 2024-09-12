@@ -60,14 +60,14 @@ public class CrossroadsStatsMapper {
     }
 
     /**
-     * 删除十字路流量数据
+     * 删除十字路流量数据，物理删除
      *
      * @param cossroadsId 十字路id
      */
     public boolean deleteByCrossroadsId(Long cossroadsId) {
         return eeq.deletable(CrossroadsStats.class)
                 .where(t -> t.crossroadsId().eq(cossroadsId))
-                .executeRows() > 0;
+                .allowDeleteStatement(true).executeRows() > 0; // 物理删除
 //        return eeq.deletable(CrossroadsStats.class).where(t -> t.cossroadsId().eq(cossroadsId)).executeRows() > 0;
     }
 

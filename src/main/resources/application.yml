@@ -29,6 +29,6 @@ easy-query:
   enable: true
   database: pgsql
   name-conversion: underlined
-  delete-throw: true
+  delete-throw: false
   print-sql: true
   keep-native-style: true
