@@ -80,7 +80,7 @@ public class CrossroadsServiceImpl implements CrossroadsService {
 //        PGgeometry polygon = GeomUtil.genPolygon(vertex, GeomUtil.MKT);
 //        List<MatsimLink> links = linkMapper.selectIntersects(polygon);
 //        crossroads.setVertex(JSON.toJSONString(vertex));
-        crossroads.setCenter(JSON.toJSONString(bo.getCenter()));
+//        crossroads.setCenter(JSON.toJSONString(bo.getCenter()));
 //        crossroads.setInLinkId(JSON.toJSONString(links.stream().map(MatsimLink::getId).toList()));
         mapper.insert(crossroads);
         return crossroads;
@@ -116,7 +116,7 @@ public class CrossroadsServiceImpl implements CrossroadsService {
         vo.setName(toimage.substring(toimage.lastIndexOf("/") + 1));
         vo.setWidth(wh[0]);
         vo.setHeight(wh[1]);
-        vo.setCenter(JSON.parseArray(crossroads.getCenter(), BigDecimal.class).stream().mapToDouble(BigDecimal::doubleValue).toArray());
+//        vo.setCenter(JSON.parseArray(crossroads.getCenter(), BigDecimal.class).stream().mapToDouble(BigDecimal::doubleValue).toArray());
         return vo;
     }
 
@@ -145,9 +145,9 @@ public class CrossroadsServiceImpl implements CrossroadsService {
         if (GeomUtil.getArea(polygon) > Constant.MAX_AREA) {
             throw new RuntimeException("范围过大，请缩小范围再提交");
         }
-        double[] center = GeomUtil.getCentroid(polygon);
+//        double[] center = GeomUtil.getCentroid(polygon);
 //        Coord centerCoord = new Coord(center);
-        crossroads.setCenter(JSON.toJSONString(center));
+//        crossroads.setCenter(JSON.toJSONString(center));
         List<MatsimLink> links = linkMapper.selectIntersects(polygon);
         List<String> nodeIds = new ArrayList<>(links.stream().map(MatsimLink::getToNode).toList());
         nodeIds.addAll(links.stream().map(MatsimLink::getFromNode).toList());

@@ -26,10 +26,6 @@ public class Crossroads implements ProxyEntityAvailable<Crossroads, CrossroadsPr
     @Column(primaryKey = true)
     private Long id;
 
-    /**
-     * 十字路范围中心点, json 字符串
-     */
-    private String center;
 
     /**
      * 十字路范围顶点, json 字符串

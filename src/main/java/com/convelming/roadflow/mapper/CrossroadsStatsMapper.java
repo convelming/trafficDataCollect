@@ -3,6 +3,7 @@ package com.convelming.roadflow.mapper;
 import com.convelming.roadflow.model.CrossroadsStats;
 import com.convelming.roadflow.model.MatsimLink;
 import com.convelming.roadflow.model.MatsimNode;
+import com.convelming.roadflow.model.proxy.CrossroadsStatsProxy;
 import com.convelming.roadflow.util.IdUtil;
 import com.easy.query.api.proxy.client.EasyEntityQuery;
 import jakarta.annotation.Resource;
@@ -105,7 +106,7 @@ public class CrossroadsStatsMapper {
         List<CrossroadsStats> list = eeq.queryable(CrossroadsStats.class).where(t -> {
             t.crossroadsId().eq(crossroadsId);
             t.deleted().eq(0L);
-        }).toList();
+        }).orderBy(t -> t.id().asc()).toList();
 
         Set<String> linksId = new HashSet<>();
         linksId.addAll(list.stream().map(CrossroadsStats::getInLink).toList());
@@ -143,7 +144,7 @@ public class CrossroadsStatsMapper {
             t.crossroadsId().eq(crossroadsId);
             t.pcuH().isNotNull();
             t.deleted().eq(0L);
-        }).toList();
+        }).orderBy(t -> t.id().asc()).toList();
     }
 
     /**

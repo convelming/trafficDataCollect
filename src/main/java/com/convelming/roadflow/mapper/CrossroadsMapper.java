@@ -20,7 +20,7 @@ public class CrossroadsMapper {
     private EasyEntityQuery eeq;
 
     public Page<Crossroads> list(Page<Crossroads> page) {
-        List<Crossroads> data = eeq.queryable(Crossroads.class).limit(page.getOffset(), page.getPageSize()).toList();
+        List<Crossroads> data = eeq.queryable(Crossroads.class).orderBy(t -> t.id().desc()).limit(page.getOffset(), page.getPageSize()).toList();
         long total = eeq.queryable(Crossroads.class).count();
         return page.build(data, total);
     }
@@ -39,7 +39,7 @@ public class CrossroadsMapper {
         return row > 0;
     }
 
-    public boolean deleteByIds(Long[] ids){
+    public boolean deleteByIds(Long[] ids) {
         return 0 < eeq.deletable(Crossroads.class).where(t -> t.id().in(ids)).executeRows();
     }
 
