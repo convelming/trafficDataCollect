@@ -16,6 +16,11 @@ public class Constant {
      */
     public final static double MAX_AREA = 1000 * 1000.;
 
+    /**
+     * 十字路路径最大长度。超过这个长度判定为走不通
+     */
+    public final static int MAX_DEEP = 50;
+
     static {
         String os = System.getProperty("os.name");
         if (os.contains("Windows")) {

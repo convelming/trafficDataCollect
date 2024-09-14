@@ -10,6 +10,7 @@ import com.convelming.roadflow.model.Crossroads;
 import com.convelming.roadflow.model.CrossroadsStats;
 import com.convelming.roadflow.model.MatsimLink;
 import com.convelming.roadflow.model.MatsimNode;
+import com.convelming.roadflow.util.IdUtil;
 import com.convelming.roadflow.util.VideoUtil;
 import com.easy.query.api.proxy.client.EasyEntityQuery;
 import jakarta.annotation.Resource;
@@ -46,6 +47,25 @@ public class Test {
     private MatsimNodeMapper nodeMapper;
     @Resource
     private CrossroadsMapper roadsMapper;
+    @Resource
+    private IdUtil idUtil;
+
+    @org.junit.Test
+    public void idConcurrent() {
+        String table = "crossroads";
+        Long id = idUtil.getId(table);
+        List<Long> list = new ArrayList<>();
+        for (long i = 0; i < 100000000; i++) {
+            list.add(i);
+        }
+        list.parallelStream().forEach(i -> idUtil.getId(table));
+        System.out.println(idUtil.getId(table) - id);
+    }
+
+    @org.junit.Test
+    public void deleteStatus() {
+        statsMapper.deleteByCrossroadsId(30L);
+    }
 
     @org.junit.Test
     public void updateStatusPoint() {

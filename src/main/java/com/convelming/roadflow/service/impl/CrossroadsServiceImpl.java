@@ -171,7 +171,7 @@ public class CrossroadsServiceImpl implements CrossroadsService {
             lineIntersect.addAll(intersectsLinks);
         }
 
-        Map<String, MatsimLink> linkMap = lineIntersect.stream().collect(Collectors.toMap(MatsimLink::getId, x -> x));
+        Map<String, MatsimLink> linkMap = lineIntersect.stream().collect(Collectors.toMap(MatsimLink::getId, x -> x, (a, b) -> a));
 
 //        miniNetWork.getLinks().forEach(((id, link) -> {
 //            // 十字路所有进出口
@@ -361,7 +361,7 @@ public class CrossroadsServiceImpl implements CrossroadsService {
             time = crossroads.getEndTime().toInstant().getEpochSecond() - crossroads.getBeginTime().toInstant().getEpochSecond();
         }
         stats.setPcuH(calcPcu(stats, time));
-
+        stats.setDeleted(0L);
         return statsMapper.updateById(stats);
     }
 
@@ -469,8 +469,11 @@ public class CrossroadsServiceImpl implements CrossroadsService {
                 return false;
             }
             Link link = entry.getValue();
-            if (calcRouteAccessible(link, end, stack)) {
+            if (stack.size() < Constant.MAX_DEEP && calcRouteAccessible(link, end, stack)) {
                 return true;
+            }
+            if(stack.isEmpty()){
+                return false;
             }
             stack.pop();
         }
