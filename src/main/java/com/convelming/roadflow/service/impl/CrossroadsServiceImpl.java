@@ -145,8 +145,8 @@ public class CrossroadsServiceImpl implements CrossroadsService {
         if (GeomUtil.getArea(polygon) > Constant.MAX_AREA) {
             throw new RuntimeException("范围过大，请缩小范围再提交");
         }
-//        double[] center = GeomUtil.getCentroid(polygon);
-//        Coord centerCoord = new Coord(center);
+        double[] center = GeomUtil.getCentroid(polygon);
+        Coord centerCoord = new Coord(center);
 //        crossroads.setCenter(JSON.toJSONString(center));
         List<MatsimLink> links = linkMapper.selectIntersects(polygon);
         List<String> nodeIds = new ArrayList<>(links.stream().map(MatsimLink::getToNode).toList());
@@ -164,12 +164,15 @@ public class CrossroadsServiceImpl implements CrossroadsService {
         )));
 //        List<Link> ins = new ArrayList<>(), outs = new ArrayList<>(); // 进入、离开框选范围的link
         List<Link> intersectIns = new ArrayList<>(), intersectOuts = new ArrayList<>(); // 绘制线相交的in, out
-        Collection<MatsimLink> lineIntersect = new ArrayList<>(); // 与绘制线相交的link
+        List<MatsimLink> lineIntersect = new ArrayList<>(); // 与绘制线相交的link
         for (CrossroadsController.LineBo line : bo.getLines()) {
             List<MatsimLink> intersectsLinks = linkMapper.selectIntersects(GeomUtil.genLine(new Coord(line.getMktBeginx(), line.getMktBeginy()), new Coord(line.getMktEndx(), line.getMktEndy()), 3857));
             intersectsLinks.forEach(link -> link.setLineName(line.getLineName()));
             lineIntersect.addAll(intersectsLinks);
         }
+        lineIntersect.sort((a, b) ->
+                (int) (calcDistance3857(miniNetWork.getLinks().get(Id.createLinkId(a.getId())).getToNode().getCoord(), centerCoord)
+                        - calcDistance3857(miniNetWork.getLinks().get(Id.createLinkId(b.getId())).getToNode().getCoord(), centerCoord)));
 
         Map<String, MatsimLink> linkMap = lineIntersect.stream().collect(Collectors.toMap(MatsimLink::getId, x -> x, (a, b) -> a));
 
@@ -225,7 +228,13 @@ public class CrossroadsServiceImpl implements CrossroadsService {
                     continue;
                 }
                 if (calcRouteAccessible(l1, l2, new Stack<>())) {
-                    if (intersectIns.stream().noneMatch(link -> l1.getId().equals(link.getId()))) {
+                    boolean turn = false;
+                    for (Link temp : intersectIns) {
+                        if (temp.getFromNode().equals(l1.getToNode()) && temp.getToNode().equals(l1.getFromNode())) {
+                            turn = true;
+                        }
+                    }
+                    if (intersectIns.stream().noneMatch(link -> l1.getId().equals(link.getId())) && !turn) {
                         Coord intersect = null;
                         for (int i = 0; i < bo.getLines().size() && intersect == null; i++) {
                             CrossroadsController.LineBo line = bo.getLines().get(i);
@@ -469,10 +478,13 @@ public class CrossroadsServiceImpl implements CrossroadsService {
                 return false;
             }
             Link link = entry.getValue();
+            if (start.getFromNode().getId().equals(link.getToNode().getId()) && !start.getId().equals(stack.get(0))) {
+                continue;
+            }
             if (stack.size() < Constant.MAX_DEEP && calcRouteAccessible(link, end, stack)) {
                 return true;
             }
-            if(stack.isEmpty()){
+            if (stack.isEmpty()) {
                 return false;
             }
             stack.pop();
