@@ -504,6 +504,9 @@ public class CrossroadsServiceImpl implements CrossroadsService {
         if (second <= 0) {
             second = 3600L; // 默认算一个小时
         }
+        if (stats.getPcuH() != null && stats.getPcuH() > 0) {
+            return stats.getPcuH();
+        }
         BigDecimal pcuh = new BigDecimal("0");
         pcuh = pcuh.add(BigDecimal.valueOf(stats.getCar()));
         pcuh = pcuh.add(BigDecimal.valueOf(stats.getBus()).multiply(BigDecimal.valueOf(2)));
