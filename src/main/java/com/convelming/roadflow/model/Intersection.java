@@ -1,8 +1,9 @@
 package com.convelming.roadflow.model;
 
+
 import cn.afterturn.easypoi.excel.annotation.ExcelTarget;
 import com.alibaba.fastjson.annotation.JSONField;
-import com.convelming.roadflow.model.proxy.CrossroadsProxy;
+import com.convelming.roadflow.model.proxy.IntersectionProxy;
 import com.easy.query.core.annotation.*;
 import com.easy.query.core.basic.extension.logicdel.LogicDeleteStrategyEnum;
 import com.easy.query.core.proxy.ProxyEntityAvailable;
@@ -11,85 +12,44 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.postgis.jdbc.PGgeometry;
 
 import java.util.Date;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ExcelTarget("cossroads")
+@ExcelTarget("intersection")
 
-@Table("crossroads")
+@Table("intersection")
 @EntityProxy
-public class Crossroads implements ProxyEntityAvailable<Crossroads, CrossroadsProxy> {
+public class Intersection implements ProxyEntityAvailable<Intersection, IntersectionProxy> {
 
     @Column(primaryKey = true)
     private Long id;
 
-    private Long intersectionId;
-
     /**
-     * 十字路范围顶点, json 字符串
+     * x坐标
      */
-    private String vertex;
+    private Double x;
 
     /**
-     * 范围内link_id, json 字符串
+     * y坐标
      */
-    private String inLinkId;
+    private Double y;
 
     /**
-     * 视频
+     * 名称
      */
-    private String video;
+    private String name;
+
+    @JsonIgnore
+    private PGgeometry geom;
 
     /**
-     * 拍摄类型（1俯视航拍，2侧面路拍，3正斜角拍摄
-     */
-    private Integer videoType;
-
-    /**
-     * 录入类型，0其他，1人工，2视频
-     */
-    private String type;
-
-    /**
-     * 绘制状态（0等待划线，1等待运行，2正在运行，3运行成功，4运行失败
+     * 是否已有录入数据，0未录入，1已录入
      */
     private Integer status;
-
-    /**
-     * 绘制线数据
-     */
-    private String lines;
-
-    /**
-     * 开始时间
-     */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date beginTime;
-
-    /**
-     * 结束时间
-     */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date endTime;
-
-    /**
-     * 备注
-     */
-    private String remark;
-
-    /**
-     * 地图旋转缩放信息
-     */
-    private String mapInfo;
-
-    /**
-     * 登记ip地址
-     */
-    @JsonIgnore
-    private String ipAddr;
 
     /**
      * 版本号
@@ -120,5 +80,4 @@ public class Crossroads implements ProxyEntityAvailable<Crossroads, CrossroadsPr
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @JSONField(format = "yyyy-MM-dd HH:mm:ss")
     private Date updateTime;
-
 }

@@ -4,10 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.convelming.roadflow.common.Constant;
 import com.convelming.roadflow.common.Page;
 import com.convelming.roadflow.controller.CrossroadsController;
-import com.convelming.roadflow.mapper.CrossroadsMapper;
-import com.convelming.roadflow.mapper.CrossroadsStatsMapper;
-import com.convelming.roadflow.mapper.MatsimLinkMapper;
-import com.convelming.roadflow.mapper.MatsimNodeMapper;
+import com.convelming.roadflow.mapper.*;
 import com.convelming.roadflow.model.Crossroads;
 import com.convelming.roadflow.model.CrossroadsStats;
 import com.convelming.roadflow.model.MatsimLink;
@@ -54,6 +51,9 @@ public class CrossroadsServiceImpl implements CrossroadsService {
     private CrossroadsStatsMapper statsMapper;
 
     @Resource
+    private IntersectionMapper intersectionMapper;
+
+    @Resource
     private MatsimLinkMapper linkMapper;
 
     @Resource
@@ -74,6 +74,7 @@ public class CrossroadsServiceImpl implements CrossroadsService {
         crossroads.setVideoType(bo.getVideoType());
         crossroads.setIpAddr(request.getRemoteAddr());
         crossroads.setMapInfo(bo.getMapInfo());
+        crossroads.setIntersectionId(bo.getIntersectionId());
 
         crossroads.setBeginTime(bo.getBeginTime());
         crossroads.setEndTime(bo.getEndTime());
@@ -82,7 +83,10 @@ public class CrossroadsServiceImpl implements CrossroadsService {
 //        crossroads.setVertex(JSON.toJSONString(vertex));
 //        crossroads.setCenter(JSON.toJSONString(bo.getCenter()));
 //        crossroads.setInLinkId(JSON.toJSONString(links.stream().map(MatsimLink::getId).toList()));
-        mapper.insert(crossroads);
+        if (mapper.insert(crossroads)) {
+            long count = mapper.countByIntersectionId(crossroads.getIntersectionId());
+            intersectionMapper.updateStatus(crossroads.getIntersectionId(), count > 0 ? 1 : 0);
+        }
         return crossroads;
     }
 
@@ -126,7 +130,12 @@ public class CrossroadsServiceImpl implements CrossroadsService {
         for (int i = 0; i < ids.length; i++) {
             ids[i] = Long.parseLong(crossroadId[i]);
         }
-        return mapper.deleteByIds(ids);
+        if (mapper.deleteByIds(ids)) {
+            Crossroads crossroads = mapper.selectById(ids[0]);
+            long count = mapper.countByIntersectionId(crossroads.getIntersectionId());
+            intersectionMapper.updateStatus(crossroads.getIntersectionId(), count > 0 ? 1 : 0);
+        }
+        return true;
     }
 
     @Override

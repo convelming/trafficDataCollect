@@ -44,6 +44,7 @@ public class CrossroadsController {
     @PostMapping("/list")
     public Result list(@RequestBody QueryParam param) {
         Page<Crossroads> page = new Page<>(param.getPageNum(), param.getPageSize());
+        page.param(new Object[]{"intersectionId", param.intersectionId});
         return Result.ok(service.list(page));
     }
 
@@ -271,6 +272,11 @@ public class CrossroadsController {
         String video;
 
         /**
+         * 十字路中心点id
+         */
+        Long intersectionId;
+
+        /**
          * 录入类型（手动录入，视频录入）
          */
         String type;
@@ -305,6 +311,7 @@ public class CrossroadsController {
 
     @Data
     public static class QueryParam {
+        private Long intersectionId;
         /**
          * 分页每页大小
          */
