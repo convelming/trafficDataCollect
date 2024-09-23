@@ -180,27 +180,27 @@ alter table public.link_stats
 drop table if exists crossroads;
 create table crossroads
 (
-    id          bigint primary key,
-    center      json, -- 中心点[x,y]
-    vertex      json, -- 顶点[x1,y1, x2,y2, x3,y3, x4,y4 ...]
-    in_link_id  json, --
-    video       varchar(255),
-    "type"      varchar(1),
-    status      int8,
-    lines       text,
-    video_type  integer default 1,
-    begin_time  timestamp,
-    end_time    timestamp,
-    remark      text,
-    ip_addr     varchar not null,
-    version     int     default 0,
-    deleted     int     default 0,
-    create_time date    default now(),
-    update_time date    default now()
+    id              bigint primary key,
+    intersection_id bigint  not null,
+    vertex          json, -- 顶点[x1,y1, x2,y2, x3,y3, x4,y4 ...]
+    in_link_id      json, --
+    video           varchar(255),
+    "type"          varchar(1),
+    status          int8,
+    lines           text,
+    video_type      integer default 1,
+    begin_time      timestamp,
+    end_time        timestamp,
+    remark          text,
+    ip_addr         varchar not null,
+    version         int     default 0,
+    deleted         int     default 0,
+    create_time     date    default now(),
+    update_time     date    default now()
 );
 comment on table public.crossroads is '十字路';
 comment on column public.crossroads.id is '';
-comment on column public.crossroads.center is '中心点[x,y]';
+comment on column public.crossroads.intersection_id is '';
 comment on column public.crossroads.vertex is '顶点[x1,y1, x2,y2, x3,y3, x4,y4 ...]';
 comment on column public.crossroads.in_link_id is '范围内link_id';
 comment on column public.crossroads.video is '视频地址';
@@ -245,7 +245,6 @@ comment on column public.crossroads_stats.crossroads_id is '十字路id';
 comment on column public.crossroads_stats.in_link is '进link';
 comment on column public.crossroads_stats.out_link is '出link';
 comment on column public.crossroads_stats.pcu_h is 'PCU/H';
-comment on column public.crossroads_stats.pcu_detail is 'pcu明细{''type'':''car'',''num'':''18'',''ratio'':''1''} // 车型, 数量, 倍率（小汽车为1）';
 comment on column public.crossroads_stats.count is '总数';
 comment on column public.crossroads_stats.deleted is '是否删除，0未删除';
 comment on column public.crossroads_stats.result_id is '视频识别结果id';
@@ -257,3 +256,28 @@ comment on column public.crossroads_stats.end_point is '终点';
 comment on column public.crossroads_stats.start_point is '起点';
 alter table public.crossroads_stats
     owner to postgres;
+
+create table intersection
+(
+    id          bigint primary key,
+    x           double precision not null,
+    y           double precision not null,
+    geom        geometry(point)  not null,
+    name        varchar(100),
+    status      int  default 0,
+    version     int  default 0,
+    deleted     int  default 0,
+    create_time date default now(),
+    update_time date default now()
+);
+comment on table public.intersection is '十字路中心';
+comment on column public.intersection.id is '主键id';
+comment on column public.intersection.x is 'x坐标';
+comment on column public.intersection.y is 'y坐标';
+comment on column public.intersection.geom is 'geometry';
+comment on column public.intersection.name is '名称';
+comment on column public.intersection.status is '是否已有录入数据，0未录入，1已录入';
+comment on column public.intersection.version is '版本号';
+comment on column public.intersection.deleted is '逻辑删除，0未删除';
+comment on column public.intersection.create_time is '创建时间';
+comment on column public.intersection.update_time is '更新时间';
