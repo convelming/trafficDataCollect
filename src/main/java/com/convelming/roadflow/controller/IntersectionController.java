@@ -20,6 +20,7 @@ public class IntersectionController {
     @PostMapping("/list")
     public Result list(@RequestBody QueryParam param) {
         Page<Intersection> page = new Page<>(param.getPageNum(), param.getPageSize());
+        page.param(new Object[]{"name", param.getName()});
         return Result.ok(service.list(page));
     }
 
@@ -45,6 +46,8 @@ public class IntersectionController {
 
     @Data
     public static class QueryParam {
+
+        private String name;
         /**
          * 分页每页大小
          */

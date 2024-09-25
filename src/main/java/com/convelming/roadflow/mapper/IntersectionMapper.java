@@ -19,8 +19,13 @@ public class IntersectionMapper {
     private EasyEntityQuery eeq;
 
     public Page<Intersection> list(Page<Intersection> page) {
-        List<Intersection> data = eeq.queryable(Intersection.class).orderBy(t -> t.id().desc()).limit(page.getOffset(), page.getPageSize()).toList();
-        long total = eeq.queryable(Intersection.class).count();
+        List<Intersection> data = eeq.queryable(Intersection.class)
+                .where(t -> t.name().like(page.getParam().get("name") != null, (String) page.getParam().get("name")))
+                .orderBy(t -> t.id().desc())
+                .limit(page.getOffset(), page.getPageSize()).toList();
+        long total = eeq.queryable(Intersection.class)
+                .where(t -> t.name().like(page.getParam().get("name") != null, (String) page.getParam().get("name")))
+                .count();
         return page.build(data, total);
     }
 

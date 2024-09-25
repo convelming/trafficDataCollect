@@ -487,7 +487,7 @@ public class CrossroadsServiceImpl implements CrossroadsService {
                 return false;
             }
             Link link = entry.getValue();
-            if (start.getFromNode().getId().equals(link.getToNode().getId()) && !start.getId().equals(stack.get(0))) {
+            if (start.getFromNode().getId().equals(link.getToNode().getId()) && !stack.isEmpty() && !start.getId().equals(stack.get(0))) {
                 continue;
             }
             if (stack.size() < Constant.MAX_DEEP && calcRouteAccessible(link, end, stack)) {
