@@ -24,7 +24,7 @@ public interface LinkStatsService {
 
     List<LinkStats> queryByIds(Collection<Long> ids);
 
-    List<LinkStatsAvg> queryAvgStats(Long[] ids, String linkId);
+    List<LinkStatsAvg> queryAvgStats(Long[] ids, String linkId, String type);
     LinkStats queryById(Long id);
 
 }

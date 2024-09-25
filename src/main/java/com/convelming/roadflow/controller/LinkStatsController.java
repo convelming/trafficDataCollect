@@ -145,7 +145,7 @@ public class LinkStatsController {
      */
     @PostMapping("/queryAvgStats")
     public Result queryAvgStats(@RequestBody QueryParam param) {
-        return Result.ok(linkStatsService.queryAvgStats(param.getIds(), param.getLinkId()));
+        return Result.ok(linkStatsService.queryAvgStats(param.getIds(), param.getLinkId(), param.getType()));
     }
 
     @PostMapping("/export")

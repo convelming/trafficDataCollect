@@ -178,7 +178,7 @@ public class LinkStatsMapper {
         return list;
     }
 
-    public List<LinkStatsAvg> queryAvgStats(Long[] ids, String linkId) {
+    public List<LinkStatsAvg> queryAvgStats(Long[] ids, String linkId, String type) {
         String sql = " select " +
                 "    to_char(begin_time, 'HH24') as \"hour\", " +
                 "    avg(pcu_h) as \"pcu_h\", " +
@@ -199,19 +199,26 @@ public class LinkStatsMapper {
 //                "    case when avg(mtruck) = 0 then 0 else avg(mtruck / (extract(epoch from end_time - begin_time) / 3600)) end as \"mtruck\", " +
 //                "    case when avg(ltruck) = 0 then 0 else avg(ltruck / (extract(epoch from end_time - begin_time) / 3600)) end as \"ltruck\" " +
 //                " from link_stats where deleted = 0 ";
+        List<Object> pram = new ArrayList<>();
+        if (type != null && !type.isEmpty()) {
+            sql += "and type = ? ";
+            pram.add(type);
+        }
         if (ids == null || ids.length == 0) {
             sql += " and link_id = ? group by to_char(begin_time, 'HH24') ";
 //            return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(LinkStatsAvg.class), linkId);
-            return eeq.sqlQuery(sql, LinkStatsAvg.class, Collections.singletonList(linkId));
+            pram.add(linkId);
+            return eeq.sqlQuery(sql, LinkStatsAvg.class, pram);
         } else {
             sql += " and id in (";
-            for (int i = 0, len = ids.length; i < len; i++) {
+            for (Long id : ids) {
                 sql += "?,";
+                pram.add(id);
             }
             sql = sql.substring(0, sql.length() - 1);
             sql += " ) group by to_char(begin_time, 'HH24') ";
 //            return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(LinkStatsAvg.class), ids);
-            return eeq.sqlQuery(sql, LinkStatsAvg.class, Arrays.asList(ids));
+            return eeq.sqlQuery(sql, LinkStatsAvg.class, pram);
         }
     }
 

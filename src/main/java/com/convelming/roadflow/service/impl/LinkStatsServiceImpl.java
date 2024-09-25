@@ -149,8 +149,8 @@ public class LinkStatsServiceImpl implements LinkStatsService {
     }
 
     @Override
-    public List<LinkStatsAvg> queryAvgStats(Long[] ids, String linkId) {
-        return linkStatsMapper.queryAvgStats(ids, linkId);
+    public List<LinkStatsAvg> queryAvgStats(Long[] ids, String linkId, String type) {
+        return linkStatsMapper.queryAvgStats(ids, linkId, type);
     }
 
     @Override
