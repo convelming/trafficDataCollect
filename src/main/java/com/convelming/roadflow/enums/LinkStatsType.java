@@ -1,5 +1,6 @@
 package com.convelming.roadflow.enums;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -7,6 +8,7 @@ import java.util.Objects;
 
 @Getter
 @AllArgsConstructor
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum LinkStatsType {
 
     /**
@@ -18,7 +20,7 @@ public enum LinkStatsType {
      * 视频识别
      */
     VIDEO_RECOGNITION("视频识别", "2"),
-    GD_CRAWL("高德地图爬取", "3"),
+    GD_CRAWL("高德爬取的数据", "3"),
 
     /**
      * 其他

@@ -7,59 +7,77 @@
 //   min_zoom: 0,
 //   x_offset: 0,
 //   y_offset: 0,
-//   get_url: function (zoom, row, col) {
-//     return `http://192.168.60.231:23334/osm/MapTilerBasic/${zoom}/${row}/${col}.png`;
+//   getUrl: function () {
+//     return `http://192.168.60.231:23334/osm/MapTilerBasic/${this.zoom}/${this.row}/${this.col}.png`;
 //   }
 // }
 window.MAP_LAYER_STYLE = [
+  // {
+  //   style_name: "卫星图",
+  //   getUrl: function () {
+  //     // OMS瓦片原点 -20037508.3427892, 20037508.3427892
+  //     // -20037508.3427892, 20037508.3427892 | -20037508.3427892, 0 | -20037508.3427892, -20037508.3427892
+  //     // 0, 20037508.3427892 | 0, 0 | 0, -20037508.3427892
+  //     // 20037508.3427892, 20037508.3427892 | 20037508.3427892, 0 | 20037508.3427892, -20037508.3427892
+
+  //     // 百度瓦片原点 0, 0
+  //     // 百度地图瓦片数量 2 * PI * R / Math.pow(2,26 - z)  R = 6378137
+
+  //     let brow = Math.floor(this._x / Math.pow(2, 25 - this.zoom));
+  //     let bcol = Math.floor(this._y / Math.pow(2, 25 - this.zoom));
+
+  //     return `http://192.168.60.231:23334/baidu/satellite/${this.zoom + 1}/${brow}/${bcol}.jpg`
+  //   }
+  // },
   {
     style_name: "LIBERTY",
-    get_url: function (zoom, row, col) {
-      return `http://192.168.60.231:23334/osm/liberty/${zoom}/${row}/${col}.png`;
+    getUrl: function () {
+      return `http://192.168.60.231:23334/osm/liberty/${this.zoom}/${this.row}/${this.col}.png`;
     }
   },
   {
     style_name: "MAP_TILER_BASIC",
-    get_url: function (zoom, row, col) {
-      return `http://192.168.60.231:23334/osm/MapTilerBasic/${zoom}/${row}/${col}.png`;
+    getUrl: function () {
+      return `http://192.168.60.231:23334/osm/MapTilerBasic/${this.zoom}/${this.row}/${this.col}.png`;
     }
   },
   {
     style_name: "DARK_MATTER",
     background: `#0a4173`,
-    get_url: function (zoom, row, col) {
-      return `http://192.168.60.231:23334/osm/DarkMatter/${zoom}/${row}/${col}.png`;
+    getUrl: function () {
+      return `http://192.168.60.231:23334/osm/DarkMatter/${this.zoom}/${this.row}/${this.col}.png`;
     }
   },
+
   {
     style_name: "OSM_BROGHT",
-    get_url: function (zoom, row, col) {
-      return `http://192.168.60.231:23334/osm/OSMBroght/${zoom}/${row}/${col}.png`;
+    getUrl: function () {
+      return `http://192.168.60.231:23334/osm/OSMBroght/${this.zoom}/${this.row}/${this.col}.png`;
     }
   },
   {
     style_name: "OSM_LIDERTY",
-    get_url: function (zoom, row, col) {
-      return `http://192.168.60.231:23334/osm/OSMLiberty/${zoom}/${row}/${col}.png`;
+    getUrl: function () {
+      return `http://192.168.60.231:23334/osm/OSMLiberty/${this.zoom}/${this.row}/${this.col}.png`;
     }
   },
   {
     style_name: "POSITRON",
-    get_url: function (zoom, row, col) {
-      return `http://192.168.60.231:23334/osm/Positron/${zoom}/${row}/${col}.png`;
+    getUrl: function () {
+      return `http://192.168.60.231:23334/osm/Positron/${this.zoom}/${this.row}/${this.col}.png`;
     }
   },
   {
     style_name: "MAPBOX",
-    get_url: function (zoom, row, col) {
-      return `https://api.mapbox.com/styles/v1/convel/ck8frzi262yko1invkvbif5aw/tiles/512/${zoom}/${row}/${col}@2x?access_token=pk.eyJ1IjoiY29udmVsIiwiYSI6ImNsaHB4cXA2MDBicGIzam1zb25zdGtiOHAifQ.UuaTujcOQlxywCJWWZ0SSg`
+    getUrl: function () {
+      return `https://api.mapbox.com/styles/v1/convel/ck8frzi262yko1invkvbif5aw/tiles/512/${this.zoom}/${this.row}/${this.col}@2x?access_token=pk.eyJ1IjoiY29udmVsIiwiYSI6ImNsaHB4cXA2MDBicGIzam1zb25zdGtiOHAifQ.UuaTujcOQlxywCJWWZ0SSg`
     }
   },
   {
     style_name: "极夜蓝",
     background: `#0a4173`,
-    get_url: function (zoom, row, col) {
-      return `https://api.mapbox.com/styles/v1/dasin/cltigm5bp010s01ptciblgffl/tiles/512/${zoom}/${row}/${col}@2x?access_token=pk.eyJ1IjoiY29udmVsIiwiYSI6ImNsaHB4cXA2MDBicGIzam1zb25zdGtiOHAifQ.UuaTujcOQlxywCJWWZ0SSg`
+    getUrl: function () {
+      return `https://api.mapbox.com/styles/v1/dasin/cltigm5bp010s01ptciblgffl/tiles/512/${this.zoom}/${this.row}/${this.col}@2x?access_token=pk.eyJ1IjoiY29udmVsIiwiYSI6ImNsaHB4cXA2MDBicGIzam1zb25zdGtiOHAifQ.UuaTujcOQlxywCJWWZ0SSg`
     }
   },
 ]

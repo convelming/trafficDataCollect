@@ -199,26 +199,32 @@ public class LinkStatsMapper {
 //                "    case when avg(mtruck) = 0 then 0 else avg(mtruck / (extract(epoch from end_time - begin_time) / 3600)) end as \"mtruck\", " +
 //                "    case when avg(ltruck) = 0 then 0 else avg(ltruck / (extract(epoch from end_time - begin_time) / 3600)) end as \"ltruck\" " +
 //                " from link_stats where deleted = 0 ";
-        List<Object> pram = new ArrayList<>();
+        List<Object> param = new ArrayList<>();
         if (type != null && !type.isEmpty()) {
-            sql += "and type = ? ";
-            pram.add(type);
+            String[] tp = type.split(",");
+            sql += " and type in ( ";
+            for (String t : tp) {
+                sql += " ?,";
+                param.add(t);
+            }
+            sql = sql.substring(0, sql.length() - 1);
+            sql += " ) ";
         }
         if (ids == null || ids.length == 0) {
             sql += " and link_id = ? group by to_char(begin_time, 'HH24') ";
 //            return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(LinkStatsAvg.class), linkId);
-            pram.add(linkId);
-            return eeq.sqlQuery(sql, LinkStatsAvg.class, pram);
+            param.add(linkId);
+            return eeq.sqlQuery(sql, LinkStatsAvg.class, param);
         } else {
             sql += " and id in (";
             for (Long id : ids) {
                 sql += "?,";
-                pram.add(id);
+                param.add(id);
             }
             sql = sql.substring(0, sql.length() - 1);
             sql += " ) group by to_char(begin_time, 'HH24') ";
 //            return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(LinkStatsAvg.class), ids);
-            return eeq.sqlQuery(sql, LinkStatsAvg.class, pram);
+            return eeq.sqlQuery(sql, LinkStatsAvg.class, param);
         }
     }
 
@@ -271,8 +277,15 @@ public class LinkStatsMapper {
 
         Map<String, Object> param = page.getParam();
         if (param.get("type") != null && !"".equals(param.get("type"))) {
-            sql += " and ls.type = ? ";
-            args.add(param.get("type"));
+            String type = (String) param.get("type");
+            String[] tp = type.split(",");
+            sql += " and ls.type in ( ";
+            for (String t : tp) {
+                sql += " ?,";
+                args.add(t);
+            }
+            sql = sql.substring(0, sql.length() - 1);
+            sql += " ) ";
         }
         if (param.get("beginTime") != null) {
             sql += " and ls.begin_time >= ? ";
