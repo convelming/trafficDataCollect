@@ -75,6 +75,7 @@ public class CrossroadsServiceImpl implements CrossroadsService {
         crossroads.setIpAddr(request.getRemoteAddr());
         crossroads.setMapInfo(bo.getMapInfo());
         crossroads.setIntersectionId(bo.getIntersectionId());
+        crossroads.setAnnex(JSON.toJSONString(bo.getAnnex()));
 
         crossroads.setBeginTime(bo.getBeginTime());
         crossroads.setEndTime(bo.getEndTime());

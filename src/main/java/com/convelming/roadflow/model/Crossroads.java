@@ -44,6 +44,11 @@ public class Crossroads implements ProxyEntityAvailable<Crossroads, CrossroadsPr
     private String video;
 
     /**
+     * 附件
+     */
+    private String annex;
+
+    /**
      * 拍摄类型（1俯视航拍，2侧面路拍，3正斜角拍摄
      */
     private Integer videoType;
@@ -120,5 +125,12 @@ public class Crossroads implements ProxyEntityAvailable<Crossroads, CrossroadsPr
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @JSONField(format = "yyyy-MM-dd HH:mm:ss")
     private Date updateTime;
+
+//    public List<String> getAnnex(){
+//        if(this.annex != null){
+//            return JSONArray.parseArray(this.annex, String.class);
+//        }
+//        return List.of();
+//    }
 
 }

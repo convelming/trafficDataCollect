@@ -272,6 +272,11 @@ public class CrossroadsController {
         String video;
 
         /**
+         * 附件列表
+         */
+        List<String> annex;
+
+        /**
          * 十字路中心点id
          */
         Long intersectionId;
