@@ -25,7 +25,7 @@ public class FileController {
     public Result upload(MultipartFile file) {
 
         String name = file.getOriginalFilename();
-        String date = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
+        String date = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE) + "/" + System.currentTimeMillis(); // 日期/当前毫秒数
         String result = "/" + date + "/" + name;
         String dir = Constant.VIDEO_PATH + date + "/";
         new File(dir).mkdirs();
