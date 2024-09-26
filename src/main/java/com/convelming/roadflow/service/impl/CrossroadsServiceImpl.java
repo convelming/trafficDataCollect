@@ -28,6 +28,7 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.network.NetworkUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
@@ -140,6 +141,7 @@ public class CrossroadsServiceImpl implements CrossroadsService {
     }
 
     @Override
+    @Transactional
     public boolean saveline(CrossroadsController.CrossroadsLineBo bo) {
         Crossroads crossroads = mapper.selectById(bo.getCossroadsId());
         if (crossroads.getLines() != null) {
@@ -254,17 +256,16 @@ public class CrossroadsServiceImpl implements CrossroadsService {
                         intersectIns.add(l1);
                         pointIntersect.put("in", l1.getId(), intersect);
                     }
-                } else {
-                    if (intersectOuts.stream().noneMatch(link -> l2.getId().equals(link.getId()))) {
-                        Coord intersect = null;
-                        for (int i = 0; i < bo.getLines().size() && intersect == null; i++) {
-                            CrossroadsController.LineBo line = bo.getLines().get(i);
-                            intersect = doIntersect(new Coord[]{new Coord(line.getMktBeginx(), line.getMktBeginy()), new Coord(line.getMktEndx(), line.getMktEndy())},
-                                    new Coord[]{l2.getFromNode().getCoord(), l2.getToNode().getCoord()});
-                        }
-                        intersectOuts.add(l2);
-                        pointIntersect.put("out", l2.getId(), intersect);
+                }
+                if (intersectOuts.stream().noneMatch(link -> l2.getId().equals(link.getId()))) {
+                    Coord intersect = null;
+                    for (int i = 0; i < bo.getLines().size() && intersect == null; i++) {
+                        CrossroadsController.LineBo line = bo.getLines().get(i);
+                        intersect = doIntersect(new Coord[]{new Coord(line.getMktBeginx(), line.getMktBeginy()), new Coord(line.getMktEndx(), line.getMktEndy())},
+                                new Coord[]{l2.getFromNode().getCoord(), l2.getToNode().getCoord()});
                     }
+                    intersectOuts.add(l2);
+                    pointIntersect.put("out", l2.getId(), intersect);
                 }
             }
         }
@@ -278,8 +279,11 @@ public class CrossroadsServiceImpl implements CrossroadsService {
                 if (in.getId().equals(out.getId())) {
                     continue; // 如果起点和终点是同一段link跳过
                 }
-                if (calcRouteAccessible(in, out, new Stack<>())) {
+                Stack<Id<Link>> stack = new Stack<>();
+                stack.push(in.getId());
+                if (calcRouteAccessible(in, out, stack)) {
                     MatsimLink outLink = linkMap.get(out.getId().toString());
+//                    log.info("{}->{}:{}", inLink.getLineName(), outLink.getLineName(), stack);
                     CrossroadsStats crossroadsStats = new CrossroadsStats();
                     crossroadsStats.setCrossroadsId(bo.getCossroadsId());
                     crossroadsStats.setOutLink(outLink.getId());
@@ -304,7 +308,7 @@ public class CrossroadsServiceImpl implements CrossroadsService {
         // 新增全部流量
         statsMapper.deleteByCrossroadsId(crossroads.getId()); // 调整位置之后把之前新增全部删除
         statsMapper.batchInsert(stats);
-
+//
         return mapper.saveLines(crossroads) > 0;
     }
 
@@ -491,7 +495,7 @@ public class CrossroadsServiceImpl implements CrossroadsService {
             if (start.getFromNode().getId().equals(link.getToNode().getId()) && !stack.isEmpty() && !start.getId().equals(stack.get(0))) {
                 continue;
             }
-            if (stack.size() < Constant.MAX_DEEP && calcRouteAccessible(link, end, stack)) {
+            if (calcRouteAccessible(link, end, stack)) {
                 return true;
             }
             if (stack.isEmpty()) {
