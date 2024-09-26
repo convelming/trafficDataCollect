@@ -8,7 +8,7 @@ public interface IntersectionService {
     Page<Intersection> list(Page<Intersection> page);
     Intersection detail(Long id);
 
-    boolean insert(Intersection intersection);
+    Intersection insert(Intersection intersection);
 
     boolean update(Intersection intersection);
 

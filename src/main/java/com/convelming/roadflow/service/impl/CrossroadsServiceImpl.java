@@ -76,8 +76,9 @@ public class CrossroadsServiceImpl implements CrossroadsService {
         crossroads.setIpAddr(request.getRemoteAddr());
         crossroads.setMapInfo(bo.getMapInfo());
         crossroads.setIntersectionId(bo.getIntersectionId());
-        crossroads.setAnnex(JSON.toJSONString(bo.getAnnex()));
-
+        if(bo.getAnnex() != null){
+            crossroads.setAnnex(JSON.toJSONString(bo.getAnnex()));
+        }
         crossroads.setBeginTime(bo.getBeginTime());
         crossroads.setEndTime(bo.getEndTime());
 //        PGgeometry polygon = GeomUtil.genPolygon(vertex, GeomUtil.MKT);
@@ -132,8 +133,8 @@ public class CrossroadsServiceImpl implements CrossroadsService {
         for (int i = 0; i < ids.length; i++) {
             ids[i] = Long.parseLong(crossroadId[i]);
         }
+        Crossroads crossroads = mapper.selectById(ids[0]);
         if (mapper.deleteByIds(ids)) {
-            Crossroads crossroads = mapper.selectById(ids[0]);
             long count = mapper.countByIntersectionId(crossroads.getIntersectionId());
             intersectionMapper.updateStatus(crossroads.getIntersectionId(), count > 0 ? 1 : 0);
         }

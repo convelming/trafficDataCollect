@@ -16,10 +16,15 @@ public class Result {
     }
 
 
-    public static Result failOrOk(boolean ok){
+    public static Result failOrOk(boolean ok) {
         return ok ? Result.ok() : Result.fail();
     }
-    public static Result ok(){
+
+    public static Result failOrOk(Object ok) {
+        return ok != null ? Result.ok(ok) : Result.fail();
+    }
+
+    public static Result ok() {
         return new Result(HttpStatus.OK.value(), "OK", null);
     }
 
@@ -31,19 +36,19 @@ public class Result {
         return new Result(HttpStatus.OK.value(), msg, data);
     }
 
-    public static Result fail(Integer code, String msg, Object data){
+    public static Result fail(Integer code, String msg, Object data) {
         return new Result(code, msg, data);
     }
 
-    public static Result fail(Integer code, String msg){
+    public static Result fail(Integer code, String msg) {
         return new Result(code, msg, null);
     }
 
-    public static Result fail(String msg){
+    public static Result fail(String msg) {
         return new Result(HttpStatus.INTERNAL_SERVER_ERROR.value(), msg, null);
     }
 
-    public static Result fail(){
+    public static Result fail() {
         return new Result(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Internal Server Error .", null);
     }
 

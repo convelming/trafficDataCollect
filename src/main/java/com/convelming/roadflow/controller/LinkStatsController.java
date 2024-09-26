@@ -37,6 +37,7 @@ public class LinkStatsController {
 
     /**
      * 新增流量调查数据
+     *
      * @return
      */
     @PostMapping("/insert")
@@ -47,6 +48,7 @@ public class LinkStatsController {
 
     /**
      * 修改流量调查数据
+     *
      * @param stats
      * @return
      */
@@ -58,6 +60,7 @@ public class LinkStatsController {
 
     /**
      * 查询详情
+     *
      * @param id 主键
      * @return
      */
@@ -68,6 +71,7 @@ public class LinkStatsController {
 
     /**
      * 删除
+     *
      * @param id 主键
      * @return
      */
@@ -78,9 +82,10 @@ public class LinkStatsController {
 
     /**
      * 查询全部路段流量
+     *
      * @param beginTime 开始时间
-     * @param endTime 结束时间
-     * @param type 类型
+     * @param endTime   结束时间
+     * @param type      类型
      * @return
      */
     @GetMapping("/queryAllMaker")
@@ -100,6 +105,7 @@ public class LinkStatsController {
 
     /**
      * 查询区域内路段流量
+     *
      * @param param param.xyarr
      * @return
      */
@@ -123,8 +129,9 @@ public class LinkStatsController {
 
     /**
      * 根据linkId查询流量
+     *
      * @param linkId linkId
-     * @param param 分页/查询条件
+     * @param param  分页/查询条件
      * @return
      */
     @PostMapping("/queryByLinkId/{linkId}")
@@ -140,6 +147,7 @@ public class LinkStatsController {
 
     /**
      * 查询link每小时平均流量
+     *
      * @param param
      * @return
      */
@@ -150,8 +158,25 @@ public class LinkStatsController {
 
     @PostMapping("/export")
     public void export(@RequestBody QueryParam param, HttpServletResponse response) {
-        List<LinkStats> list = linkStatsService.queryByIds(List.of(param.getIds()));
-
+        List<LinkStats> list;
+        if (param.getIds() == null || param.getIds().length == 0) {
+            double[][] xyarr = new double[param.getXyarr().length + 1][2];
+            for (int i = 0; i < param.getXyarr().length; i++) {
+                xyarr[i] = Arrays.copyOf(param.getXyarr()[i], 2);
+            }
+            xyarr[param.getXyarr().length] = param.getXyarr()[0];
+            Page<LinkStats> page = new Page<>(param.pageNum, Integer.MAX_VALUE);
+            page.param(
+                    new Object[]{"linkId", param.getLinkId()},
+                    new Object[]{"watId", param.getWayId()},
+                    new Object[]{"type", param.getType()},
+                    new Object[]{"beginTime", param.getBeginTime()},
+                    new Object[]{"endTime", param.getEndTime()}
+            );
+            list = linkStatsService.queryByArea(xyarr, false, page).getData();
+        } else {
+            list = linkStatsService.queryByIds(List.of(param.getIds()));
+        }
         String fileName = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli() + "";
 
         response.addHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");

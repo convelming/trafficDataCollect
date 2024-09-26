@@ -174,7 +174,7 @@ public class LinkStats implements ProxyEntityAvailable<LinkStats, LinkStatsProxy
         this.remark = (String) map.get("remark");
         this.ipAddr = (String) map.get("ipAddr");
         this.version = (Integer) map.get("version");
-        this.deleted = (long) (Integer) map.get("deleted");
+        this.deleted = (Long) map.get("deleted");
         this.createTime = (Date) map.get("createTime");
         this.updateTime = (Date) map.get("updateTime");
         this.isTwoWay = (Boolean) map.get("isTwoWay");

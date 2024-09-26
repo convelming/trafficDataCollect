@@ -21,10 +21,10 @@ public class CrossroadsMapper {
 
     public Page<Crossroads> list(Page<Crossroads> page) {
         List<Crossroads> data = eeq.queryable(Crossroads.class)
-//                .where(t -> t.intersectionId().eq((Long) page.getParam().get("intersectionId"))) // todo
+                .where(t -> t.intersectionId().eq(page.getParam().get("intersectionId") != null, (Long) page.getParam().get("intersectionId")))
                 .orderBy(t -> t.id().desc()).limit(page.getOffset(), page.getPageSize()).toList();
         long total = eeq.queryable(Crossroads.class)
-//                .where(t -> t.intersectionId().eq((Long) page.getParam().get("intersectionId"))) // todo
+                .where(t -> t.intersectionId().eq(page.getParam().get("intersectionId") != null, (Long) page.getParam().get("intersectionId")))
                 .count();
         return page.build(data, total);
     }
@@ -37,7 +37,7 @@ public class CrossroadsMapper {
         return row > 0;
     }
 
-    public Long countByIntersectionId(Long intersectionId){
+    public Long countByIntersectionId(Long intersectionId) {
         return eeq.queryable(Crossroads.class).where(t -> t.intersectionId().eq(intersectionId)).count();
     }
 

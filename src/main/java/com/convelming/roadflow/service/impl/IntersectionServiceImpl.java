@@ -27,9 +27,13 @@ public class IntersectionServiceImpl implements IntersectionService {
     }
 
     @Override
-    public boolean insert(Intersection intersection) {
+    public Intersection insert(Intersection intersection) {
         intersection.setGeom(GeomUtil.genPoint(intersection.getX(), intersection.getY(), GeomUtil.MKT));
-        return mapper.insert(intersection);
+        intersection.setStatus(0);
+        if(mapper.insert(intersection)){
+            return intersection;
+        }
+        return null;
     }
 
     @Override

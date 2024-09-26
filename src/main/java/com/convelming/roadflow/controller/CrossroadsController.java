@@ -274,7 +274,7 @@ public class CrossroadsController {
         /**
          * 附件列表
          */
-        List<String> annex;
+        List<Object> annex;
 
         /**
          * 十字路中心点id

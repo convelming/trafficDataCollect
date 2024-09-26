@@ -147,7 +147,7 @@ public class LinkStatsMapper {
 //        sql += " group by link_id, x, y ";
 
 //        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(LinkStats.class), args.toArray());
-        String columns = "distinct link_id, x, y, max(pcu_h) as \"pcu_h\", string_agg(distinct type, ',') as \"type\"";
+        String columns = "distinct link_id, x, y, way_id, max(pcu_h) as \"pcu_h\", string_agg(distinct type, ',') as \"type\"";
         List<LinkStats> list = eeq.queryable(LinkStats.class)
                 .where(s -> {
                     s.type().in(List.of("0", "1", "2")); // 除去3高德爬取
@@ -155,7 +155,7 @@ public class LinkStatsMapper {
                     s.beginTime().ge(beginTime != null, beginTime);
                     s.endTime().le(endTime != null, endTime);
                 })
-                .groupBy(s -> GroupKeys.TABLE1.of(s.linkId(), s.x(), s.y()))
+                .groupBy(s -> GroupKeys.TABLE1.of(s.linkId(), s.x(), s.y(), s.wayId()))
                 .select(columns).toList(LinkStats.class);
         return list;
     }
@@ -214,7 +214,6 @@ public class LinkStatsMapper {
             sql += " and link_id = ? group by to_char(begin_time, 'HH24') ";
 //            return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(LinkStatsAvg.class), linkId);
             param.add(linkId);
-            return eeq.sqlQuery(sql, LinkStatsAvg.class, param);
         } else {
             sql += " and id in (";
             for (Long id : ids) {
@@ -224,8 +223,8 @@ public class LinkStatsMapper {
             sql = sql.substring(0, sql.length() - 1);
             sql += " ) group by to_char(begin_time, 'HH24') ";
 //            return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(LinkStatsAvg.class), ids);
-            return eeq.sqlQuery(sql, LinkStatsAvg.class, param);
         }
+        return eeq.sqlQuery(sql, LinkStatsAvg.class, param);
     }
 
     public Page<LinkStats> queryByGeometry(PGgeometry geometry, Boolean all, Page<LinkStats> page) {
@@ -239,7 +238,10 @@ public class LinkStatsMapper {
         } else {
             List<Object> args = new ArrayList<>();
             args.add(geometry);
-            String sql = " select #{col} from " + TABLE_NAME + " ls left join matsim_link ml on ls.link_id = ml.id where st_intersects(?, ml.geom) and ls.deleted = 0";
+            String sql = " select #{col} from " + TABLE_NAME + " ls " +
+                    "left join matsim_link ml on ls.link_id = ml.id " +
+                    "left join osm_way ow on ls.way_id = ow.id " +
+                    "where st_intersects(?, ml.geom) and ls.deleted = 0";
 
             Map<String, Object> param = page.getParam();
             if (param.get("type") != null && !"".equals(param.get("type"))) {
@@ -264,7 +266,16 @@ public class LinkStatsMapper {
 //                    new BeanPropertyRowMapper<>(LinkStats.class),
 //                    args.toArray()
 //            );
-            List<LinkStats> data = eeq.sqlQuery(sql.replace("#{col}", "ls.*") + LIMIT_SQL, LinkStats.class, args);
+            String col = "ls.*, " +
+                    "ls.link_id as linkId, " +
+                    "ls.begin_time as beginTime, " +
+                    "ls.end_time as endTime, " +
+                    "ls.pcu_h as pcuH, " +
+                    "ml.geom as linkLineString, " +
+                    "ow.geom3857 as wayLineString";
+            List<Map<String, Object>> maps = eeq.sqlQueryMap(sql.replace("#{col}", col) + LIMIT_SQL, args);
+            List<LinkStats> data = new ArrayList<>();
+            maps.forEach(obj -> data.add(new LinkStats(obj)));
             return page.build(data, total.get(0));
         }
     }
