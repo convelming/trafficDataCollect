@@ -26,6 +26,9 @@ public class Crossroads implements ProxyEntityAvailable<Crossroads, CrossroadsPr
     @Column(primaryKey = true)
     private Long id;
 
+    @ColumnIgnore
+    private String name;
+
     private Long intersectionId;
 
     /**

@@ -2,12 +2,15 @@ package com.convelming.roadflow.mapper;
 
 import com.convelming.roadflow.common.Page;
 import com.convelming.roadflow.model.Crossroads;
+import com.convelming.roadflow.model.Intersection;
 import com.convelming.roadflow.util.IdUtil;
 import com.easy.query.api.proxy.client.EasyEntityQuery;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Repository
 public class CrossroadsMapper {
@@ -23,6 +26,11 @@ public class CrossroadsMapper {
         List<Crossroads> data = eeq.queryable(Crossroads.class)
                 .where(t -> t.intersectionId().eq(page.getParam().get("intersectionId") != null, (Long) page.getParam().get("intersectionId")))
                 .orderBy(t -> t.id().desc()).limit(page.getOffset(), page.getPageSize()).toList();
+
+        Map<Long, String> maps = eeq.queryable(Intersection.class).where(t -> t.id().in(data.stream().map(Crossroads::getIntersectionId).collect(Collectors.toSet())))
+                .toList().stream().collect(Collectors.toMap(Intersection::getId, Intersection::getName));
+        data.forEach(d -> d.setName(maps.get(d.getIntersectionId())));
+
         long total = eeq.queryable(Crossroads.class)
                 .where(t -> t.intersectionId().eq(page.getParam().get("intersectionId") != null, (Long) page.getParam().get("intersectionId")))
                 .count();
