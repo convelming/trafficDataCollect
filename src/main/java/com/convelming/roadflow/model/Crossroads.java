@@ -17,7 +17,7 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ExcelTarget("cossroads")
+@ExcelTarget("crossroads")
 
 @Table("crossroads")
 @EntityProxy
@@ -62,7 +62,7 @@ public class Crossroads implements ProxyEntityAvailable<Crossroads, CrossroadsPr
     private String type;
 
     /**
-     * 绘制状态（0等待划线，1等待运行，2正在运行，3运行成功，4运行失败
+     * 绘制状态（0等待划线，1等待运行，2正在运行，3运行成功，4运行失败，5等待录入，6录入成功
      */
     private Integer status;
 

@@ -76,7 +76,7 @@ public class CrossroadsServiceImpl implements CrossroadsService {
         crossroads.setIpAddr(request.getRemoteAddr());
         crossroads.setMapInfo(bo.getMapInfo());
         crossroads.setIntersectionId(bo.getIntersectionId());
-        if(bo.getAnnex() != null){
+        if (bo.getAnnex() != null) {
             crossroads.setAnnex(JSON.toJSONString(bo.getAnnex()));
         }
         crossroads.setBeginTime(bo.getBeginTime());
@@ -148,7 +148,11 @@ public class CrossroadsServiceImpl implements CrossroadsService {
         if (crossroads.getLines() != null) {
             crossroads.setVersion(crossroads.getVersion() + 1);
         }
-        crossroads.setStatus(1); // 设置状态已绘制检测线
+        if (!crossroads.getType().equals("1")) {
+            crossroads.setStatus(1); // 设置状态已绘制检测线
+        } else {
+            crossroads.setStatus(6); // 非视频设置等待录入
+        }
         crossroads.setUpdateTime(new Date());
         crossroads.setVertex(JSON.toJSONString(bo.getVertex()));
         crossroads.setLines(JSON.toJSONString(bo.getLines()));
@@ -513,7 +517,6 @@ public class CrossroadsServiceImpl implements CrossroadsService {
      *
      * @param stats  流量
      * @param second 时长
-     * @return
      */
     private static double calcPcu(CrossroadsStats stats, double second) {
         if (second <= 0) {
