@@ -94,6 +94,28 @@ public class CrossroadsServiceImpl implements CrossroadsService {
     }
 
     @Override
+    public Crossroads updateById(Crossroads crossroads) {
+        Crossroads targ = mapper.selectById(crossroads.getId());
+        if (targ == null) {
+            return null;
+        }
+        crossroads.setDeleted(targ.getDeleted());
+        crossroads.setVersion(targ.getVersion() + 1);
+        crossroads.setUpdateTime(new Date());
+        crossroads.setIpAddr(request.getRemoteAddr());
+        if (mapper.updateById(crossroads)) { // 更新pcuh
+            double time = crossroads.getEndTime().toInstant().getEpochSecond() - crossroads.getBeginTime().toInstant().getEpochSecond();
+            List<CrossroadsStats> stats = statsMapper.selectByCrossroadsId(crossroads.getId());
+            stats.forEach(stat -> {
+                stat.setPcuH(null);
+                stat.setPcuH(calcPcu(stat, time));
+            });
+            statsMapper.batchUpdate(stats);
+        }
+        return targ;
+    }
+
+    @Override
     public CrossroadsVo detail(Long crossroadsId) {
         Crossroads crossroads = mapper.selectById(crossroadsId);
         VoideFrameVo frame = frame(crossroadsId);
@@ -389,7 +411,7 @@ public class CrossroadsServiceImpl implements CrossroadsService {
         Crossroads crossroads = mapper.selectById(stats.getCrossroadsId());
         long time = 3600;
         if (crossroads != null) {
-            if (!"1".equals(crossroads.getType())) {
+            if (!"2".equals(crossroads.getType())) {
                 mapper.updateStatus(crossroads.getId(), 6);
             }
             time = crossroads.getEndTime().toInstant().getEpochSecond() - crossroads.getBeginTime().toInstant().getEpochSecond();
@@ -528,14 +550,17 @@ public class CrossroadsServiceImpl implements CrossroadsService {
         if (second <= 0) {
             second = 3600L; // 默认算一个小时
         }
-        if (stats.getPcuH() != null && stats.getPcuH() > 0) {
-            return stats.getPcuH();
-        }
+//        if (stats.getPcuH() != null && stats.getPcuH() > 0) {
+//            return stats.getPcuH();
+//        }
         BigDecimal pcuh = new BigDecimal("0");
         pcuh = pcuh.add(BigDecimal.valueOf(stats.getCar()));
         pcuh = pcuh.add(BigDecimal.valueOf(stats.getBus()).multiply(BigDecimal.valueOf(2)));
         pcuh = pcuh.add(BigDecimal.valueOf(stats.getVan()));
         pcuh = pcuh.add(BigDecimal.valueOf(stats.getTruck()).multiply(BigDecimal.valueOf(2)));
+        if (pcuh.doubleValue() <= 0 && stats.getPcuH() != null) {
+            return stats.getPcuH();
+        }
         return pcuh.multiply(BigDecimal.valueOf(3600)).divide(BigDecimal.valueOf(second), RoundingMode.HALF_UP).setScale(2, RoundingMode.DOWN).doubleValue();
 //        return pcuh.setScale(2, RoundingMode.DOWN).doubleValue();
     }

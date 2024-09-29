@@ -37,11 +37,16 @@ public class CrossroadsMapper {
         return page.build(data, total);
     }
 
-    public boolean insert(Crossroads cossroads) {
-        cossroads.setId(idUtil.getId(TABLE_NAME));
-        cossroads.setVersion(1);
-        cossroads.setDeleted(0L);
-        long row = eeq.insertable(cossroads).executeRows();
+    public boolean insert(Crossroads crossroads) {
+        crossroads.setId(idUtil.getId(TABLE_NAME));
+        crossroads.setVersion(1);
+        crossroads.setDeleted(0L);
+        long row = eeq.insertable(crossroads).executeRows();
+        return row > 0;
+    }
+
+    public boolean updateById(Crossroads crossroads) {
+        long row = eeq.updatable(crossroads).executeRows();
         return row > 0;
     }
 

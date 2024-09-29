@@ -51,22 +51,27 @@ public class CrossroadsController {
     /**
      * 十字路详细信息
      *
-     * @param cossroadsId 十字路id
+     * @param crossroadsId 十字路id
      * @return
      */
-    @GetMapping("/detail/{cossroadsId}")
-    public Result detail(@PathVariable Long cossroadsId) {
-        return Result.ok(service.detail(cossroadsId));
+    @GetMapping("/detail/{crossroadsId}")
+    public Result detail(@PathVariable Long crossroadsId) {
+        return Result.ok(service.detail(crossroadsId));
     }
 
     /**
      * 删除十字路
-     * @param cossroadsIds 十字路id串
+     * @param crossroadsIds 十字路id串
      */
-    @DeleteMapping("/delete/{cossroadsIds}")
-    public Result delete(@PathVariable String cossroadsIds) {
-        String[] cossroadsId = cossroadsIds.split(",");
-        return Result.ok(service.deleteByIds(cossroadsId));
+    @DeleteMapping("/delete/{crossroadsIds}")
+    public Result delete(@PathVariable String crossroadsIds) {
+        String[] crossroadsId = crossroadsIds.split(",");
+        return Result.ok(service.deleteByIds(crossroadsId));
+    }
+
+    @PostMapping("/update")
+    public Result updateTime(@RequestBody Crossroads crossroads){
+        return Result.ok(service.updateById(crossroads));
     }
 
     /**
@@ -89,12 +94,12 @@ public class CrossroadsController {
     /**
      * 生成并获取视频封面信息
      *
-     * @param cossroadsId 十字路id
+     * @param crossroadsId 十字路id
      * @return 封面信息
      */
-    @GetMapping("/frame/{cossroadsId}")
-    public Result frame(@PathVariable Long cossroadsId) {
-        return Result.ok(service.frame(cossroadsId));
+    @GetMapping("/frame/{crossroadsId}")
+    public Result frame(@PathVariable Long crossroadsId) {
+        return Result.ok(service.frame(crossroadsId));
     }
 
 
@@ -111,11 +116,11 @@ public class CrossroadsController {
     /**
      * 十字路流量表
      *
-     * @param cossroadsId 十字路id
+     * @param crossroadsId 十字路id
      */
-    @GetMapping("/corssStatsTable/{cossroadsId}")
-    public Result statstable(@PathVariable Long cossroadsId) {
-        return Result.ok(service.corssStatsTable(cossroadsId));
+    @GetMapping("/corssStatsTable/{crossroadsId}")
+    public Result statstable(@PathVariable Long crossroadsId) {
+        return Result.ok(service.corssStatsTable(crossroadsId));
     }
 
     /**

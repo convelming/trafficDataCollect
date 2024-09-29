@@ -15,9 +15,10 @@ import java.util.Map;
 public interface CrossroadsService {
 
     Page<Crossroads> list(Page<Crossroads> page);
-    Crossroads insert(CrossroadsController.CossroadsBo cossroads);
-    CrossroadsVo detail(Long cossroadsId);
-    VoideFrameVo frame(Long cossroadsId);
+    Crossroads insert(CrossroadsController.CossroadsBo crossroads);
+    Crossroads updateById(Crossroads crossroads);
+    CrossroadsVo detail(Long crossroadsId);
+    VoideFrameVo frame(Long crossroadsId);
 
     boolean deleteByIds(String[] crossroadId);
     boolean saveline(CrossroadsController.CrossroadsLineBo lines);
@@ -25,11 +26,11 @@ public interface CrossroadsService {
     boolean deleteStats(String[] crossroadStatsId);
     boolean insertStats(CrossroadsStats stats);
     boolean updateStats(CrossroadsStats stats);
-    Map<String, Collection<String>> inoutlink(Long cossroadsId);
-    boolean runVehicleCounts(Long cossroadsId);
-    void analyzeVideo(Long cossroadsId, HttpServletResponse response);
+    Map<String, Collection<String>> inoutlink(Long crossroadsId);
+    boolean runVehicleCounts(Long crossroadsId);
+    void analyzeVideo(Long crossroadsId, HttpServletResponse response);
 
-    void statusFlowImage(Long cossroadsId, HttpServletResponse response);
-//    CossroadsStats select(Long id);
+    void statusFlowImage(Long crossroadsId, HttpServletResponse response);
+//    crossroadsStats select(Long id);
 
 }
