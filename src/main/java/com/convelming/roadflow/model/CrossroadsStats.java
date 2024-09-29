@@ -66,6 +66,10 @@ public class CrossroadsStats implements ProxyEntityAvailable<CrossroadsStats, Cr
     @Excel(name = "总数")
     private int count;
 
+    private String inLine;
+
+    private String outLine;
+
     @JsonIgnore
     private Long deleted;
 

@@ -151,7 +151,7 @@ public class CrossroadsServiceImpl implements CrossroadsService {
         if (!crossroads.getType().equals("1")) {
             crossroads.setStatus(1); // 设置状态已绘制检测线
         } else {
-            crossroads.setStatus(6); // 非视频设置等待录入
+            crossroads.setStatus(5); // 非视频设置等待录入
         }
         crossroads.setUpdateTime(new Date());
         crossroads.setVertex(JSON.toJSONString(bo.getVertex()));
@@ -296,6 +296,9 @@ public class CrossroadsServiceImpl implements CrossroadsService {
 //                    crossroadsStats.setPcuDetail(CrossroadsStats.DEFAULT_DETAIL); // 默认小中大客/货车
                     crossroadsStats.setResultId(inLink.getLineName() + outLink.getLineName());
                     crossroadsStats.setName(crossroadsStats.getResultId());
+                    crossroadsStats.setInLine(inLink.getLineName());
+                    crossroadsStats.setOutLine(outLink.getLineName());
+                    crossroadsStats.setName(crossroadsStats.getResultId());
                     // 绘制线与link交点作为贝塞尔曲线的起点与终点
                     // in 为起点，out为终点
                     Coord startCoord = pointIntersect.get("in", in.getId());
@@ -386,6 +389,9 @@ public class CrossroadsServiceImpl implements CrossroadsService {
         Crossroads crossroads = mapper.selectById(stats.getCrossroadsId());
         long time = 3600;
         if (crossroads != null) {
+            if (!"1".equals(crossroads.getType())) {
+                mapper.updateStatus(crossroads.getId(), 6);
+            }
             time = crossroads.getEndTime().toInstant().getEpochSecond() - crossroads.getBeginTime().toInstant().getEpochSecond();
         }
         stats.setPcuH(calcPcu(stats, time));
