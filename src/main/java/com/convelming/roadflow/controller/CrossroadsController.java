@@ -70,7 +70,7 @@ public class CrossroadsController {
     }
 
     @PostMapping("/update")
-    public Result updateTime(@RequestBody Crossroads crossroads){
+    public Result update(@RequestBody Crossroads crossroads){
         return Result.ok(service.updateById(crossroads));
     }
 

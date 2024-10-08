@@ -99,6 +99,7 @@ public class CrossroadsServiceImpl implements CrossroadsService {
         if (targ == null) {
             return null;
         }
+        double oldTime = targ.getEndTime().toInstant().getEpochSecond() - targ.getBeginTime().toInstant().getEpochSecond();
         crossroads.setDeleted(targ.getDeleted());
         crossroads.setVersion(targ.getVersion() + 1);
         crossroads.setUpdateTime(new Date());
@@ -107,8 +108,9 @@ public class CrossroadsServiceImpl implements CrossroadsService {
             double time = crossroads.getEndTime().toInstant().getEpochSecond() - crossroads.getBeginTime().toInstant().getEpochSecond();
             List<CrossroadsStats> stats = statsMapper.selectByCrossroadsId(crossroads.getId());
             stats.forEach(stat -> {
-                stat.setPcuH(null);
-                stat.setPcuH(calcPcu(stat, time));
+                if (oldTime != time) {
+                    stat.setPcuH(calcPcu(stat, time));
+                }
             });
             statsMapper.batchUpdate(stats);
         }
