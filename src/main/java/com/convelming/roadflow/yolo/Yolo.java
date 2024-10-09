@@ -11,8 +11,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
- * <p>docker运行车辆视频识别python</p>
- * <p>使用ultralytics/ultralytics镜像</p>
+ * docker运行车辆视频识别python
+ * 使用ultralytics/ultralytics镜像
  * docker run -it -v /home/link_stats/:/data --name yolo ultralytics/ultralytics:8.2.86  /bin/bash  # 创建容器并将/home/link_stats映射到容器/data
  * cd /data/code && pip install *.whl # 安装依赖, 直接运行会有两个依赖版本不对
  */
@@ -40,7 +40,12 @@ public class Yolo {
     }
 
     public static boolean run(Crossroads crossroads) {
-        initialization(crossroads);
+        try {
+            initialization(crossroads);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return false;
+        }
         String strId = String.valueOf(crossroads.getId());
         boolean result = false;
         try {
