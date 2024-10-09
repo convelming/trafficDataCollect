@@ -186,6 +186,8 @@ create table crossroads
     in_link_id      json, --
     video           varchar(255),
     "type"          varchar(1),
+    annex           text,
+    map_info        text,
     status          int8,
     lines           text,
     video_type      integer default 1,
@@ -210,6 +212,8 @@ comment on column public.crossroads.video_type is '拍摄类型（1俯视航拍�
 comment on column public.crossroads.begin_time is '开始时间';
 comment on column public.crossroads.end_time is '结束时间';
 comment on column public.crossroads."type" is '录入类型';
+comment on column public.crossroads.annex is '附件';
+comment on column public.crossroads.map_info is '地图旋转缩放信息';
 comment on column public.crossroads.remark is '备注';
 comment on column public.crossroads.ip_addr is '登记ip';
 comment on column public.crossroads.version is '版本号';
@@ -223,21 +227,21 @@ alter table public.crossroads
 drop table if exists crossroads_stats;
 create table crossroads_stats
 (
-    id                     bigint primary key,
-    crossroads_id          bigint,
-    in_link                varchar(100),
-    out_link               varchar(100),
-    pcu_h                  double precision,
-    pcu_detail             text,
-    count                  double precision,
-    deleted                bigint  default 0,
-    result_id              varchar(100),
-    van                    integer default 0,
-    truck                  integer default 0,
-    bus                    integer default 0,
-    car                    integer default 0,
-    end_point              text,
-    start_pointstart_point text
+    id            bigint primary key,
+    crossroads_id bigint,
+    in_link       varchar(100),
+    out_link      varchar(100),
+    pcu_h         double precision,
+    pcu_detail    text,
+    count         double precision,
+    deleted       bigint  default 0,
+    result_id     varchar(100),
+    van           integer default 0,
+    truck         integer default 0,
+    bus           integer default 0,
+    car           integer default 0,
+    end_point     text,
+    start_point   text
 );
 comment on table public.crossroads_stats is '十字路流量';
 comment on column public.crossroads_stats.id is 'id';
