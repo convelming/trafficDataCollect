@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -463,6 +464,7 @@ public class CrossroadsServiceImpl implements CrossroadsService {
                         raf.readLine(); // 跳过标题行
                         String row;
                         while ((row = raf.readLine()) != null) {
+                            row = new String(row.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
                             String[] data = row.split(","); //id,car,bus,van,truck
                             CrossroadsStats stats = maps.get(data[0]);
                             if (stats == null) {
