@@ -22,7 +22,7 @@ public interface CrossroadsService {
 
     boolean deleteByIds(String[] crossroadId);
     boolean saveline(CrossroadsController.CrossroadsLineBo lines);
-    List<CrossroadsStats> corssStatsTable(Long cossroadsId);
+    List<CrossroadsStats> crossStatsTable(Long crossroadsId);
     boolean deleteStats(String[] crossroadStatsId);
     boolean insertStats(CrossroadsStats stats);
     boolean updateStats(CrossroadsStats stats);

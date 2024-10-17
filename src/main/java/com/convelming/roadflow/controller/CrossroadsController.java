@@ -52,7 +52,6 @@ public class CrossroadsController {
      * 十字路详细信息
      *
      * @param crossroadsId 十字路id
-     * @return
      */
     @GetMapping("/detail/{crossroadsId}")
     public Result detail(@PathVariable Long crossroadsId) {
@@ -81,13 +80,6 @@ public class CrossroadsController {
      */
     @PostMapping("/insert")
     public Result insert(@RequestBody CossroadsBo bo) {
-//        if (bo.vertex.length <= 2) {
-//            Result.fail("至少需要三个顶点");
-//        }
-//        // 把最后一个点设置为第一个点，连成一个封闭图行
-//        double[][] vertex = Arrays.copyOf(bo.vertex, bo.vertex.length + 1);
-//        vertex[vertex.length - 1] = bo.vertex[0];
-//        bo.vertex = vertex;
         return Result.ok(service.insert(bo));
     }
 
@@ -120,7 +112,7 @@ public class CrossroadsController {
      */
     @GetMapping("/corssStatsTable/{crossroadsId}")
     public Result statstable(@PathVariable Long crossroadsId) {
-        return Result.ok(service.corssStatsTable(crossroadsId));
+        return Result.ok(service.crossStatsTable(crossroadsId));
     }
 
     /**
@@ -157,25 +149,25 @@ public class CrossroadsController {
     /**
      * 获取全部十字路inoutlink
      *
-     * @param cossroadsId 十字路id
+     * @param crossroadsId 十字路id
      */
-    @GetMapping("/inoutlink/{cossroadsId}")
-    public Result inoutlink(@PathVariable Long cossroadsId) {
-        return Result.ok(service.inoutlink(cossroadsId));
+    @GetMapping("/inoutlink/{crossroadsId}")
+    public Result inoutlink(@PathVariable Long crossroadsId) {
+        return Result.ok(service.inoutlink(crossroadsId));
     }
 
     /**
      * 下载分析视频
      *
-     * @param cossroadsId 十字路id
+     * @param crossroadsId 十字路id
      */
-    @GetMapping("/analyzeVideo/{cossroadsId}")
-    public void analyzeVideo(@PathVariable Long cossroadsId, HttpServletResponse response) {
-        String video = Constant.DATA_PATH + "/data/" + cossroadsId + "/output_result/output_video.mp4";
+    @GetMapping("/analyzeVideo/{crossroadsId}")
+    public void analyzeVideo(@PathVariable Long crossroadsId, HttpServletResponse response) {
+        String video = Constant.DATA_PATH + "/data/" + crossroadsId + "/output_result/output_video.mp4";
         if (!new File(video).exists()) {
             throw new RuntimeException("未生成分析视频");
         }
-        String fileName = cossroadsId + "_output_video.mp4";
+        String fileName = crossroadsId + "_output_video.mp4";
 //        response.addHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.addHeader("Content-Disposition", "attachment; filename=" + fileName);
         try (
@@ -196,15 +188,15 @@ public class CrossroadsController {
     /**
      * 下载轨迹图
      *
-     * @param cossroadsId 十字路id
+     * @param crossroadsId 十字路id
      */
-    @GetMapping("/trackImage/{cossroadsId}")
-    public void trackImage(@PathVariable Long cossroadsId, HttpServletResponse response) {
-        String video = Constant.DATA_PATH + "/data/" + cossroadsId + "/output_result/track.jpg";
+    @GetMapping("/trackImage/{crossroadsId}")
+    public void trackImage(@PathVariable Long crossroadsId, HttpServletResponse response) {
+        String video = Constant.DATA_PATH + "/data/" + crossroadsId + "/output_result/track.jpg";
         if (!new File(video).exists()) {
             throw new RuntimeException("未生成轨迹图");
         }
-        String fileName = cossroadsId + "_track.jpg";
+        String fileName = crossroadsId + "_track.jpg";
 //        response.addHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.addHeader("Content-Disposition", "attachment; filename=" + fileName);
         try (
@@ -233,23 +225,23 @@ public class CrossroadsController {
     /**
      * 十字路流量表
      *
-     * @param cossroadsId 十字路id
+     * @param crossroadsId 十字路id
      */
-    @GetMapping("/carLegTable/{cossroadsId}")
-    public Result carLegTable(@PathVariable Long cossroadsId) {
-        return Result.ok(service.corssStatsTable(cossroadsId));
+    @GetMapping("/carLegTable/{crossroadsId}")
+    public Result carLegTable(@PathVariable Long crossroadsId) {
+        return Result.ok(service.crossStatsTable(crossroadsId));
     }
 
     /**
      * 导出十字路流量表
      *
-     * @param cossroadsId 十字路id
+     * @param crossroadsId 十字路id
      */
-    @GetMapping("/exportCorssStatsTable/{cossroadsId}")
-    public void exportStatsTable(@PathVariable Long cossroadsId, HttpServletResponse response) {
+    @GetMapping("/exportCorssStatsTable/{crossroadsId}")
+    public void exportStatsTable(@PathVariable Long crossroadsId, HttpServletResponse response) {
         try (Workbook workbook = ExcelExportUtil.exportExcel(new ExportParams("流量流向表", "流量流向表"),
-                CrossroadsStats.class, service.corssStatsTable(cossroadsId))) {
-            String fileName = cossroadsId + "_流量表.xls";
+                CrossroadsStats.class, service.crossStatsTable(crossroadsId))) {
+            String fileName = crossroadsId + "_流量表.xls";
             response.addHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             response.addHeader("Content-Disposition", "attachment; filename=" + URLEncoder.encode(fileName, StandardCharsets.UTF_8));
             workbook.write(response.getOutputStream());
@@ -261,11 +253,11 @@ public class CrossroadsController {
     /**
      * 运行视频识别
      *
-     * @param cossroadsId 十字路id
+     * @param crossroadsId 十字路id
      */
-    @GetMapping("/runVehicleCounts/{cossroadsId}")
-    public Result runVehicleCounts(@PathVariable Long cossroadsId) {
-        return Result.failOrOk(service.runVehicleCounts(cossroadsId));
+    @GetMapping("/runVehicleCounts/{crossroadsId}")
+    public Result runVehicleCounts(@PathVariable Long crossroadsId) {
+        return Result.failOrOk(service.runVehicleCounts(crossroadsId));
     }
 
     @Data

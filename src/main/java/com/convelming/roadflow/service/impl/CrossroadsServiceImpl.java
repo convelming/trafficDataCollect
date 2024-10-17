@@ -346,7 +346,7 @@ public class CrossroadsServiceImpl implements CrossroadsService {
     }
 
     @Override
-    public List<CrossroadsStats> corssStatsTable(Long crossroadsId) {
+    public List<CrossroadsStats> crossStatsTable(Long crossroadsId) {
         return statsMapper.selectByCrossroadsId(crossroadsId);
     }
 
