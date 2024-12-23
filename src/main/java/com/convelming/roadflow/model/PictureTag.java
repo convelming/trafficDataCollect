@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -145,13 +146,15 @@ public class PictureTag {
     public double getLon() {
         if (gps_longitude != null) {
             try {
-                String lon = gps_longitude.
+                String[] lon = gps_longitude.
                         replaceAll("\"", "").
-                        replaceAll(" ", "").
+                        replaceAll("°", "").
                         replaceAll("'", "").
-                        replaceAll("\\.", "").
-                        replaceAll("°", ".");
-                return Double.parseDouble(lon);
+                        split(" ");
+                BigDecimal bd = new BigDecimal(lon[0]) // 度
+                        .add(BigDecimal.valueOf(Double.parseDouble(lon[1]) / 60)) // 分
+                        .add(BigDecimal.valueOf(Double.parseDouble(lon[2]) / 3600));// 秒
+                return bd.doubleValue();
             } catch (Exception e) {
                 log.error("经度获取出错", e);
                 return 0.;
@@ -166,13 +169,15 @@ public class PictureTag {
     public double getLat() {
         if (gps_latitude != null) {
             try {
-                String lat = gps_latitude.
+                String[] lat = gps_latitude.
                         replaceAll("\"", "").
-                        replaceAll(" ", "").
+                        replaceAll("°", "").
                         replaceAll("'", "").
-                        replaceAll("\\.", "").
-                        replaceAll("°", ".");
-                return Double.parseDouble(lat);
+                        split(" ");
+                BigDecimal bd = new BigDecimal(lat[0]) // 度
+                        .add(BigDecimal.valueOf(Double.parseDouble(lat[1]) / 60)) // 分
+                        .add(BigDecimal.valueOf(Double.parseDouble(lat[2]) / 3600));// 秒
+                return bd.doubleValue();
             } catch (Exception e) {
                 log.error("纬度获取出错", e);
                 return 0.;
