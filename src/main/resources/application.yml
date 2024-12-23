@@ -13,10 +13,14 @@ spring:
       max-file-size: 4096MB
       max-request-size: 4096MB
   datasource:
+    #    username: system
+    #    password: jtgh@kdb
+    #    url: jdbc:kingbase8://192.168.60.231:54321/test
+    #    driver-class-name: com.kingbase8.Driver
     username: postgres
     password: postgres
-#    password: postgis@2024a
-#    url: jdbc:postgresql_postGIS://8.138.103.110:5432/gisdata
+    #    password: postgis@2024a
+    #    url: jdbc:postgresql_postGIS://8.138.103.110:5432/gisdata
     url: jdbc:postgresql_postGIS://192.168.60.231:5432/gisdata
     driver-class-name: net.postgis.jdbc.DriverWrapper
   jpa:

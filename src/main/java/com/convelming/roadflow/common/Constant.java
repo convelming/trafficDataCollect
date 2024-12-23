@@ -10,6 +10,7 @@ public class Constant {
      */
     public final static String DATA_PATH;
     public final static String VIDEO_PATH;
+    public final static String PICTURE_PATH;
 
     /**
      * 十字路框选最大面积
@@ -21,12 +22,16 @@ public class Constant {
      */
     public final static int MAX_DEEP = 50;
 
+    public final static String FILE_DOWNLOAD_API = "/file/download?url=";
+
     static {
         String os = System.getProperty("os.name");
         if (os.contains("Windows")) {
+            PICTURE_PATH = "F:/link_stats/picture/";
             VIDEO_PATH = "F:/link_stats/video/";
             DATA_PATH = "F:/link_stats/";
         } else {
+            PICTURE_PATH = "/home/link_stats/picture/";
             VIDEO_PATH = "/home/link_stats/video/";
             DATA_PATH = "/home/link_stats/";
         }

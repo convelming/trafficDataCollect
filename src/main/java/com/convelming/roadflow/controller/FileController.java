@@ -52,7 +52,7 @@ public class FileController {
         response.addHeader("Content-Disposition", "attachment; filename=" + URLEncoder.encode(fileName));
         try (
                 OutputStream os = response.getOutputStream();
-                FileInputStream is = new FileInputStream(Constant.VIDEO_PATH + "/" + url)
+                FileInputStream is = new FileInputStream(Constant.DATA_PATH + "/" + url)
         ) {
             int len;
             byte[] b = new byte[1024 * 10];

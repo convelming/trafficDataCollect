@@ -1,0 +1,53 @@
+package com.convelming.roadflow.mapper;
+
+import com.convelming.roadflow.common.Constant;
+import com.convelming.roadflow.common.Page;
+import com.convelming.roadflow.model.Crossroads;
+import com.convelming.roadflow.model.MapPicture;
+import com.convelming.roadflow.util.IdUtil;
+import com.easy.query.api.proxy.client.EasyEntityQuery;
+import jakarta.annotation.Resource;
+import org.springframework.stereotype.Repository;
+
+import java.util.Collection;
+import java.util.List;
+
+@Repository
+public class MapPictureMapper {
+
+    private static final String TABLE_NAME = " map_picture ";
+
+    @Resource
+    private IdUtil idUtil;
+    @Resource
+    private EasyEntityQuery eeq;
+
+    public Page<MapPicture> page(Page<MapPicture> page) {
+        List<MapPicture> data = eeq.queryable(MapPicture.class)
+                .orderBy(t -> t.id().desc()).limit(page.getOffset(), page.getPageSize()).toList();
+        long total = eeq.queryable(Crossroads.class)
+                .count();
+        data.forEach(mp -> mp.setUrl(Constant.FILE_DOWNLOAD_API + mp.getPath()));
+        return page.build(data, total);
+    }
+
+    public Collection<MapPicture> all() {
+        Collection<MapPicture> list = eeq.queryable(MapPicture.class).toList();
+        list.forEach(mp -> mp.setUrl(Constant.FILE_DOWNLOAD_API + mp.getPath()));
+        return list;
+    }
+
+    public MapPicture selectById(Long id) {
+        return eeq.queryable(MapPicture.class).where(t -> t.id().eq(id)).singleOrNull();
+    }
+
+    public long batchInsert(List<MapPicture> list) {
+        list.forEach(mp -> mp.setId(idUtil.getId(TABLE_NAME)));
+        return eeq.insertable(list).batch().executeRows();
+    }
+
+    public long batchDeleteById(Collection<Long> ids) {
+        return eeq.deletable(MapPicture.class).whereByIds(ids).executeRows();
+    }
+
+}
