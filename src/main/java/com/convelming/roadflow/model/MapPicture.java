@@ -87,7 +87,7 @@ public class MapPicture implements ProxyEntityAvailable<MapPicture, MapPicturePr
     /**
      * 创建时间
      */
-    @JsonIgnore
+//    @JsonIgnore
     @UpdateIgnore
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @JSONField(format = "yyyy-MM-dd HH:mm:ss")

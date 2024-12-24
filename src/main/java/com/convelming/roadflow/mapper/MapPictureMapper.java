@@ -50,4 +50,8 @@ public class MapPictureMapper {
         return eeq.deletable(MapPicture.class).whereByIds(ids).executeRows();
     }
 
+    public long deleteByPath(String path) {
+        return eeq.deletable(MapPicture.class).where(t -> t.path().likeMatchLeft(path)).executeRows();
+    }
+
 }

@@ -1,19 +1,23 @@
 package com.convelming.roadflow;
 
 import com.alibaba.fastjson.JSON;
+import com.convelming.roadflow.common.Constant;
 import com.convelming.roadflow.controller.CrossroadsController;
 import com.convelming.roadflow.mapper.CrossroadsMapper;
 import com.convelming.roadflow.mapper.CrossroadsStatsMapper;
 import com.convelming.roadflow.mapper.MatsimLinkMapper;
 import com.convelming.roadflow.mapper.MatsimNodeMapper;
-import com.convelming.roadflow.model.Crossroads;
-import com.convelming.roadflow.model.CrossroadsStats;
-import com.convelming.roadflow.model.MatsimLink;
-import com.convelming.roadflow.model.MatsimNode;
+import com.convelming.roadflow.model.*;
+import com.convelming.roadflow.model.vo.PictureDirVo;
+import com.convelming.roadflow.util.FileUtil;
 import com.convelming.roadflow.util.IdUtil;
 import com.convelming.roadflow.util.VideoUtil;
+import com.convelming.roadflow.yolo.Yolo;
 import com.easy.query.api.proxy.client.EasyEntityQuery;
 import jakarta.annotation.Resource;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import net.postgis.jdbc.PGgeometry;
 import org.junit.runner.RunWith;
 import org.matsim.api.core.v01.Coord;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,22 +27,24 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.geom.CubicCurve2D;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
+import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @SpringBootTest
 @RunWith(SpringRunner.class)
 public class Test {
 
     // AVRO
     private final BigDecimal HOURS = new BigDecimal("3600000");
-
+    @Resource
+    private EasyEntityQuery eeq;
     @Resource
     private CrossroadsStatsMapper statsMapper;
     @Resource
@@ -49,6 +55,166 @@ public class Test {
     private CrossroadsMapper roadsMapper;
     @Resource
     private IdUtil idUtil;
+
+    public static void main(String[] args) throws Exception {
+        OutputStream os = new FileOutputStream("C:\\Users\\zengren\\Desktop\\code.txt");
+        output(new File("E:\\project\\convelming\\LinkStats\\src"), os);
+        os.close();
+    }
+
+
+    @org.junit.Test
+    public void unzip() throws Exception {
+        String zip = "C:\\Users\\zengren\\Desktop\\江高茅山河照片2.zip";
+        String destDir = "C:\\Users\\zengren\\Desktop\\新建文件夹";
+        FileUtil.unzip(zip, destDir);
+    }
+
+    @org.junit.Test
+    public void buildPicTree() throws IOException {
+        Map<String, PictureDirVo> dirmap = new HashMap<>();
+        List<MapPicture> piclist = eeq.queryable(MapPicture.class).toList();
+        l:
+        for (MapPicture mp : piclist) {
+            File picfile = new File(Constant.DATA_PATH + mp.getPath());
+            File parentfile = picfile.getParentFile();
+            while (parentfile.list((dir, name) -> name.endsWith(".zip")) == null || parentfile.list((dir, name) -> name.endsWith(".zip")).length == 0) {
+                if (parentfile.getName().endsWith("/picture/")) {
+                    break l;
+                }
+                parentfile = parentfile.getParentFile();
+            }
+            parentfile = parentfile.listFiles((name, dir) -> !dir.endsWith(".zip"))[0];
+            PictureDirVo dir = dirmap.get(picfile.getPath());
+            if (dir == null) {
+                dir = new PictureDirVo();
+                dir.setName(parentfile.getName());
+                dir.setPath("/" + parentfile.getPath().replace("\\", "/").replace(Constant.DATA_PATH, ""));
+                dir.setCreateTime(mp.getCreateTime());
+                dirmap.put(dir.getPath(), dir);
+            }
+        }
+        // dirmap 构建子目录
+        for (Map.Entry<String, PictureDirVo> entry : dirmap.entrySet()) {
+            PictureDirVo root = entry.getValue();
+            for (MapPicture mp : piclist) {
+                String mpath = mp.getPath();
+                if (mpath.startsWith(root.getPath())) {
+                    String subpath = mpath.replace(root.getPath(), "");
+                    tree(root, subpath, mp);
+                }
+            }
+        }
+        System.out.println(dirmap);
+    }
+
+    public void tree(PictureDirVo root, String subpath, MapPicture mp) {
+        int index = subpath.indexOf("/", 1);
+        if (index > 0) {
+            String name = subpath.substring(0, index);
+            subpath = subpath.substring(index);
+            String dirpath = root.getPath() + name;
+            PictureDirVo dir = root.getSubdirByPath(dirpath);
+            if (dir == null) {
+                dir = new PictureDirVo();
+                root.getSubdir().add(dir);
+            }
+            dir.setPath(root.getPath() + name);
+            dir.setName(name.replace("/", ""));
+            dir.setCreateTime(mp.getCreateTime());
+            tree(dir, subpath, mp);
+        } else {
+            mp.setPath(mp.getPath().replace(root.getPath(), ""));
+            root.getPictures().add(mp);
+        }
+    }
+
+    @org.junit.Test
+    public void getPictureInfo() {
+        File file = new File("C:\\Users\\zengren\\Desktop\\江高茅山河照片2\\江高茅山河照片\\DJI_20240927105047_0002_Z.jpeg");
+        PictureTag ptag = PictureTag.readPicture(file);
+        if (ptag == null) {
+            System.out.println("获取图片信息出错");
+            return;
+        }
+        System.out.println(ptag);
+        System.out.println(ptag.getWidth());
+        System.out.println(ptag.getHeight());
+        System.out.println(ptag.getLat());
+        System.out.println(ptag.getLon());
+        System.out.println(ptag.getAltitude());
+        System.out.println(ptag.getDateTime());
+        System.out.println(ptag.getFileName());
+        System.out.println(ptag.getFileSize());
+        System.out.println(ptag.getMapDatum());
+    }
+
+
+    public static void output(File file, OutputStream os) throws IOException {
+        if (file.isDirectory()) {
+            for (File f : Objects.requireNonNull(file.listFiles())) {
+                output(f, os);
+            }
+        } else {
+            if (file.getName().endsWith(".java")) {
+                RandomAccessFile raf = new RandomAccessFile(file, "r");
+                String row;
+                while ((row = raf.readLine()) != null) {
+                    os.write(row.getBytes(StandardCharsets.ISO_8859_1));
+                    os.write("\n".getBytes());
+                }
+                os.write("\n\n".getBytes(StandardCharsets.ISO_8859_1));
+                raf.close();
+            }
+        }
+    }
+
+    @org.junit.Test
+    public void kdbtest() throws SQLException {
+        List<String> maps = eeq.sqlQuery("select st_asewkt(geom3857) from osm_way where id = ?", String.class, List.of("1207443771"));
+        PGgeometry pgg = new PGgeometry(maps.get(0));
+        System.out.println(pgg.getGeometry());
+    }
+
+    @org.junit.Test
+    public void runsuccessupdatepcu() {
+        Long crossroadsId = 94L;
+        Crossroads crossroads = roadsMapper.selectById(crossroadsId);
+        // 更新车辆数量
+        Map<String, CrossroadsStats> maps = statsMapper.selectByCrossroadsId(crossroadsId).stream().collect(Collectors.toMap(CrossroadsStats::getResultId, x -> x, (a, b) -> a)); // todo 如果有重复去掉
+        File results_csv = new File(Constant.DATA_PATH + "/data/" + crossroadsId + "/output_result/results.csv");
+        try (RandomAccessFile raf = new RandomAccessFile(results_csv, "rw")) {
+            raf.readLine(); // 跳过标题行
+            String row;
+            while ((row = raf.readLine()) != null) {
+                row = new String(row.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
+                String[] data = row.split(","); //id,car,bus,van,truck
+                CrossroadsStats stats = maps.get(data[0]);
+                if (stats == null) {
+                    continue;
+                }
+                stats.setCar(Integer.parseInt(data[1]));
+                stats.setBus(Integer.parseInt(data[2]));
+                stats.setVan(Integer.parseInt(data[3]));
+                stats.setTruck(Integer.parseInt(data[4]));
+                long time = crossroads.getEndTime().toInstant().getEpochSecond() - crossroads.getBeginTime().toInstant().getEpochSecond();
+                stats.setPcuH(calcPcu(stats, time));
+                stats.setCount(stats.getCar() + stats.getBus() + stats.getVan() + stats.getTruck());
+            }
+            log.info("");
+//            statsMapper.batchUpdate(maps.values());
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    @org.junit.Test
+    public void YoloRun() {
+        Crossroads crossroads = new Crossroads();
+        crossroads.setId(11111L);
+        boolean bool = Yolo.run(crossroads);
+        System.out.println(bool);
+    }
 
     @org.junit.Test
     public void idConcurrent() {
@@ -69,7 +235,7 @@ public class Test {
 
     @org.junit.Test
     public void updateStatusPoint() {
-        Long crossroadsId = 1L;
+        Long crossroadsId = 13L;
         Crossroads roads = roadsMapper.selectById(crossroadsId);
         List<CrossroadsStats> stats = statsMapper.selectByCrossroadsId(crossroadsId);
         List<CrossroadsController.LineBo> lines = JSON.parseArray(roads.getLines(), CrossroadsController.LineBo.class);
@@ -107,7 +273,7 @@ public class Test {
     public void outputBezier() {
         int width = 4000;
         int height = 4000;
-        Long cossroadsId = 1L;
+        Long cossroadsId = 13L;
         // 创建一个类型为预定义图像类型之一的 BufferedImage
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         // 获取图形上下文以于绘制
@@ -196,8 +362,8 @@ public class Test {
     }
 
 
-    @Resource
-    private EasyEntityQuery eeq;
+//    @Resource
+//    private EasyEntityQuery eeq;
 
     @org.junit.Test
     public void easyQuery() {
@@ -237,4 +403,33 @@ public class Test {
         }
     }
 
+    private static double calcPcu(CrossroadsStats stats, double second) {
+        if (second <= 0) {
+            second = 3600L; // 默认算一个小时
+        }
+//        if (stats.getPcuH() != null && stats.getPcuH() > 0) {
+//            return stats.getPcuH();
+//        }
+        BigDecimal pcuh = new BigDecimal("0");
+        pcuh = pcuh.add(BigDecimal.valueOf(stats.getCar()));
+        pcuh = pcuh.add(BigDecimal.valueOf(stats.getBus()).multiply(BigDecimal.valueOf(2)));
+        pcuh = pcuh.add(BigDecimal.valueOf(stats.getVan()));
+        pcuh = pcuh.add(BigDecimal.valueOf(stats.getTruck()).multiply(BigDecimal.valueOf(2)));
+        if (pcuh.doubleValue() <= 0 && stats.getPcuH() != null) {
+            return stats.getPcuH();
+        }
+        return pcuh.multiply(BigDecimal.valueOf(3600)).divide(BigDecimal.valueOf(second), RoundingMode.HALF_UP).setScale(2, RoundingMode.DOWN).doubleValue();
+//        return pcuh.setScale(2, RoundingMode.DOWN).doubleValue();
+    }
+
+    @Data
+    private static class PicDir {
+        private String name;
+        private String path;
+        private String createTime;
+        private PictureDirVo nextDir;
+        List<MapPicture> pictures = new ArrayList<>();
+    }
+
 }
+

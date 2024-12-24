@@ -25,6 +25,17 @@ public class MapPictureController {
         return Result.failOrOk(service.list(page));
     }
 
+    @PostMapping("/treeList")
+    public Result treeList() {
+        return Result.failOrOk(service.treeList());
+    }
+
+
+    @PostMapping("/deleteByPath")
+    public Result deleteByPath(@RequestBody QueryParam param) {
+        return Result.failOrOk(service.deleteByPath(param.path));
+    }
+
     /**
      * 全部
      */
@@ -67,6 +78,9 @@ public class MapPictureController {
          * 分页第几页
          */
         private Integer pageNum = 1;
+
+        private String path;
+
     }
 
 }

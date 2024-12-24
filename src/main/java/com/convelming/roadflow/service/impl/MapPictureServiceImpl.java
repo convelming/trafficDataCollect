@@ -6,6 +6,7 @@ import com.convelming.roadflow.mapper.MapPictureMapper;
 import com.convelming.roadflow.model.MapPicture;
 import com.convelming.roadflow.model.PictureTag;
 import com.convelming.roadflow.model.vo.MapPictureVo;
+import com.convelming.roadflow.model.vo.PictureDirVo;
 import com.convelming.roadflow.service.MapPictureService;
 import com.convelming.roadflow.util.FileUtil;
 import com.convelming.roadflow.util.GeomUtil;
@@ -23,10 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -43,6 +41,49 @@ public class MapPictureServiceImpl implements MapPictureService {
     @Override
     public Page<MapPicture> list(Page<MapPicture> page) {
         return mapper.page(page);
+    }
+
+    @Override
+    public Collection<PictureDirVo> treeList() {
+        Map<String, PictureDirVo> dirmap = new HashMap<>();
+        Collection<MapPicture> piclist = mapper.all();
+        l:
+        for (MapPicture mp : piclist) {
+            File picfile = new File(Constant.DATA_PATH + mp.getPath());
+            File parentfile = picfile.getParentFile();
+            while (parentfile.list((dir, name) -> name.endsWith(".zip")) == null || parentfile.list((dir, name) -> name.endsWith(".zip")).length == 0) {
+                if (parentfile.getName().endsWith("/picture/")) {
+                    break l;
+                }
+                parentfile = parentfile.getParentFile();
+            }
+            File[] pfs = parentfile.listFiles((name, dir) -> !dir.endsWith(".zip"));
+            if (pfs != null) {
+                parentfile = pfs[0];
+            } else {
+                continue; //
+            }
+            PictureDirVo dir = dirmap.get(picfile.getPath());
+            if (dir == null) {
+                dir = new PictureDirVo();
+                dir.setName(parentfile.getName());
+                dir.setPath("/" + parentfile.getPath().replace("\\", "/").replace(Constant.DATA_PATH, ""));
+                dir.setCreateTime(mp.getCreateTime());
+                dirmap.put(dir.getPath(), dir);
+            }
+        }
+        // dirmap 构建子目录
+        for (Map.Entry<String, PictureDirVo> entry : dirmap.entrySet()) {
+            PictureDirVo root = entry.getValue();
+            for (MapPicture mp : piclist) {
+                String mpath = mp.getPath();
+                if (mpath.startsWith(root.getPath())) {
+                    String subpath = mpath.replace(root.getPath(), "");
+                    tree(root, subpath, mp);
+                }
+            }
+        }
+        return dirmap.values();
     }
 
     @Override
@@ -102,7 +143,7 @@ public class MapPictureServiceImpl implements MapPictureService {
             mp.setGeom(GeomUtil.genPoint(mp.getX(), mp.getY(), 3857));
             list.add(mp);
         }
-        if(list.isEmpty()){
+        if (list.isEmpty()) {
             throw new RuntimeException("上传的zip压缩包中图片没有拍摄位置信息");
         }
         return mapper.batchInsert(list) > 0;
@@ -113,6 +154,17 @@ public class MapPictureServiceImpl implements MapPictureService {
     public boolean delete(String ids) {
         List<Long> list = Arrays.stream(ids.split(",")).map(Long::parseLong).toList();
         return mapper.batchDeleteById(list) > 0;
+    }
+
+    @Override
+    public boolean deleteByPath(String path) {
+        if (path != null) {
+            path = path.trim();
+            if (!path.isEmpty()) {
+                return mapper.deleteByPath(path) > 0;
+            }
+        }
+        return false;
     }
 
     private List<File> getDirAllFile(File dir) {
@@ -129,4 +181,25 @@ public class MapPictureServiceImpl implements MapPictureService {
         }
         return list;
     }
+
+    public void tree(PictureDirVo root, String subpath, MapPicture mp) {
+        int index = subpath.indexOf("/", 1);
+        if (index > 0) {
+            String name = subpath.substring(0, index);
+            subpath = subpath.substring(index);
+            String dirpath = root.getPath() + name;
+            PictureDirVo dir = root.getSubdirByPath(dirpath);
+            if (dir == null) {
+                dir = new PictureDirVo();
+                root.getSubdir().add(dir);
+            }
+            dir.setPath(root.getPath() + name);
+            dir.setName(name.replace("/", ""));
+            dir.setCreateTime(mp.getCreateTime());
+            tree(dir, subpath, mp);
+        } else {
+            root.getPictures().add(mp);
+        }
+    }
+
 }

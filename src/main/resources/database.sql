@@ -136,7 +136,7 @@ create table public.link_stats
     remark      text,
     ip_addr     varchar          not null,
     version     int     default 0,
-    deleted     int     default 0,
+    deleted     bigint  default 0,
     create_time date    default now(),
     update_time date    default now(),
     video       text,
@@ -196,7 +196,7 @@ create table crossroads
     remark          text,
     ip_addr         varchar not null,
     version         int     default 0,
-    deleted         int     default 0,
+    deleted         bigint  default 0,
     create_time     date    default now(),
     update_time     date    default now()
 );
@@ -268,11 +268,11 @@ create table intersection
     y           double precision not null,
     geom        geometry(point)  not null,
     name        varchar(100),
-    status      int  default 0,
-    version     int  default 0,
-    deleted     int  default 0,
-    create_time date default now(),
-    update_time date default now()
+    status      int    default 0,
+    version     int    default 0,
+    deleted     bigint default 0,
+    create_time date   default now(),
+    update_time date   default now()
 );
 comment on table public.intersection is '十字路中心';
 comment on column public.intersection.id is '主键id';
@@ -285,3 +285,36 @@ comment on column public.intersection.version is '版本号';
 comment on column public.intersection.deleted is '逻辑删除，0未删除';
 comment on column public.intersection.create_time is '创建时间';
 comment on column public.intersection.update_time is '更新时间';
+
+create table map_picture
+(
+    id          bigint primary key,
+    geom        geometry(point),
+    x           double precision,
+    y           double precision,
+    lon         double precision,
+    lat         double precision,
+    "path"      varchar(100),
+    "name"      varchar(100),
+    remark      text,
+    ip_addr     varchar not null,
+    version     int    default 0,
+    deleted     bigint default 0,
+    create_time date   default now(),
+    update_time date   default now()
+);
+comment on table public.map_picture is '地图图片';
+comment on column public.map_picture.id is 'id';
+comment on column public.map_picture.x is 'x坐标';
+comment on column public.map_picture.y is 'y坐标';
+comment on column public.map_picture.geom is '点位置';
+comment on column public.map_picture.lon is '经度';
+comment on column public.map_picture.lat is '纬度';
+comment on column public.map_picture.path is '图片地址';
+comment on column public.map_picture.name is '图片名';
+comment on column public.map_picture.remark is '备注';
+comment on column public.map_picture.ip_addr is 'ip';
+comment on column public.map_picture.version is '版本号';
+comment on column public.map_picture.deleted is '逻辑删除，0未删除';
+comment on column public.map_picture.create_time is '创建时间';
+comment on column public.map_picture.update_time is '更新时间';
