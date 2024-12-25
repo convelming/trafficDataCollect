@@ -193,6 +193,7 @@ public class PictureTag {
         try {
             return sdf.parse(date_time);
         } catch (ParseException e) {
+            log.error("获取拍摄时间出错", e);
             return null;
         }
     }

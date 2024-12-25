@@ -7,10 +7,13 @@ import com.convelming.roadflow.model.MapPicture;
 import com.convelming.roadflow.util.IdUtil;
 import com.easy.query.api.proxy.client.EasyEntityQuery;
 import jakarta.annotation.Resource;
+import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class MapPictureMapper {
@@ -33,6 +36,22 @@ public class MapPictureMapper {
 
     public Collection<MapPicture> all() {
         Collection<MapPicture> list = eeq.queryable(MapPicture.class).toList();
+        list.forEach(mp -> mp.setUrl(Constant.FILE_DOWNLOAD_API + mp.getPath()));
+        return list;
+    }
+
+    public Collection<MapPicture> list(Map<String, Object> param) {
+        Collection<MapPicture> list = eeq.queryable(MapPicture.class)
+                .where(t -> {
+//                    t.path().like(param.get("name") != null && !"".equals(param.get("name")), param.get("name").toString());
+                    if (param.get("beginTime") != null) {
+                        t.dataTime().gt((Date) param.get("beginTime"));
+                    }
+                    if (param.get("endTime") != null) {
+                        t.dataTime().lt(DateUtils.addDays((Date) param.get("endTime"), 1));
+                    }
+                })
+                .toList();
         list.forEach(mp -> mp.setUrl(Constant.FILE_DOWNLOAD_API + mp.getPath()));
         return list;
     }

@@ -7,12 +7,13 @@ import com.convelming.roadflow.model.vo.PictureDirVo;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collection;
+import java.util.Map;
 
 public interface MapPictureService {
 
     Page<MapPicture> list(Page<MapPicture> page);
 
-    Collection<PictureDirVo> treeList();
+    Collection<PictureDirVo> treeList(Map<String, Object> param);
 
     Collection<MapPictureVo> allMaker();
 

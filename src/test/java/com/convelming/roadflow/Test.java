@@ -65,7 +65,7 @@ public class Test {
 
     @org.junit.Test
     public void unzip() throws Exception {
-        String zip = "C:\\Users\\zengren\\Desktop\\江高茅山河照片2.zip";
+        String zip = "C:\\Users\\zengren\\Desktop\\江高茅山河照片.zip";
         String destDir = "C:\\Users\\zengren\\Desktop\\新建文件夹";
         FileUtil.unzip(zip, destDir);
     }

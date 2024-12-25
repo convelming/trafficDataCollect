@@ -19,7 +19,7 @@ public class FileUtil {
      */
     public static void unzip(String zip, String output) throws IOException {
         new File(output).mkdirs();
-        ZipFile zipFile = new ZipFile(zip);
+        ZipFile zipFile = new ZipFile(zip, "GBK");
         Enumeration<ZipArchiveEntry> enumeration = zipFile.getEntries();
         ZipArchiveEntry entry;
         while (enumeration.hasMoreElements()) {

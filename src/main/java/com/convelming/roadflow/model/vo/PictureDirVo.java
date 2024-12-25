@@ -4,7 +4,9 @@ import com.convelming.roadflow.model.MapPicture;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 @Data
 public class PictureDirVo {
@@ -23,6 +25,18 @@ public class PictureDirVo {
             }
         });
         return pdv[0];
+    }
+
+    public void filter(String keyword) {
+        for (int i = 0; i < subdir.size(); i++) {
+            PictureDirVo vo = subdir.get(i);
+            if (!vo.getName().contains(keyword) && vo.subdir.isEmpty()) {
+                subdir.remove(vo);
+                i--;
+            } else {
+                vo.filter(keyword);
+            }
+        }
     }
 
 }

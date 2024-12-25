@@ -44,9 +44,10 @@ public class MapPictureServiceImpl implements MapPictureService {
     }
 
     @Override
-    public Collection<PictureDirVo> treeList() {
+    public Collection<PictureDirVo> treeList(Map<String, Object> param) {
+        String keyword = (String) param.get("name");
         Map<String, PictureDirVo> dirmap = new HashMap<>();
-        Collection<MapPicture> piclist = mapper.all();
+        Collection<MapPicture> piclist = mapper.list(param);
         l:
         for (MapPicture mp : piclist) {
             File picfile = new File(Constant.DATA_PATH + mp.getPath());
@@ -68,7 +69,7 @@ public class MapPictureServiceImpl implements MapPictureService {
                 dir = new PictureDirVo();
                 dir.setName(parentfile.getName());
                 dir.setPath("/" + parentfile.getPath().replace("\\", "/").replace(Constant.DATA_PATH, ""));
-                dir.setCreateTime(mp.getCreateTime());
+                dir.setCreateTime(mp.getDataTime());
                 dirmap.put(dir.getPath(), dir);
             }
         }
@@ -82,8 +83,12 @@ public class MapPictureServiceImpl implements MapPictureService {
                     tree(root, subpath, mp);
                 }
             }
+            // 关键字过滤
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                root.filter(keyword);
+            }
         }
-        return dirmap.values();
+        return dirmap.values().stream().filter(dir -> !dir.getSubdir().isEmpty() || !dir.getPictures().isEmpty()).toList();
     }
 
     @Override
@@ -135,6 +140,7 @@ public class MapPictureServiceImpl implements MapPictureService {
             mp.setLat(ptag.getLat());
             mp.setLon(ptag.getLon());
             Coord coord3857 = ct_4326to3857.transform(new Coord(mp.getLon(), mp.getLat()));
+            mp.setDataTime(ptag.getDateTime());
             mp.setName(ptag.getFileName());
             mp.setPath("/" + pf.getAbsolutePath().replaceAll("\\\\", "/").replaceAll(Constant.DATA_PATH, ""));
             mp.setIpAddr(request.getRemoteAddr());
@@ -195,7 +201,7 @@ public class MapPictureServiceImpl implements MapPictureService {
             }
             dir.setPath(root.getPath() + name);
             dir.setName(name.replace("/", ""));
-            dir.setCreateTime(mp.getCreateTime());
+            dir.setCreateTime(mp.getDataTime());
             tree(dir, subpath, mp);
         } else {
             root.getPictures().add(mp);
