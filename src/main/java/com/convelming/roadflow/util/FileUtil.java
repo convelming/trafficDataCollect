@@ -1,15 +1,33 @@
 package com.convelming.roadflow.util;
 
+import com.beust.jcommander.internal.Lists;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
+import org.apache.commons.compress.utils.IOUtils;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Enumeration;
+import java.util.List;
 
+@Slf4j
 public class FileUtil {
+
+    public static final String[] ZIP_SUFFIX = {"zip", "rar"};
+
+    public static void unpack(String file, String output) {
+        try {
+            if (file.endsWith(".zip")) {
+                unzip(file, output);
+            }
+            if (file.endsWith(".rar")) {
+//                unrar(file, output);
+            }
+        } catch (Exception e) {
+            log.error("解压文件失败", e);
+        }
+    }
+
 
     /**
      * 解压zip文件
@@ -42,5 +60,7 @@ public class FileUtil {
         }
         zipFile.close();
     }
+
+
 
 }

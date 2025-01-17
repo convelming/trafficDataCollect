@@ -70,7 +70,11 @@ public class CrossroadsServiceImpl implements CrossroadsService {
     public Crossroads insert(CrossroadsController.CossroadsBo bo) {
 
         Crossroads crossroads = new Crossroads();
-        crossroads.setVideo(bo.getVideo());
+        if ("2".equals(bo.getType())) { // 视频识别
+            crossroads.setVideo("/video" + bo.getVideo());
+        } else {
+            crossroads.setVideo(bo.getVideo());
+        }
         crossroads.setType(bo.getType());
         crossroads.setRemark(bo.getRemark());
         crossroads.setVideoType(bo.getVideoType());
@@ -131,9 +135,10 @@ public class CrossroadsServiceImpl implements CrossroadsService {
         if (crossroads == null || !crossroads.getType().equals("2")) {
             return null;
         }
-        String video = Constant.VIDEO_PATH + crossroads.getVideo();
+        String video = Constant.DATA_PATH + crossroads.getVideo();
         File vf = new File(video);
         if (!vf.exists() || !vf.isFile()) {
+            log.error("未找到视频文件：{}", video);
             return null;
         }
 
@@ -144,7 +149,7 @@ public class CrossroadsServiceImpl implements CrossroadsService {
         }
         int[] wh = VideoUtil.widthight(toimage);
         VoideFrameVo vo = new VoideFrameVo();
-        vo.setUrl("/file/download?url=" + toimage.replace(Constant.VIDEO_PATH, ""));
+        vo.setUrl("/file/download?url=" + toimage.replace(Constant.DATA_PATH, ""));
         vo.setName(toimage.substring(toimage.lastIndexOf("/") + 1));
         vo.setWidth(wh[0]);
         vo.setHeight(wh[1]);
