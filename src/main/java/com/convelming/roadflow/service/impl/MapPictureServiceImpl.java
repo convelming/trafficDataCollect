@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
@@ -136,13 +138,30 @@ public class MapPictureServiceImpl implements MapPictureService {
             if (ptag == null) {
                 continue;
             }
+
             MapPicture mp = new MapPicture();
+
+            String path = "/" + pf.getAbsolutePath().replaceAll("\\\\", "/").replaceAll(Constant.DATA_PATH, "");
+
+            if (ptag.getFileName().toLowerCase().endsWith("heic")) {
+                try {
+                    String jpgpath = path + ".JPEG";
+                    BufferedImage image = ImageIO.read(new File(path));
+                    ImageIO.write(image, "JPEG", new File(jpgpath));
+                    mp.setPath(jpgpath);
+                } catch (Exception e) {
+                    mp.setPath(path);
+                    log.error("HEIC转JPEG出错", e);
+                }
+            } else {
+                mp.setPath(path);
+            }
+
             mp.setLat(ptag.getLat());
             mp.setLon(ptag.getLon());
             Coord coord3857 = ct_4326to3857.transform(new Coord(mp.getLon(), mp.getLat()));
             mp.setDataTime(ptag.getDateTime());
             mp.setName(ptag.getFileName());
-            mp.setPath("/" + pf.getAbsolutePath().replaceAll("\\\\", "/").replaceAll(Constant.DATA_PATH, ""));
             mp.setIpAddr(request.getRemoteAddr());
             mp.setX(coord3857.getX());
             mp.setY(coord3857.getY());
