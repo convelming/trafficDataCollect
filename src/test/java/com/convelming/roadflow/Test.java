@@ -7,7 +7,12 @@ import com.convelming.roadflow.mapper.CrossroadsMapper;
 import com.convelming.roadflow.mapper.CrossroadsStatsMapper;
 import com.convelming.roadflow.mapper.MatsimLinkMapper;
 import com.convelming.roadflow.mapper.MatsimNodeMapper;
-import com.convelming.roadflow.model.*;
+import com.convelming.roadflow.model.Crossroads;
+import com.convelming.roadflow.model.CrossroadsStats;
+import com.convelming.roadflow.model.MapPicture;
+import com.convelming.roadflow.model.MatsimLink;
+import com.convelming.roadflow.model.MatsimNode;
+import com.convelming.roadflow.model.PictureTag;
 import com.convelming.roadflow.model.vo.PictureDirVo;
 import com.convelming.roadflow.util.FileUtil;
 import com.convelming.roadflow.util.IdUtil;
@@ -17,6 +22,7 @@ import com.easy.query.api.proxy.client.EasyEntityQuery;
 import jakarta.annotation.Resource;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import net.coobird.thumbnailator.Thumbnails;
 import net.postgis.jdbc.PGgeometry;
 import org.junit.runner.RunWith;
 import org.matsim.api.core.v01.Coord;
@@ -57,17 +63,41 @@ public class Test {
     private IdUtil idUtil;
 
     public static void main(String[] args) throws Exception {
-        OutputStream os = new FileOutputStream("C:\\Users\\zengren\\Desktop\\code.txt");
-        output(new File("E:\\project\\convelming\\LinkStats\\src"), os);
+        OutputStream os = new FileOutputStream("C:/Users/zengren/Desktop/code.txt");
+        output(new File("E:/project/convelming/LinkStats/src"), os);
         os.close();
     }
 
+    @org.junit.Test
+    public void heic2jpeg() throws Exception {
+//        String heic = "C:/Users/zengren/Desktop/IMG_1824.HEIC";
+        String heic = "C:/Users/zengren/Desktop/IMG_1824.PNG";
+        String jpeg = "C:/Users/zengren/Desktop/IMG_1824.JPEG";
+        try {
+            Set<File> list = new HashSet<>(){{
+                add(new File(jpeg));
+            }};
+            Thumbnails.of(new File(heic))
+                    .size(640, 480)
+                    .outputFormat("jpg")
+                    .toFiles(list);
+        } catch (Exception var9) {
+            var9.printStackTrace();
+        }
+    }
 
     @org.junit.Test
     public void unzip() throws Exception {
-        String zip = "C:\\Users\\zengren\\Desktop\\江高茅山河照片.zip";
-        String destDir = "C:\\Users\\zengren\\Desktop\\新建文件夹";
+        String zip = "C:/Users/zengren/Desktop/江高茅山河照片.zip";
+        String destDir = "C:/Users/zengren/Desktop/新建文件夹";
         FileUtil.unzip(zip, destDir);
+    }
+
+    @org.junit.Test
+    public void unrar() throws Exception {
+        String zip = "C:/Users/zengren/Desktop/江高茅山河照片.rar";
+        String destDir = "C:/Users/zengren/Desktop/新建文件夹";
+//        FileUtil.unrar(zip, destDir);
     }
 
     @org.junit.Test
@@ -89,7 +119,7 @@ public class Test {
             if (dir == null) {
                 dir = new PictureDirVo();
                 dir.setName(parentfile.getName());
-                dir.setPath("/" + parentfile.getPath().replace("\\", "/").replace(Constant.DATA_PATH, ""));
+                dir.setPath("/" + parentfile.getPath().replace("/", "/").replace(Constant.DATA_PATH, ""));
                 dir.setCreateTime(mp.getCreateTime());
                 dirmap.put(dir.getPath(), dir);
             }
@@ -131,7 +161,7 @@ public class Test {
 
     @org.junit.Test
     public void getPictureInfo() {
-        File file = new File("C:\\Users\\zengren\\Desktop\\江高茅山河照片2\\江高茅山河照片\\DJI_20240927105047_0002_Z.jpeg");
+        File file = new File("C:/Users/zengren/Desktop/江高茅山河照片2/江高茅山河照片/DJI_20240927105047_0002_Z.jpeg");
         PictureTag ptag = PictureTag.readPicture(file);
         if (ptag == null) {
             System.out.println("获取图片信息出错");
@@ -243,7 +273,7 @@ public class Test {
             // 计算交点
             Coord inIntersect = null, outIntersect = null;
             MatsimLink link = linkMapper.selectById(stat.getInLink());
-            MatsimNode startNode = nodeMapper.selectById(link.getFromNode());
+            com.convelming.roadflow.model.MatsimNode startNode = nodeMapper.selectById(link.getFromNode());
             MatsimNode endNode = nodeMapper.selectById(link.getToNode());
             for (int i = 0; i < lines.size() && inIntersect == null; i++) {
                 CrossroadsController.LineBo line = lines.get(i);
@@ -343,7 +373,7 @@ public class Test {
     @org.junit.Test
     public void videoFrame() throws IOException {
         long time = System.currentTimeMillis();
-        VideoUtil.saveImage("F:\\流量视频\\IMG_7802.MOV", "F:\\流量视频\\IMG_7802.MOV.jpg", VideoUtil.ImageType.JPG);
+        VideoUtil.saveImage("F:/流量视频/IMG_7802.MOV", "F:/流量视频/IMG_7802.MOV.jpg", VideoUtil.ImageType.JPG);
         System.out.println("time: " + (System.currentTimeMillis() - time));
     }
 
