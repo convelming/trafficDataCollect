@@ -87,7 +87,7 @@ public class MapPictureServiceImpl implements MapPictureService {
             }
             // 关键字过滤
             if (keyword != null && !keyword.trim().isEmpty()) {
-                root.filter(keyword);
+//                root.filter(keyword);
             }
         }
         return dirmap.values().stream().filter(dir -> !dir.getSubdir().isEmpty() || !dir.getPictures().isEmpty()).toList();

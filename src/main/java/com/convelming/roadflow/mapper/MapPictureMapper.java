@@ -43,7 +43,7 @@ public class MapPictureMapper {
     public Collection<MapPicture> list(Map<String, Object> param) {
         Collection<MapPicture> list = eeq.queryable(MapPicture.class)
                 .where(t -> {
-//                    t.path().like(param.get("name") != null && !"".equals(param.get("name")), param.get("name").toString());
+                    t.path().like(param.get("name") != null && !"".equals(param.get("name")), param.get("name").toString());
                     if (param.get("beginTime") != null) {
                         t.dataTime().gt((Date) param.get("beginTime"));
                     }

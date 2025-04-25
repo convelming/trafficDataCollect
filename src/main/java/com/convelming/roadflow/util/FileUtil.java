@@ -1,14 +1,14 @@
 package com.convelming.roadflow.util;
 
-import com.beust.jcommander.internal.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
-import org.apache.commons.compress.utils.IOUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Enumeration;
-import java.util.List;
 
 @Slf4j
 public class FileUtil {
@@ -45,10 +45,17 @@ public class FileUtil {
             String entryName = entry.getName();
             if (entry.isDirectory()) {
                 File dir = new File(output + File.separator + entryName);
-                dir.mkdirs();
+                if (!dir.exists()) {
+                    dir.mkdirs();
+                }
             } else {
                 InputStream inputStream = zipFile.getInputStream(entry);
-                FileOutputStream outputStream = new FileOutputStream(output + File.separator + entryName);
+                String outputFile = output + File.separator + entryName;
+                File dir = new File(outputFile).getParentFile();
+                if (!dir.exists()) {
+                    dir.mkdirs();
+                }
+                FileOutputStream outputStream = new FileOutputStream(outputFile);
                 byte[] buffer = new byte[1024 * 10];
                 int length;
                 while ((length = inputStream.read(buffer)) > 0) {
@@ -60,7 +67,6 @@ public class FileUtil {
         }
         zipFile.close();
     }
-
 
 
 }
