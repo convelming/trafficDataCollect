@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
@@ -48,29 +49,24 @@ public class MapPictureServiceImpl implements MapPictureService {
     @Override
     public Collection<PictureDirVo> treeList(Map<String, Object> param) {
         String keyword = (String) param.get("name");
-        Map<String, PictureDirVo> dirmap = new HashMap<>();
+        Map<String, PictureDirVo> dirmap = new ConcurrentHashMap<>();
         Collection<MapPicture> piclist = mapper.list(param);
-        l:
-        for (MapPicture mp : piclist) {
-            File picfile = new File(Constant.DATA_PATH + mp.getPath());
-            File parentfile = picfile.getParentFile();
-            while (parentfile.list((dir, name) -> name.endsWith(".zip")) == null || parentfile.list((dir, name) -> name.endsWith(".zip")).length == 0) {
-                if (parentfile.getName().endsWith("/picture/")) {
-                    break l;
+        piclist = piclist.stream().filter(
+                mp -> {
+                    String path = mp.getPath();
+                    String name = mp.getPath().substring(34, path.lastIndexOf("/")); // /picture/2024-12-25/1735095400448/ 图片相对路径加时间戳长度
+                    return name.contains(keyword);
                 }
-                parentfile = parentfile.getParentFile();
-            }
-            File[] pfs = parentfile.listFiles((name, dir) -> !dir.endsWith(".zip"));
-            if (pfs != null) {
-                parentfile = pfs[0];
-            } else {
-                continue; //
-            }
-            PictureDirVo dir = dirmap.get(picfile.getPath());
+        ).toList();
+        for (MapPicture mp : piclist) {
+            String path = mp.getPath();
+            String parentPath = path.substring(0, 34 + (path.substring(34).indexOf("/")));
+            String name = parentPath.substring(parentPath.lastIndexOf("/") + 1);
+            PictureDirVo dir = dirmap.get(Constant.DATA_PATH + mp.getPath());
             if (dir == null) {
                 dir = new PictureDirVo();
-                dir.setName(parentfile.getName());
-                dir.setPath("/" + parentfile.getPath().replace("\\", "/").replace(Constant.DATA_PATH, ""));
+                dir.setName(name);
+                dir.setPath(parentPath.replace("\\", "/").replace(Constant.DATA_PATH, ""));
                 dir.setCreateTime(mp.getDataTime());
                 dirmap.put(dir.getPath(), dir);
             }
@@ -85,12 +81,8 @@ public class MapPictureServiceImpl implements MapPictureService {
                     tree(root, subpath, mp);
                 }
             }
-            // 关键字过滤
-            if (keyword != null && !keyword.trim().isEmpty()) {
-//                root.filter(keyword);
-            }
         }
-        return dirmap.values().stream().filter(dir -> !dir.getSubdir().isEmpty() || !dir.getPictures().isEmpty()).toList();
+        return dirmap.values();
     }
 
     @Override
