@@ -200,11 +200,23 @@
             <artifactId>javacv</artifactId>
             <version>1.5.2</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.19.0</version>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-core -->
         <dependency>
             <groupId>com.twelvemonkeys.imageio</groupId>
             <artifactId>imageio-core</artifactId>
             <version>3.12.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-io</groupId>
+                    <artifactId>commons-io</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- https://mvnrepository.com/artifact/net.coobird/thumbnailator -->
         <dependency>
@@ -212,7 +224,6 @@
             <artifactId>thumbnailator</artifactId>
             <version>0.4.20</version>
         </dependency>
-
     </dependencies>
 
     <build>
