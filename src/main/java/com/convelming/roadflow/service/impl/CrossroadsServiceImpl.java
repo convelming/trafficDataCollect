@@ -315,7 +315,7 @@ public class CrossroadsServiceImpl implements CrossroadsService {
                     continue; // 如果起点和终点是同一段link跳过
                 }
                 Stack<Id<Link>> stack = new Stack<>();
-                stack.push(in.getId());
+//                stack.push(in.getId());
                 if (calcRouteAccessible(in, out, stack)) {
                     MatsimLink outLink = linkMap.get(out.getId().toString());
 //                    log.info("{}->{}:{}", inLink.getLineName(), outLink.getLineName(), stack);
@@ -531,6 +531,9 @@ public class CrossroadsServiceImpl implements CrossroadsService {
             Id<Link> id = entry.getKey();
             if (stack.contains(id) && !id.equals(start.getId())) {
                 stack.pop();
+                return false;
+            }
+            if (stack.isEmpty()) {
                 return false;
             }
             Link link = entry.getValue();
