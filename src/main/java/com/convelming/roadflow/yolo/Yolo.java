@@ -33,7 +33,7 @@ public class Yolo {
         mkdir(Constant.DATA_PATH + "/data/" + strId + "/output_result/");
         // cp video
         String videoName = crossroads.getVideo().substring(crossroads.getVideo().lastIndexOf("/"));
-        cp(Constant.VIDEO_PATH + crossroads.getVideo(), Constant.DATA_PATH + "/data/" + strId + "/input_video/" + videoName);
+        cp(Constant.DATA_PATH + crossroads.getVideo(), Constant.DATA_PATH + "/data/" + strId + "/input_video/" + videoName);
         // cp model
         cp(Constant.DATA_PATH + "/code/input_model/best.pt", Constant.DATA_PATH + "/data/" + strId + "/input_model/best.pt");
         outputLine(crossroads);
