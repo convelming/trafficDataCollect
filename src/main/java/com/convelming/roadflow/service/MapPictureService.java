@@ -19,7 +19,11 @@ public interface MapPictureService {
 
     MapPicture detail(Long id);
 
-    boolean unzip(MultipartFile file);
+    boolean unzip(MultipartFile file, String projectName, String type);
+
+    boolean uploadimg(MultipartFile file, String path);
+
+    boolean rename(String path, String name);
 
     boolean delete(String ids);
 

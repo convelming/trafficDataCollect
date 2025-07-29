@@ -5,6 +5,7 @@ import com.convelming.roadflow.mapper.MatsimNodeMapper;
 import com.convelming.roadflow.model.LinkStats;
 import com.convelming.roadflow.model.MatsimLink;
 import com.convelming.roadflow.util.IdUtil;
+import jakarta.annotation.Nonnull;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
@@ -14,6 +15,9 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkWriter;
+import org.matsim.core.config.Config;
+import org.matsim.core.config.ConfigGroup;
+import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.geometry.CoordinateTransformation;
@@ -29,8 +33,8 @@ import java.nio.file.Files;
 import java.sql.*;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.*;
+import java.util.Date;
 import java.util.stream.Collectors;
 
 /**
@@ -58,7 +62,46 @@ public class Compare2Osm2MatsimNetwork {
     private static final CoordinateTransformation ct_4356to3857 = TransformationFactory.getCoordinateTransformation("epsg:4526", "epsg:3857");
     static Random random = new Random();
 
-    @Test
+//    @Test
+    public void matsimConfigTest() {
+        Config config = ConfigUtils.createConfig();
+        Map<String, ? extends Collection<? extends ConfigGroup>> routingParams = config.routing().getParameterSets();
+        Map<String, String> teleportedModeSpeedMap = new HashMap<>() {{
+            put("walk", "0.83");
+            put("bike", "4.1");
+        }};
+        for (Map.Entry<String, ? extends Collection<? extends ConfigGroup>> entry : routingParams.entrySet()) {
+            String key = entry.getKey();
+            if (!"teleportedModeParameters".equals(key)) {
+                continue;
+            }
+            Collection<? extends ConfigGroup> value = entry.getValue();
+            for (ConfigGroup group : value) {
+                if ("teleportedModeSpeed".equals(group.getName()) && "null".equals(group.getParams().get("teleportedModeSpeed"))) {
+                    group.addParam("teleportedModeSpeed", teleportedModeSpeedMap.get(group.getName()));
+                }
+            }
+        }
+        // typicalDuration
+        Map<String, ? extends Collection<? extends ConfigGroup>> scoringParams = config.scoring().getParameterSets();
+        for (Map.Entry<String, ? extends Collection<? extends ConfigGroup>> entry : scoringParams.entrySet()) {
+            Collection<? extends ConfigGroup> value = entry.getValue();
+            for (ConfigGroup group : value) {
+                Map<String, ? extends Collection<? extends ConfigGroup>> scoringParameters = group.getParameterSets();
+                Collection<? extends ConfigGroup> activityParams = scoringParameters.get("activityParams");
+                for (ConfigGroup activityParam : activityParams) {
+                    String name = activityParam.getName();
+                    if (activityParam.getParams().get("activityType").endsWith("interaction")) {
+                        activityParam.addParam("typicalDuration", "00:00:00");
+                    }
+                }
+            }
+        }
+
+    }
+
+
+//    @Test
     public void inputGddata() throws Exception {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmm");
         DecimalFormat decimalFormat = new DecimalFormat("#0.00"); // 创建DecimalFormat对象，指定保留两位小数的模式
@@ -146,7 +189,7 @@ public class Compare2Osm2MatsimNetwork {
                     List<LinkStats> temp = list.subList(i, end);
                     jdbcTemplate.batchUpdate(LinkStatsMapper.INSERT_SQL, new BatchPreparedStatementSetter() {
                         @Override
-                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        public void setValues(@Nonnull PreparedStatement ps, int i) throws SQLException {
                             LinkStats stats = temp.get(i);
                             ps.setLong(1, stats.getId());
                             ps.setString(2, stats.getLinkId());
@@ -217,7 +260,7 @@ public class Compare2Osm2MatsimNetwork {
     /**
      * idMaps oldId:newId
      */
-    @Test
+//    @Test
     public void updateLinkId() {
         Network oldNetwork = NetworkUtils.readNetwork("F:/matsimxml/gz230427_fullPath_4526_h9.xml");
         Network newNetwork = NetworkUtils.readNetwork("F:/matsimxml/gzInpoly240126.xml");
@@ -242,7 +285,7 @@ public class Compare2Osm2MatsimNetwork {
         log.info("修改数据完成 ... ");
     }
 
-    @Test
+//    @Test
     public void updateLinkIdManual() throws FileNotFoundException {
 //        Network oldNetwork = NetworkUtils.readNetwork("F:/matsimxml/gz230427_fullPath_4526_h9.xml");
         Network newNetwork = NetworkUtils.readNetwork("F:/matsimxml/gzInpoly240126.xml");

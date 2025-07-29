@@ -12,7 +12,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 
 @RestController
 @RequestMapping("/mappicture")
@@ -35,6 +34,7 @@ public class MapPictureController {
         HashMap<String, Object> map = new HashMap<>();
         if (param != null) {
             map.put("name", param.name);
+            map.put("type", param.type);
             map.put("beginTime", param.beginTime);
             map.put("endTime", param.endTime);
         }
@@ -67,8 +67,19 @@ public class MapPictureController {
      * 上传zip
      */
     @PostMapping("/uploadzip")
-    public Result uploadzip(MultipartFile file) {
-        return Result.failOrOk(service.unzip(file));
+    public Result uploadzip(UploadBo bo) {
+        return Result.failOrOk(service.unzip(bo.file, bo.projectName, bo.type));
+//        return Result.ok();
+    }
+
+    @PostMapping("/uploadimg")
+    public Result uploadimg(UploadBo bo) {
+        return Result.ok(service.uploadimg(bo.file, bo.path));
+    }
+
+    @PostMapping("/rename")
+    public Result rename(@RequestBody QueryParam param) {
+        return Result.ok(service.rename(param.path, param.name));
     }
 
     /**
@@ -77,6 +88,14 @@ public class MapPictureController {
     @DeleteMapping("/delete/{ids}")
     public Result delete(@PathVariable String ids) {
         return Result.failOrOk(service.delete(ids));
+    }
+
+    @Data
+    private static class UploadBo {
+        private MultipartFile file;
+        private String projectName;
+        private String type;
+        private String path;
     }
 
     @Data
@@ -93,6 +112,8 @@ public class MapPictureController {
         private String path;
 
         private String name;
+        private String type;
+
         @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
         private Date beginTime;
         @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")

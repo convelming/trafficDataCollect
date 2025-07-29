@@ -71,6 +71,12 @@ public class MapPicture implements ProxyEntityAvailable<MapPicture, MapPicturePr
     @JsonIgnore
     private String ipAddr;
 
+
+    /**
+     * 项目类型
+     */
+    private String type;
+
     /**
      * 版本
      */

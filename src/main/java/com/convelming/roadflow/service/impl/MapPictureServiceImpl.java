@@ -13,6 +13,7 @@ import com.convelming.roadflow.util.GeomUtil;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.core.utils.geometry.CoordinateTransformation;
 import org.matsim.core.utils.geometry.transformations.TransformationFactory;
@@ -24,6 +25,10 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -82,6 +87,7 @@ public class MapPictureServiceImpl implements MapPictureService {
                 }
             }
         }
+
         return dirmap.values();
     }
 
@@ -101,7 +107,9 @@ public class MapPictureServiceImpl implements MapPictureService {
     }
 
     @Override
-    public boolean unzip(MultipartFile file) {
+    public boolean unzip(MultipartFile file, String projectName, String type) {
+
+
         String name = file.getOriginalFilename();
         String date = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE) + "/" + System.currentTimeMillis(); // 日期/当前毫秒数
         String dir = Constant.PICTURE_PATH + date + "/";
@@ -113,7 +121,7 @@ public class MapPictureServiceImpl implements MapPictureService {
             log.error("保存文件出错", e);
             throw new RuntimeException("上传文件出错：" + e.getMessage());
         }
-        String output = zip.substring(0, zip.lastIndexOf("."));
+        String output = zip.substring(0, zip.lastIndexOf("/")) + "/" + (StringUtils.isNotBlank(projectName) ? projectName : name.substring(0, name.lastIndexOf(".")));
         try {
             FileUtil.unzip(dir + name, output);
         } catch (IOException e) {
@@ -158,6 +166,7 @@ public class MapPictureServiceImpl implements MapPictureService {
             mp.setX(coord3857.getX());
             mp.setY(coord3857.getY());
             mp.setGeom(GeomUtil.genPoint(mp.getX(), mp.getY(), 3857));
+            mp.setType(type);
             list.add(mp);
         }
         if (list.isEmpty()) {
@@ -165,6 +174,88 @@ public class MapPictureServiceImpl implements MapPictureService {
         }
         return mapper.batchInsert(list) > 0;
 //        return false;
+    }
+
+    @Override
+    public boolean uploadimg(MultipartFile file, String path) {
+        String pf = Constant.DATA_PATH + path + "/" + file.getOriginalFilename();
+        if (!FileUtil.isDir(Constant.DATA_PATH + path)) {
+            throw new RuntimeException("路径不存在");
+        }
+        try {
+            Files.copy(file.getInputStream(), Paths.get(pf), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+            throw new RuntimeException("上传文件出错：" + e.getMessage());
+        }
+        PictureTag ptag = PictureTag.readPicture(new File(pf));
+        if (ptag == null) {
+            throw new RuntimeException("获取图片经纬度出错，请确认图片包含经纬度信息");
+        }
+
+        MapPicture mp = new MapPicture();
+        String mpPath = pf.replaceAll("\\\\", "/").replaceAll(Constant.DATA_PATH, "");
+        if (ptag.getFileName().toLowerCase().endsWith("heic")) {
+            try {
+                String jpgpath = mpPath + ".JPEG";
+                BufferedImage image = ImageIO.read(new File(mpPath));
+                ImageIO.write(image, "JPEG", new File(jpgpath));
+                mp.setPath(jpgpath);
+            } catch (Exception e) {
+                mp.setPath(mpPath);
+                log.error("HEIC转JPEG出错", e);
+            }
+        } else {
+            mp.setPath(mpPath);
+        }
+        mp.setLat(ptag.getLat());
+        mp.setLon(ptag.getLon());
+        Coord coord3857 = ct_4326to3857.transform(new Coord(mp.getLon(), mp.getLat()));
+        mp.setDataTime(ptag.getDateTime());
+        mp.setName(ptag.getFileName());
+        mp.setIpAddr(request.getRemoteAddr());
+        mp.setX(coord3857.getX());
+        mp.setY(coord3857.getY());
+        mp.setGeom(GeomUtil.genPoint(mp.getX(), mp.getY(), 3857));
+        mp.setType(mapper.queryTypeByPath(path));
+        return mapper.batchInsert(List.of(mp)) > 0;
+    }
+
+    @Override
+    public boolean rename(String path, String name) {
+        if (!FileUtil.isDir(Constant.DATA_PATH + path)) {
+            throw new RuntimeException("路径不存在");
+        }
+        Path oldPath = Paths.get(Constant.DATA_PATH + path);
+        Path newPath = Paths.get(oldPath.getParent().toString() + File.separator + name);
+        try {
+            Files.move(oldPath, newPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+            return false;
+        }
+        // 修改数据库
+        Collection<MapPicture> list = mapper.list(new HashMap<>() {{
+            put("path", path);
+        }});
+        list.forEach(mapPicture -> {
+            String temp = mapPicture.getPath();
+            temp = temp.replace(path, path.substring(0, path.lastIndexOf("/")) + "/" + name);
+            mapPicture.setPath(temp);
+        });
+        long row = 0;
+        try {
+            row = mapper.batchUpdate(list);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            log.warn("修改数据库失败，尝试回滚文件");
+            try {
+                Files.move(newPath, oldPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+        return row > 0;
     }
 
     @Override

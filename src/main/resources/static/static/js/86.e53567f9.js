@@ -1,0 +1,1 @@
+"use strict";(self["webpackChunkroad_traffic_survey"]=self["webpackChunkroad_traffic_survey"]||[]).push([[86],{2086:function(e,r,u){u.r(r),u.d(r,{default:function(){return t}});var f=u(5871),n=u(9127);class t extends n.A{decodeBlock(e){return(0,f.UD)(new Uint8Array(e)).buffer}}}}]);

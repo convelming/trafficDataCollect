@@ -15,6 +15,11 @@ public class FileUtil {
 
     public static final String[] ZIP_SUFFIX = {"zip", "rar"};
 
+    public static boolean isDir(String path) {
+        File file = new File(path);
+        return file.exists() && file.isDirectory();
+    }
+
     public static void unpack(String file, String output) {
         try {
             if (file.endsWith(".zip")) {

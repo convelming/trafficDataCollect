@@ -4,6 +4,7 @@ import com.convelming.roadflow.common.Constant;
 import com.convelming.roadflow.common.Page;
 import com.convelming.roadflow.model.Crossroads;
 import com.convelming.roadflow.model.MapPicture;
+import com.convelming.roadflow.model.proxy.MapPictureProxy;
 import com.convelming.roadflow.util.IdUtil;
 import com.easy.query.api.proxy.client.EasyEntityQuery;
 import jakarta.annotation.Resource;
@@ -25,6 +26,16 @@ public class MapPictureMapper {
     @Resource
     private EasyEntityQuery eeq;
 
+    public String queryTypeByPath(String path) {
+        MapPicture mp = eeq.queryable(MapPicture.class).where(t -> {
+            t.path().likeMatchLeft(path);
+        }).limit(1).singleOrNull();
+        if (mp != null) {
+            return mp.getType();
+        }
+        return null;
+    }
+
     public Page<MapPicture> page(Page<MapPicture> page) {
         List<MapPicture> data = eeq.queryable(MapPicture.class)
                 .orderBy(t -> t.id().desc()).limit(page.getOffset(), page.getPageSize()).toList();
@@ -43,7 +54,9 @@ public class MapPictureMapper {
     public Collection<MapPicture> list(Map<String, Object> param) {
         Collection<MapPicture> list = eeq.queryable(MapPicture.class)
                 .where(t -> {
-                    t.path().like(param.get("name") != null && !"".equals(param.get("name")), param.get("name").toString());
+                    t.path().like(param.get("name") != null && !"".equals(param.get("name")), (String) param.get("name"));
+                    t.path().likeMatchLeft(param.get("path") != null && !"".equals(param.get("path")), (String) param.get("path"));
+                    t.type().like(param.get("type") != null && !"".equals(param.get("type")), (String) param.get("type"));
                     if (param.get("beginTime") != null) {
                         t.dataTime().gt((Date) param.get("beginTime"));
                     }
@@ -63,6 +76,10 @@ public class MapPictureMapper {
     public long batchInsert(List<MapPicture> list) {
         list.forEach(mp -> mp.setId(idUtil.getId(TABLE_NAME)));
         return eeq.insertable(list).batch().executeRows();
+    }
+
+    public long batchUpdate(Collection<MapPicture> list) {
+        return eeq.updatable(list).setColumns(MapPictureProxy::path).whereColumns(MapPictureProxy::id).batch().executeRows();
     }
 
     public long batchDeleteById(Collection<Long> ids) {
