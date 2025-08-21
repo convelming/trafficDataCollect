@@ -16,6 +16,8 @@ public interface LinkStatsService {
 
     boolean delete(Long id);
 
+    boolean reinstated(LinkStats stats, List<String> linkIds);
+
     List<LinkStats> queryAllMaker(Date beginTime, Date endTime, String type);
 
     Page<LinkStats> queryByArea(double[][] xyarr, Boolean all, Page<LinkStats> page);

@@ -4,7 +4,6 @@ import cn.afterturn.easypoi.excel.annotation.Excel;
 import cn.afterturn.easypoi.excel.annotation.ExcelTarget;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.convelming.roadflow.model.proxy.LinkStatsProxy;
-import com.convelming.roadflow.util.GeomUtil;
 import com.easy.query.core.annotation.*;
 import com.easy.query.core.basic.extension.logicdel.LogicDeleteStrategyEnum;
 import com.easy.query.core.proxy.ProxyEntityAvailable;
@@ -13,7 +12,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import net.postgis.jdbc.PGgeometry;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -47,7 +45,7 @@ public class LinkStats implements ProxyEntityAvailable<LinkStats, LinkStatsProxy
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date endTime;
 
-    @Excel(name = "调查方式", width = 30, replace = {"人工调查_1", "视频识别_2", "高德爬取_3", "其他_0"})
+    @Excel(name = "调查方式", width = 30, replace = {"人工调查_1", "视频识别_2", "高德爬取_3", "交评核准_4", "其他_0"})
     private String type;
 
     @Excel(name = "pcu/h", width = 30, isImportField = "wayId")
@@ -105,6 +103,27 @@ public class LinkStats implements ProxyEntityAvailable<LinkStats, LinkStatsProxy
      * 视频地址
      */
     private String video;
+
+    /**
+     * 通行能力
+     */
+    private Double capacity;
+
+    /**
+     * 饱和度
+     */
+    private Double saturation;
+
+    /**
+     * 服务水平
+     */
+    private String service;
+
+    /**
+     * 是否真实数据
+     */
+    @ColumnIgnore
+    private Boolean real = true;
 
     /**
      * 备注

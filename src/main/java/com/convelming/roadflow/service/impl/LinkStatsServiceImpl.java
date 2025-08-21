@@ -12,6 +12,7 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -21,7 +22,8 @@ import java.util.List;
 
 @Slf4j
 @Service
-public class LinkStatsServiceImpl implements LinkStatsService {
+public class
+LinkStatsServiceImpl implements LinkStatsService {
 
     @Resource
     private LinkStatsMapper linkStatsMapper;
@@ -44,36 +46,19 @@ public class LinkStatsServiceImpl implements LinkStatsService {
         double[] xy = GeomUtil.point2xy(link.getCenter());
         stats.setX(xy[0]);
         stats.setY(xy[1]);
-        // 计算 pcu/h
-        BigDecimal pcu = BigDecimal.ZERO;
-        pcu = pcu.add(BigDecimal.valueOf(stats.getScar())).add(BigDecimal.valueOf(stats.getStruck()));
-        pcu = pcu.add(BigDecimal.valueOf(stats.getMcar()).multiply(M)).add(BigDecimal.valueOf(stats.getMtruck()).multiply(M));
-        pcu = pcu.add(BigDecimal.valueOf(stats.getLcar()).multiply(L)).add(BigDecimal.valueOf(stats.getLtruck()).multiply(L));
-        pcu = pcu.divide(BigDecimal.valueOf(stats.getEndTime().getTime() - stats.getBeginTime().getTime()), 64, RoundingMode.UP).multiply(HOURS);
+        // 当没有填写pcuh并且车辆数量有填写时计算 pcu/h
+        if ((stats.getPcuH() == null) && (stats.getScar() != null || stats.getMcar() != null || stats.getLcar() != null)) {
+            BigDecimal pcu = BigDecimal.ZERO;
+            pcu = pcu.add(BigDecimal.valueOf(stats.getScar())).add(BigDecimal.valueOf(stats.getStruck()));
+            pcu = pcu.add(BigDecimal.valueOf(stats.getMcar()).multiply(M)).add(BigDecimal.valueOf(stats.getMtruck()).multiply(M));
+            pcu = pcu.add(BigDecimal.valueOf(stats.getLcar()).multiply(L)).add(BigDecimal.valueOf(stats.getLtruck()).multiply(L));
+            pcu = pcu.divide(BigDecimal.valueOf(stats.getEndTime().getTime() - stats.getBeginTime().getTime()), 64, RoundingMode.UP).multiply(HOURS);
+            stats.setPcuH(pcu.setScale(2, RoundingMode.DOWN).doubleValue());
+        }
 
-        stats.setPcuH(pcu.setScale(2, RoundingMode.DOWN).doubleValue());
-
-//        linkStatsMapper.insert(stats);
-
-//        if (stats.getIsTwoWay()) {
-//            try {
-//                MatsimLink reverse = matsimLinkMapper.queryReverseLink(stats.getLinkId());
-//                // 对面路也添加一条
-//                LinkStats twoWay = new LinkStats();
-//                BeanUtils.copyProperties(link, twoWay);
-//                twoWay.setLinkId(reverse.getId());
-//                twoWay.setScar(0.);
-//                twoWay.setStruck(0.);
-//                twoWay.setMcar(0.);
-//                twoWay.setMtruck(0.);
-//                twoWay.setLcar(0.);
-//                twoWay.setLtruck(0.);
-//                twoWay.setPcuH(0.);
-////                linkStatsMapper.insert(twoWay);
-//            } catch (Exception e) {
-//                log.warn("找不到反向道路。");
-//            }
-//        }
+        // todo 根据pcuh计算饱和度、服务等级
+        stats.setService("");
+        stats.setSaturation(0.);
 
         return linkStatsMapper.insert(stats);
     }
@@ -84,14 +69,19 @@ public class LinkStatsServiceImpl implements LinkStatsService {
         if (resource == null) {
             throw new RuntimeException("找不到要修改的对象");
         }
-        // 计算 pcu/h
-        BigDecimal pcu = BigDecimal.ZERO;
-        pcu = pcu.add(BigDecimal.valueOf(stats.getScar())).add(BigDecimal.valueOf(stats.getStruck()));
-        pcu = pcu.add(BigDecimal.valueOf(stats.getMcar()).multiply(M)).add(BigDecimal.valueOf(stats.getMtruck()).multiply(M));
-        pcu = pcu.add(BigDecimal.valueOf(stats.getLcar()).multiply(L)).add(BigDecimal.valueOf(stats.getLtruck()).multiply(L));
-        pcu = pcu.divide(BigDecimal.valueOf(stats.getEndTime().getTime() - stats.getBeginTime().getTime()), 64, RoundingMode.UP).multiply(HOURS);
+        // 当没有填写pcuh并且车辆数量有填写时计算 pcu/h
+        if ((stats.getPcuH() == null) && (stats.getScar() != null || stats.getMcar() != null || stats.getLcar() != null)) {
+            BigDecimal pcu = BigDecimal.ZERO;
+            pcu = pcu.add(BigDecimal.valueOf(stats.getScar())).add(BigDecimal.valueOf(stats.getStruck()));
+            pcu = pcu.add(BigDecimal.valueOf(stats.getMcar()).multiply(M)).add(BigDecimal.valueOf(stats.getMtruck()).multiply(M));
+            pcu = pcu.add(BigDecimal.valueOf(stats.getLcar()).multiply(L)).add(BigDecimal.valueOf(stats.getLtruck()).multiply(L));
+            pcu = pcu.divide(BigDecimal.valueOf(stats.getEndTime().getTime() - stats.getBeginTime().getTime()), 64, RoundingMode.UP).multiply(HOURS);
+            stats.setPcuH(pcu.setScale(2, RoundingMode.DOWN).doubleValue());
+        }
 
-        stats.setPcuH(pcu.setScale(2, RoundingMode.DOWN).doubleValue());
+        // todo 根据pcuh计算饱和度、服务等级
+        stats.setService("");
+        stats.setSaturation(0.);
 
         MatsimLink link = matsimLinkMapper.selectById(stats.getLinkId());
         stats.setWayId(link.getOrigid());
@@ -100,25 +90,6 @@ public class LinkStatsServiceImpl implements LinkStatsService {
         stats.setX(xy[0]);
         stats.setY(xy[1]);
 
-//        if (stats.getIsTwoWay()) {
-//
-//            MatsimLink reverse = matsimLinkMapper.queryReverseLink(stats.getLinkId());
-//            if (reverse != null) {
-//                // 对面路也添加一条
-//                LinkStats twoWay = new LinkStats();
-//                BeanUtils.copyProperties(link, twoWay);
-//                twoWay.setLinkId(reverse.getId());
-//                twoWay.setScar(0.);
-//                twoWay.setStruck(0.);
-//                twoWay.setMcar(0.);
-//                twoWay.setMtruck(0.);
-//                twoWay.setLcar(0.);
-//                twoWay.setLtruck(0.);
-//                twoWay.setPcuH(0.);
-//                linkStatsMapper.insert(twoWay);
-//            }
-//        }
-
         BeanUtils.copyProperties(stats, resource);
         return linkStatsMapper.update(resource);
     }
@@ -126,6 +97,31 @@ public class LinkStatsServiceImpl implements LinkStatsService {
     @Override
     public boolean delete(Long id) {
         return linkStatsMapper.delete(id);
+    }
+
+    @Override
+    @Transactional
+    public boolean reinstated(LinkStats stats, List<String> linkIds) {
+
+        boolean flag = true;
+        if (stats.getId() == null) {
+            flag = this.insert(stats);
+        }
+
+        for (String linkId : linkIds) {
+            LinkStats temp = new LinkStats();
+            BeanUtils.copyProperties(stats, temp);
+            temp.setId(null);
+            temp.setLinkId(linkId);
+            temp.setType("4");
+            temp.setVersion(1);
+            flag = insert(temp);
+            if (!flag) {
+                throw new RuntimeException("");
+            }
+        }
+
+        return flag;
     }
 
     @Override

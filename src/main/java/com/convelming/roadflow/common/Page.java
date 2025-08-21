@@ -8,11 +8,8 @@ import lombok.NoArgsConstructor;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class Page<T> {
 
     private List<T> data;
@@ -27,6 +24,12 @@ public class Page<T> {
     private Map<String, Object> param = new HashMap<>();
 
     public Page(Integer pageNum, Integer pageSize) {
+        if (pageNum == null || pageNum < 1) {
+            pageNum = 1;
+        }
+        if (pageSize == null || pageSize < 1) {
+            pageSize = 10;
+        }
         this.pageNum = pageNum;
         this.pageSize = pageSize;
     }
@@ -48,8 +51,8 @@ public class Page<T> {
         return (pageNum - 1) * pageSize;
     }
 
-    public void param(Object[]... params){
-        for(Object[] param  : params){
+    public void param(Object[]... params) {
+        for (Object[] param : params) {
             this.param.put(String.valueOf(param[0]), param[1]);
         }
     }

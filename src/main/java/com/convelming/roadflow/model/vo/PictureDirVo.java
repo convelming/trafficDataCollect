@@ -12,6 +12,7 @@ import java.util.List;
 public class PictureDirVo {
     private String name;
     private String path;
+    private String type;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
     private List<PictureDirVo> subdir = new ArrayList<>();

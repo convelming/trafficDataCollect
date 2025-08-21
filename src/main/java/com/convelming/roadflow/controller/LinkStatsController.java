@@ -128,6 +128,19 @@ public class LinkStatsController {
     }
 
     /**
+     * 流量复用
+     *
+     * @param stats   路段流量
+     * @param linkIds 复用到的linkId
+     * @return
+     */
+    @PostMapping("/reinstated")
+    public Result reinstated(@RequestBody ReinstatedParam param, HttpServletRequest request) {
+//        stats.setIpAddr(request.getRemoteAddr());
+        return Result.ok(linkStatsService.reinstated(param.stats, param.linkIds));
+    }
+
+    /**
      * 根据linkId查询流量
      *
      * @param linkId linkId
@@ -242,6 +255,14 @@ public class LinkStatsController {
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
         private Date endTime;
 
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ReinstatedParam {
+        LinkStats stats;
+        List<String> linkIds;
     }
 
 

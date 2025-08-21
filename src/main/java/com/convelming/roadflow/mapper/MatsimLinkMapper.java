@@ -93,6 +93,16 @@ public class MatsimLinkMapper {
 //        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(MatsimLink.class), ggeometry);
     }
 
+    public List<MatsimLink> selectContains(PGgeometry ggeometry) {
+        if (ggeometry == null) {
+            return new ArrayList<>();
+        }
+        String sql = "select * from " + TABLE_NAME + " where st_contains(?, geom)";
+        return eeq.sqlQuery(sql, MatsimLink.class, List.of(ggeometry));
+//        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(MatsimLink.class), ggeometry);
+    }
+
+
     /**
      * 根据origid查询
      *

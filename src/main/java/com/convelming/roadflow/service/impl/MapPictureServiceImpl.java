@@ -71,6 +71,7 @@ public class MapPictureServiceImpl implements MapPictureService {
             if (dir == null) {
                 dir = new PictureDirVo();
                 dir.setName(name);
+                dir.setType(mp.getType());
                 dir.setPath(parentPath.replace("\\", "/").replace(Constant.DATA_PATH, ""));
                 dir.setCreateTime(mp.getDataTime());
                 dirmap.put(dir.getPath(), dir);
@@ -304,6 +305,7 @@ public class MapPictureServiceImpl implements MapPictureService {
             dir.setPath(root.getPath() + name);
             dir.setName(name.replace("/", ""));
             dir.setCreateTime(mp.getDataTime());
+            dir.setType(mp.getType());
             tree(dir, subpath, mp);
         } else {
             root.getPictures().add(mp);
