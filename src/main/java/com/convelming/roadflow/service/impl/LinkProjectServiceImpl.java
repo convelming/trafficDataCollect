@@ -1,17 +1,13 @@
 package com.convelming.roadflow.service.impl;
 
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
 import com.convelming.roadflow.common.Constant;
 import com.convelming.roadflow.common.Page;
 import com.convelming.roadflow.controller.LinkProjectController;
-import com.convelming.roadflow.mapper.LinkProjectMapper;
-import com.convelming.roadflow.mapper.LinkProjectStatsMapper;
-import com.convelming.roadflow.mapper.LinkStatsMapper;
-import com.convelming.roadflow.mapper.MatsimLinkMapper;
-import com.convelming.roadflow.model.LinkProject;
-import com.convelming.roadflow.model.LinkProjectStats;
-import com.convelming.roadflow.model.LinkStats;
-import com.convelming.roadflow.model.MatsimLink;
+import com.convelming.roadflow.mapper.*;
+import com.convelming.roadflow.model.*;
+import com.convelming.roadflow.model.vo.LinkStatsChartVo;
 import com.convelming.roadflow.service.LinkProjectService;
 import com.convelming.roadflow.util.GeomUtil;
 import jakarta.annotation.Resource;
@@ -33,6 +29,7 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -48,12 +45,18 @@ public class LinkProjectServiceImpl implements LinkProjectService {
     @Resource
     LinkProjectStatsMapper linkProjectStatsMapper;
     @Resource
+    MatsimLinkServiceImpl matsimLinkService;
+    @Resource
+    OSMWayMapper osmWayMapper;
+    @Resource
     HttpServletRequest request;
 
     @Resource
     private LinkStatsMapper linkStatsMapper;
 
     final GeometryFactory geometryFactory = new GeometryFactory();
+    @Resource
+    private LinkProjectMapper linkProjectMapper;
 
     @Override
     public Page<LinkProject> list(Page<LinkProject> page) {
@@ -105,10 +108,46 @@ public class LinkProjectServiceImpl implements LinkProjectService {
     }
 
     @Override
-    public boolean update(LinkProject linkProject) {
+    public LinkProject update(LinkProject linkProject, MultipartFile file, double[][] xyarr) {
+        if (file != null) {
+            String name = file.getOriginalFilename();
+            String date = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE) + "/" + System.currentTimeMillis(); // 日期/当前毫秒数
+            String dir = Constant.SHP_PATH + date + "/";
+            new File(dir).mkdirs(); // 创建目录
+            String shp = dir + name;
+            try {
+                FileCopyUtils.copy(file.getBytes(), new File(shp));
+                // 处理shp
+                List<String> geomStr = new ArrayList<>();
+                FileDataStore dataStore = new ShapefileDataStoreFactory().createDataStore(Path.of(shp).toUri().toURL());
+                String typeName = dataStore.getTypeNames()[0];
+                // SimpleFeatureType schema = dataStore.getSchema(typeName);
+                SimpleFeatureCollection featureCollection = dataStore.getFeatureSource(typeName).getFeatures();
+                try (org.geotools.data.simple.SimpleFeatureIterator features = featureCollection.features()) {
+                    while (features.hasNext()) {
+                        SimpleFeature feature = features.next();
+                        Geometry geometry = (Geometry) feature.getDefaultGeometry();
+                        // 处理每个feature的属性和几何形状
+                        String multilinestring = geometry.toString();
+                        geomStr.add(multilinestring);
+                    }
+                }
 
-
-        return mapper.update(linkProject);
+                linkProject.setGeomFile("/" + shp.replaceAll("\\\\", "/").replaceAll(Constant.DATA_PATH, ""));
+                linkProject.setGeomStr(JSON.toJSONString(geomStr));
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+                throw new RuntimeException("上传文件出错：" + e.getMessage());
+            }
+        } else {
+            // MULTILINESTRING ((113.4492334 23.1814872, 113.44906 23.18166))
+            Polygon geometry = createPolygon(xyarr);
+            linkProject.setGeomStr(JSON.toJSONString(List.of(geometry.toString())));
+        }
+        if (!mapper.update(linkProject)) {
+            throw new RuntimeException("修改失败");
+        }
+        return linkProject;
     }
 
     @Override
@@ -140,50 +179,69 @@ public class LinkProjectServiceImpl implements LinkProjectService {
     }
 
     @Override
-    public List<LinkProjectStats> querySample(Long[] projectIds, String[] linkIds) {
+    public List<List<LinkStatsChartVo>> querySample(Long areaProjectId, Long[] projectIds) {
         if (projectIds == null || projectIds.length == 0) {
             projectIds = new Long[]{0L}; // 默认项目
         }
-        List<LinkProjectStats> list = linkProjectStatsMapper.query(projectIds, linkIds);
 
+        LinkProject areaProject = linkProjectMapper.selectById(areaProjectId);
+        JSONArray array = JSONArray.parseArray(areaProject.getGeomStr());
+
+        List<OSMWay> osmWays = osmWayMapper.queryByPolygon(GeomUtil.genPolygon("SRID=#{srid}; " + array.get(0), GeomUtil.MKT));
+        List<MatsimLink> linkList = matsimLinkMapper.queryByOrigids(osmWays.stream().map(OSMWay::getId).toList());
+        Map<String, List<MatsimLink>> osmLinkMap = linkList.stream().collect(Collectors.groupingBy(MatsimLink::getOrigid));
+
+        List<LinkProjectStats> list = linkProjectStatsMapper.query(projectIds);
         List<LinkStats> linkStats = linkStatsMapper.queryByProjectIds(projectIds);
-        // 计算平均值
-
-        linkStats.forEach(ls -> {
-            list.add(new LinkProjectStats(null, ls.getProjectId(), ls.getLinkId(), ls.getSaturation(), ls.getService(), "", null, null, ls));
+        linkStats.forEach(linkStat -> {
+            list.add(new LinkProjectStats(linkStat.getProjectId(), linkStat.getLinkId(), linkStat.getSaturation(), linkStat.getService(), linkStat));
+        });
+        Map<String, MatsimLink> linkMap = matsimLinkMapper.queryByIds(list.stream().map(LinkProjectStats::getLinkId).toList()).stream().collect(Collectors.toMap(MatsimLink::getId, x -> x, (x1, x2) -> x1));
+        // 填充 saturation service
+        Map<String, List<LinkProjectStats>> statsMap = list.stream().collect(Collectors.groupingBy(LinkProjectStats::getLinkId));
+        Map<String, LinkProjectStats> map = new HashMap<>();
+        statsMap.forEach((k, v) -> {
+            LinkProjectStats lps = new LinkProjectStats();
+            double saturation = 0.;
+            for (LinkProjectStats t : v) {
+                MatsimLink link = linkMap.get(t.getLinkId());
+                if (t.getSaturation() == null) {
+                    LinkStatsServiceImpl.calcSetSaturation(t.getLinkStats(), link == null ? matsimLinkMapper.selectById(t.getLinkId()) : link);
+                    t.setSaturation(t.getLinkStats().getSaturation());
+                }
+                saturation += t.getSaturation();
+                lps.setStyle(t.getStyle());
+            }
+            lps.setSaturation(saturation);
+            lps.setService(calcService(saturation));
+            lps.setLinkId(k);
+            map.put(k, lps);
         });
 
-        if (!list.isEmpty()) {
-            List<MatsimLink> links = matsimLinkMapper.queryByIds(list.stream().map(LinkProjectStats::getLinkId).toList());
-            Map<String, MatsimLink> map = links.stream().collect(Collectors.toMap(MatsimLink::getId, x -> x, (x1, x2) -> x2));
-            list.forEach(lp -> {
-                lp.setLink(map.get(lp.getLinkId()));
-            });
+        // 分组
+        List<List<MatsimLink>> osmLinks = new ArrayList<>();
+        for (OSMWay osmway : osmWays) {
+            osmLinks.addAll(matsimLinkService.buildTwoWay(osmLinkMap.get(osmway.getId()), osmway));
         }
 
-        // 计算平均值
-        List<LinkProjectStats> result = new ArrayList<>();
-        Map<String, List<LinkProjectStats>> map = list.stream().collect(Collectors.groupingBy(LinkProjectStats::getLinkId));
-        map.forEach((k, v) -> {
-            LinkProjectStats lps = new LinkProjectStats();
-            MatsimLink link = null;
-            double saturation = 0.;
-            for (LinkProjectStats l : v) {
-                link = l.getLink();
-                if (l.getSaturation() == null) {
-                    LinkStatsServiceImpl.calcSetSaturation(l.getLinkStats(), l.getLink());
-                    l.setSaturation(l.getLinkStats().getSaturation());
+        List<List<LinkStatsChartVo>> result = new ArrayList<>();
+        for (List<MatsimLink> olinks : osmLinks) {
+            List<LinkStatsChartVo> voList = new ArrayList<>();
+            for (MatsimLink link : olinks) {
+                LinkProjectStats lps = map.get(link.getId());
+                LinkStatsChartVo vo = new LinkStatsChartVo();
+                vo.setOrigid(link.getOrigid());
+                vo.setLinkId(link.getId());
+                vo.setToxy(link.getToxy());
+                vo.setFromxy(link.getFromxy());
+                if (lps != null) {
+                    vo.setSaturation(lps.getSaturation());
+                    vo.setService(lps.getService());
                 }
-                saturation += l.getSaturation();
-                lps.setStyle(l.getStyle());
+                voList.add(vo);
             }
-            lps.setSaturation(saturation / v.size());
-            lps.setService(calcService(lps.getSaturation()));
-            lps.setLink(link);
-            lps.setLinkId(k);
-            result.add(lps);
-        });
-
+            result.add(voList);
+        }
         return result;
     }
 

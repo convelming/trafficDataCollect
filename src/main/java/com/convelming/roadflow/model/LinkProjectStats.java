@@ -42,4 +42,11 @@ public class LinkProjectStats implements ProxyEntityAvailable<LinkProjectStats, 
     @ColumnIgnore
     private LinkStats linkStats;
 
+    public LinkProjectStats(Long projectId, String linkId, Double saturation, String service, LinkStats linkStats) {
+        this.projectId = projectId;
+        this.linkId = linkId;
+        this.saturation = saturation;
+        this.service = service;
+        this.linkStats = linkStats;
+    }
 }

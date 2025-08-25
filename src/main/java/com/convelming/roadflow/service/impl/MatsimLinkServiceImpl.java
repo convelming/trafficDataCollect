@@ -29,55 +29,8 @@ public class MatsimLinkServiceImpl implements MatsimLinkService {
 
     public List<List<MatsimLink>> queryByOrigid(String origid) {
         List<MatsimLink> org = matsimLinkMapper.queryByOrigid(origid); // 需要分成 to , from 两组 , 按顺序连接
-
         OSMWay osmWay = osmWayMapper.selectById(origid);
-        String startNodeId = JSONArray.parseArray(osmWay.getNodes()).getString(0);
-        if (osmWay.getOneway()) { // 单行道
-            List<MatsimLink> links = buildOneWay(org);
-            buildPath(links);
-            return List.of(links);
-        } else {
-
-            // to 方向 路径
-            List<MatsimLink> to = new ArrayList<>();
-            List<MatsimLink> from = new ArrayList<>();
-
-            MatsimLink start = getStartLink(org, startNodeId);
-            if (Objects.equals(start.getFromNode(), startNodeId)) {
-                to.add(new MatsimLink(start));
-                org.remove(start);
-                for (int i = 0; i < org.size(); i++) {
-                    MatsimLink link = org.get(i);
-                    if (Objects.equals(start.getToNode(), link.getFromNode()) &&
-                            !Objects.equals(start.getFromNode(), link.getToNode())) {
-                        to.add(new MatsimLink(link));
-                        start = link;
-                        org.remove(link);
-                        i = -1;
-                    }
-                }
-                from = buildOneWay(org);
-            } else { // 终点作为起点了
-                to.add(new MatsimLink(start));
-                org.remove(start);
-                for (int i = 0; i < org.size(); i++) {
-                    MatsimLink link = org.get(i);
-                    if (Objects.equals(start.getToNode(), link.getFromNode()) &&
-                            !Objects.equals(start.getFromNode(), link.getToNode())) {
-                        to.add(new MatsimLink(link));
-                        start = link;
-                        org.remove(link);
-                        i = -1;
-                    }
-                }
-                to = buildOneWay(org);
-            }
-
-            buildPath(from);
-            buildPath(to);
-
-            return List.of(to, from);
-        }
+        return buildTwoWay(org, osmWay);
     }
 
     @Override
@@ -93,7 +46,7 @@ public class MatsimLinkServiceImpl implements MatsimLinkService {
     @Override
     public MatsimLink queryReverseLink(String id) {
         MatsimLink link = matsimLinkMapper.queryReverseLink(id);
-        if(link == null){
+        if (link == null) {
             throw new RuntimeException("单行道没有反向道路");
         }
         MatsimNode to = matsimNodeMapper.selectById(link.getToNode());
@@ -116,6 +69,7 @@ public class MatsimLinkServiceImpl implements MatsimLinkService {
 
     /**
      * 构建单行道
+     *
      * @param links 路段
      * @return
      */
@@ -171,12 +125,62 @@ public class MatsimLinkServiceImpl implements MatsimLinkService {
     }
 
     private MatsimLink getStartLink(List<MatsimLink> links, String startNodeId) {
-        for(MatsimLink link : links){
-            if(link.getFromNode().equals(startNodeId)){
+        for (MatsimLink link : links) {
+            if (link.getFromNode().equals(startNodeId)) {
                 return link;
             }
         }
         throw new RuntimeException("OSM点与Matsim点不匹配");
+    }
+
+    public List<List<MatsimLink>> buildTwoWay(List<MatsimLink> org, OSMWay osmWay) {
+        String startNodeId = JSONArray.parseArray(osmWay.getNodes()).getString(0);
+        if (osmWay.getOneway()) { // 单行道
+            List<MatsimLink> links = buildOneWay(org);
+            buildPath(links);
+            return List.of(links);
+        } else {
+
+            // to 方向 路径
+            List<MatsimLink> to = new ArrayList<>();
+            List<MatsimLink> from = new ArrayList<>();
+
+            MatsimLink start = getStartLink(org, startNodeId);
+            if (Objects.equals(start.getFromNode(), startNodeId)) {
+                to.add(new MatsimLink(start));
+                org.remove(start);
+                for (int i = 0; i < org.size(); i++) {
+                    MatsimLink link = org.get(i);
+                    if (Objects.equals(start.getToNode(), link.getFromNode()) &&
+                            !Objects.equals(start.getFromNode(), link.getToNode())) {
+                        to.add(new MatsimLink(link));
+                        start = link;
+                        org.remove(link);
+                        i = -1;
+                    }
+                }
+                from = buildOneWay(org);
+            } else { // 终点作为起点了
+                to.add(new MatsimLink(start));
+                org.remove(start);
+                for (int i = 0; i < org.size(); i++) {
+                    MatsimLink link = org.get(i);
+                    if (Objects.equals(start.getToNode(), link.getFromNode()) &&
+                            !Objects.equals(start.getFromNode(), link.getToNode())) {
+                        to.add(new MatsimLink(link));
+                        start = link;
+                        org.remove(link);
+                        i = -1;
+                    }
+                }
+                to = buildOneWay(org);
+            }
+
+            buildPath(from);
+            buildPath(to);
+
+            return List.of(to, from);
+        }
     }
 
 

@@ -51,5 +51,8 @@ public class LinkProjectMapper {
         return page.build(data, total);
     }
 
+    public LinkProject selectById(Long id) {
+        return eeq.queryable(LinkProject.class).where(t -> t.id().eq(id)).singleOrNull();
+    }
 
 }

@@ -37,11 +37,12 @@ public class LinkProjectController {
         try {
             if (bo.xyarr != null) {
                 JSONArray ja = JSON.parseArray(bo.xyarr);
-                xyarr = new double[ja.size()][];
+                xyarr = new double[ja.size() + 1][];
                 for (int i = 0; i < ja.size(); i++) {
-                    JSONArray xy = ja.getJSONArray(0);
+                    JSONArray xy = ja.getJSONArray(i);
                     xyarr[i] = new double[]{xy.getDouble(0), xy.getDouble(1)};
                 }
+                xyarr[ja.size()] = new double[]{xyarr[0][0], xyarr[0][1]};
             }
         } catch (Exception e) {
             throw new RuntimeException("框选范围不正确");
@@ -57,9 +58,32 @@ public class LinkProjectController {
     }
 
     @PostMapping("/update")
-    public Result update(@RequestBody LinkProject linkProject, HttpServletRequest request) {
+    public Result update(@ModelAttribute BO bo, HttpServletRequest request) {
+
+        double[][] xyarr = null;
+
+        try {
+            if (bo.xyarr != null) {
+                JSONArray ja = JSON.parseArray(bo.xyarr);
+                xyarr = new double[ja.size() + 1][];
+                for (int i = 0; i < ja.size(); i++) {
+                    JSONArray xy = ja.getJSONArray(i);
+                    xyarr[i] = new double[]{xy.getDouble(0), xy.getDouble(1)};
+                }
+                xyarr[ja.size()] = new double[]{xyarr[0][0], xyarr[0][1]};
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("框选范围不正确");
+        }
+
+        LinkProject linkProject = new LinkProject();
+        linkProject.setId(bo.id);
+        linkProject.setName(bo.name);
+        linkProject.setCreator(bo.creator);
+        linkProject.setProjectTime(bo.projectTime);
         linkProject.setIpAddr(request.getRemoteAddr());
-        return Result.failOrOk(service.update(linkProject));
+
+        return Result.failOrOk(service.update(linkProject, bo.file, xyarr));
     }
 
     @DeleteMapping("/delete/{id}")
@@ -79,6 +103,7 @@ public class LinkProjectController {
 
     /**
      * 框选新增示例值
+     *
      * @param sample
      * @return
      */
@@ -89,13 +114,14 @@ public class LinkProjectController {
 
     /**
      * 查询示例值
+     *
      * @param projectId
      * @param linkId
      * @return
      */
     @PostMapping("/query/sample")
     public Result querySample(@RequestBody QueryParam param) {
-        return Result.ok(service.querySample(param.projectId, param.linkIds));
+        return Result.ok(service.querySample(param.areaProjectId, param.projectId));
     }
 
     // 演示值对象
@@ -110,6 +136,7 @@ public class LinkProjectController {
 
     @Data
     public static class BO {
+        Long id;
         String name;
         String creator;
         MultipartFile file;
@@ -127,6 +154,7 @@ public class LinkProjectController {
 
         String[] linkIds;
         Long[] projectId;
+        Long areaProjectId;
 
         private Integer pageNum = 1;
         private Integer pageSize = 10;

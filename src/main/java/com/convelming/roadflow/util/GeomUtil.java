@@ -70,6 +70,16 @@ public class GeomUtil {
         }
     }
 
+    public static PGgeometry genPolygon(String text, int srid) {
+        text = text.replace("#{srid}", String.valueOf(srid));
+        try {
+            return new PGgeometry(text);
+        } catch (Exception e) {
+            log.error("genpolygon err : " + e.getMessage());
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
     public static PGgeometry genPoint(double x, double y, int srid) {
         String text = "SRID=#{srid}; POINT(#{x} #{y})";
         text = text.replace("#{srid}", String.valueOf(srid));

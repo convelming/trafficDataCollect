@@ -32,10 +32,10 @@ public class LinkProjectStatsMapper {
         }).executeRows() > 0;
     }
 
-    public List<LinkProjectStats> query(Long[] projectIds, String[] linkIds) {
+    public List<LinkProjectStats> query(Long[] projectIds) {
         return eeq.queryable(LinkProjectStats.class).where(t -> {
             t.projectId().in(projectIds != null && projectIds.length > 0, projectIds);
-            t.linkId().in(linkIds != null && linkIds.length > 0, linkIds);
+//            t.linkId().in(linkIds != null && linkIds.length > 0, linkIds);
         }).toList();
     }
 

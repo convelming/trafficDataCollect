@@ -3,7 +3,7 @@ package com.convelming.roadflow.service;
 import com.convelming.roadflow.common.Page;
 import com.convelming.roadflow.controller.LinkProjectController;
 import com.convelming.roadflow.model.LinkProject;
-import com.convelming.roadflow.model.LinkProjectStats;
+import com.convelming.roadflow.model.vo.LinkStatsChartVo;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -15,7 +15,7 @@ public interface LinkProjectService {
 
     LinkProject insert(LinkProject linkProject, MultipartFile file, double[][] xyarr);
 
-    boolean update(LinkProject linkProject);
+    LinkProject update(LinkProject linkProject, MultipartFile file, double[][] xyarr);
 
     boolean delete(Long id);
 
@@ -24,6 +24,6 @@ public interface LinkProjectService {
      */
     boolean addSample(LinkProjectController.Sample sample);
 
-    List<LinkProjectStats> querySample(Long[] projectIds, String[] linkIds);
+    List<List<LinkStatsChartVo>> querySample(Long areaProjectId, Long[] projectIds);
 
 }

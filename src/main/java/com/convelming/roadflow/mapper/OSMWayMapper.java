@@ -7,11 +7,11 @@ import com.easy.query.api.proxy.client.EasyEntityQuery;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import net.postgis.jdbc.PGgeometry;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Slf4j
@@ -49,6 +49,10 @@ public class OSMWayMapper {
         OSMWay way = this.selectById(id);
         List<Long> nodes = JSONArray.parseArray(way.getNodes(), Long.class);
         return nodes.get(0);
+    }
+
+    public List<OSMWay> queryByIds(Collection<String> ids) {
+        return eeq.queryable(OSMWay.class).where(o -> o.id().in(ids)).toList();
     }
 
     public boolean batchInsert(List<OSMWay> ways) {

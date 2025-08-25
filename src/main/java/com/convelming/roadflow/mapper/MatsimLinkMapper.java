@@ -133,7 +133,7 @@ public class MatsimLinkMapper {
     }
 
     public List<MatsimLink> queryByPolygon(PGgeometry geometry) {
-        String sql = " select * from " + TABLE_NAME + " where st_intersects(?, geom3857)";
+        String sql = " select * from " + TABLE_NAME + " where st_intersects(?, geom)";
 //            return jdbcTemplate.queryForList(sql, OSMWay.class, geometry);
         return eeq.sqlQuery(sql, MatsimLink.class, List.of(geometry));
     }
