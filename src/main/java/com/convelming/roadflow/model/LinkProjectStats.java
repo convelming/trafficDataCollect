@@ -2,6 +2,7 @@ package com.convelming.roadflow.model;
 
 import com.convelming.roadflow.model.proxy.LinkProjectStatsProxy;
 import com.easy.query.core.annotation.Column;
+import com.easy.query.core.annotation.ColumnIgnore;
 import com.easy.query.core.annotation.EntityProxy;
 import com.easy.query.core.annotation.Table;
 import com.easy.query.core.proxy.ProxyEntityAvailable;
@@ -33,5 +34,12 @@ public class LinkProjectStats implements ProxyEntityAvailable<LinkProjectStats, 
 
     @JsonIgnore
     private String ipAddr;
+
+    @ColumnIgnore
+    private MatsimLink link;
+
+    @JsonIgnore
+    @ColumnIgnore
+    private LinkStats linkStats;
 
 }

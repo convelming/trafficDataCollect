@@ -33,6 +33,11 @@ public class LinkStats implements ProxyEntityAvailable<LinkStats, LinkStatsProxy
     private String linkId;
 
     /**
+     * 项目id
+     */
+    private Long projectId = 0L;
+
+    /**
      * osm路段id
      */
     private String wayId;

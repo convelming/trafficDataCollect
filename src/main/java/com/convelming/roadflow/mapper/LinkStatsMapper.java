@@ -155,8 +155,22 @@ public class LinkStatsMapper {
                     s.beginTime().ge(beginTime != null, beginTime);
                     s.endTime().le(endTime != null, endTime);
                 })
-                .groupBy(s -> GroupKeys.TABLE1.of(s.linkId(), s.x(), s.y(), s.wayId()))
+                .groupBy(s -> GroupKeys.of(s.linkId(), s.x(), s.y(), s.wayId()))
                 .select(columns).toList(LinkStats.class);
+        return list;
+    }
+
+    public List<LinkStats> queryByProjectIds(Long[] projectIds) {
+//        List<LinkStats> list = eeq.queryable(LinkStats.class)
+//                .where(t -> t.projectId().in(projectIds))
+//                .groupBy(t -> t.linkId())
+//                .select(TopicGroupTestDTO.class, t_topic -> t_topic.columnAs("id", "id").columnCountAs("id", "idCount"))
+//                .toList();
+//        return null;
+        List<LinkStats> list = eeq.queryable(LinkStats.class).where(l -> {
+            l.projectId().in(projectIds);
+            l.type().in(List.of("0", "1", "2", "4"));
+        }).toList();
         return list;
     }
 

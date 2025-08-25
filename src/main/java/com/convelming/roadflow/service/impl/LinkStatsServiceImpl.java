@@ -1,6 +1,7 @@
 package com.convelming.roadflow.service.impl;
 
 import com.convelming.roadflow.common.Page;
+import com.convelming.roadflow.enums.HighwayType;
 import com.convelming.roadflow.mapper.LinkStatsMapper;
 import com.convelming.roadflow.mapper.MatsimLinkMapper;
 import com.convelming.roadflow.model.LinkStats;
@@ -47,18 +48,16 @@ LinkStatsServiceImpl implements LinkStatsService {
         stats.setX(xy[0]);
         stats.setY(xy[1]);
         // 当没有填写pcuh并且车辆数量有填写时计算 pcu/h
-        if ((stats.getPcuH() == null) && (stats.getScar() != null || stats.getMcar() != null || stats.getLcar() != null)) {
-            BigDecimal pcu = BigDecimal.ZERO;
-            pcu = pcu.add(BigDecimal.valueOf(stats.getScar())).add(BigDecimal.valueOf(stats.getStruck()));
-            pcu = pcu.add(BigDecimal.valueOf(stats.getMcar()).multiply(M)).add(BigDecimal.valueOf(stats.getMtruck()).multiply(M));
-            pcu = pcu.add(BigDecimal.valueOf(stats.getLcar()).multiply(L)).add(BigDecimal.valueOf(stats.getLtruck()).multiply(L));
-            pcu = pcu.divide(BigDecimal.valueOf(stats.getEndTime().getTime() - stats.getBeginTime().getTime()), 64, RoundingMode.UP).multiply(HOURS);
-            stats.setPcuH(pcu.setScale(2, RoundingMode.DOWN).doubleValue());
-        }
+//        if ((stats.getPcuH() == null) && (stats.getScar() != null || stats.getMcar() != null || stats.getLcar() != null)) {
+//            BigDecimal pcu = BigDecimal.ZERO;
+//            pcu = pcu.add(BigDecimal.valueOf(stats.getScar())).add(BigDecimal.valueOf(stats.getStruck()));
+//            pcu = pcu.add(BigDecimal.valueOf(stats.getMcar()).multiply(M)).add(BigDecimal.valueOf(stats.getMtruck()).multiply(M));
+//            pcu = pcu.add(BigDecimal.valueOf(stats.getLcar()).multiply(L)).add(BigDecimal.valueOf(stats.getLtruck()).multiply(L));
+//            pcu = pcu.divide(BigDecimal.valueOf(stats.getEndTime().getTime() - stats.getBeginTime().getTime()), 64, RoundingMode.UP).multiply(HOURS);
+//            stats.setPcuH(pcu.setScale(2, RoundingMode.DOWN).doubleValue());
+//        }
 
-        // todo 根据pcuh计算饱和度、服务等级
-        stats.setService("");
-        stats.setSaturation(0.);
+        calcSetSaturation(stats, link);
 
         return linkStatsMapper.insert(stats);
     }
@@ -70,21 +69,20 @@ LinkStatsServiceImpl implements LinkStatsService {
             throw new RuntimeException("找不到要修改的对象");
         }
         // 当没有填写pcuh并且车辆数量有填写时计算 pcu/h
-        if ((stats.getPcuH() == null) && (stats.getScar() != null || stats.getMcar() != null || stats.getLcar() != null)) {
-            BigDecimal pcu = BigDecimal.ZERO;
-            pcu = pcu.add(BigDecimal.valueOf(stats.getScar())).add(BigDecimal.valueOf(stats.getStruck()));
-            pcu = pcu.add(BigDecimal.valueOf(stats.getMcar()).multiply(M)).add(BigDecimal.valueOf(stats.getMtruck()).multiply(M));
-            pcu = pcu.add(BigDecimal.valueOf(stats.getLcar()).multiply(L)).add(BigDecimal.valueOf(stats.getLtruck()).multiply(L));
-            pcu = pcu.divide(BigDecimal.valueOf(stats.getEndTime().getTime() - stats.getBeginTime().getTime()), 64, RoundingMode.UP).multiply(HOURS);
-            stats.setPcuH(pcu.setScale(2, RoundingMode.DOWN).doubleValue());
-        }
-
-        // todo 根据pcuh计算饱和度、服务等级
-        stats.setService("");
-        stats.setSaturation(0.);
+//        if ((stats.getPcuH() == null) && (stats.getScar() != null || stats.getMcar() != null || stats.getLcar() != null)) {
+//            BigDecimal pcu = BigDecimal.ZERO;
+//            pcu = pcu.add(BigDecimal.valueOf(stats.getScar())).add(BigDecimal.valueOf(stats.getStruck()));
+//            pcu = pcu.add(BigDecimal.valueOf(stats.getMcar()).multiply(M)).add(BigDecimal.valueOf(stats.getMtruck()).multiply(M));
+//            pcu = pcu.add(BigDecimal.valueOf(stats.getLcar()).multiply(L)).add(BigDecimal.valueOf(stats.getLtruck()).multiply(L));
+//            pcu = pcu.divide(BigDecimal.valueOf(stats.getEndTime().getTime() - stats.getBeginTime().getTime()), 64, RoundingMode.UP).multiply(HOURS);
+//            stats.setPcuH(pcu.setScale(2, RoundingMode.DOWN).doubleValue());
+//        }
 
         MatsimLink link = matsimLinkMapper.selectById(stats.getLinkId());
         stats.setWayId(link.getOrigid());
+
+        calcSetSaturation(stats, link);
+
         // 中心点
         double[] xy = GeomUtil.point2xy(link.getCenter());
         stats.setX(xy[0]);
@@ -136,7 +134,15 @@ LinkStatsServiceImpl implements LinkStatsService {
 
     @Override
     public Page<LinkStats> queryByLinkId(String linkId, Page<LinkStats> page) {
-        return linkStatsMapper.queryByLinkId(linkId, page);
+        page = linkStatsMapper.queryByLinkId(linkId, page);
+        if (!page.getData().isEmpty()) {
+            MatsimLink link = matsimLinkMapper.selectById(linkId);
+            page.getData().forEach(stats -> {
+                calcSetSaturation(stats, link);
+                stats.setReal(true);
+            });
+        }
+        return page;
     }
 
     @Override
@@ -153,4 +159,37 @@ LinkStatsServiceImpl implements LinkStatsService {
     public LinkStats queryById(Long id) {
         return linkStatsMapper.selectById(id);
     }
+
+
+    public static void calcSetSaturation(LinkStats linkStats, MatsimLink link) {
+        // pcu / (车道数 * 通行能力)
+        double saturation = 0.;
+        Double capacity = linkStats.getCapacity();
+        if (capacity == null || capacity <= 0) {
+            HighwayType ht = HighwayType.getOfCode(link.getType());
+            if (ht == null) {
+                capacity = 300.;
+            } else {
+                capacity = ht.getCapacity();
+            }
+        }
+        saturation = linkStats.getPcuH() / (capacity * (link.getLane() == null ? 1. : link.getLane()));
+        linkStats.setSaturation(saturation);
+        String service = "A";
+        if (0 <= saturation && saturation <= 0.4) {
+            service = "A";
+        } else if (0.4 < saturation && saturation <= 0.6) {
+            service = "B";
+        } else if (0.6 < saturation && saturation <= 0.75) {
+            service = "C";
+        } else if (0.75 < saturation && saturation <= 0.85) {
+            service = "D";
+        } else if (0.85 < saturation && saturation <= 0.95) {
+            service = "E";
+        } else if (0.95 < saturation) {
+            service = "F";
+        }
+        linkStats.setService(service);
+    }
+
 }

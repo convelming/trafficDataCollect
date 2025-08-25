@@ -19,8 +19,9 @@ public enum LinkStatsType {
     /**
      * 视频识别
      */
-    VIDEO_RECOGNITION("视频识别", "2"),
+    VIDEO_RECOGNITION("视频识别", "2"),  
     GD_CRAWL("高德爬取的数据", "3"),
+    JPHZ("交评核准", "4"),
 
     /**
      * 其他

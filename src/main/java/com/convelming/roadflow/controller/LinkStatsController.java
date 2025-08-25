@@ -17,6 +17,8 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.OutputStream;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -31,6 +33,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/link/stats")
 public class LinkStatsController {
+
+    private final BigDecimal M = new BigDecimal("1.5");
+    private final BigDecimal L = new BigDecimal("2");
 
     @Resource
     private LinkStatsService linkStatsService;
@@ -78,6 +83,16 @@ public class LinkStatsController {
     @DeleteMapping("/delete/{id}")
     public Result delete(@PathVariable Long id) {
         return Result.ok(linkStatsService.delete(id));
+    }
+
+    @PostMapping("/calcPcu")
+    public Result calcPcu(@RequestBody PcuCalcParam param) {
+        BigDecimal pcu = BigDecimal.ZERO;
+        pcu = pcu.add(BigDecimal.valueOf(param.scar)).add(BigDecimal.valueOf(param.struck));
+        pcu = pcu.add(BigDecimal.valueOf(param.mcar).multiply(M)).add(BigDecimal.valueOf(param.mtruck).multiply(M));
+        pcu = pcu.add(BigDecimal.valueOf(param.lcar).multiply(L)).add(BigDecimal.valueOf(param.ltruck).multiply(L));
+        pcu = pcu.divide(BigDecimal.valueOf(param.minute), 64, RoundingMode.UP).multiply(BigDecimal.valueOf(60)); // 除以分钟 * 60
+        return Result.ok(pcu.doubleValue());
     }
 
     /**
@@ -265,5 +280,18 @@ public class LinkStatsController {
         List<String> linkIds;
     }
 
+    @Data
+    public static class PcuCalcParam {
+        private long lcar = 0;
+        private long ltruck = 0;
+        private long mcar = 0;
+        /**
+         * 分钟
+         */
+        private long minute = 60;
+        private long mtruck = 0;
+        private long scar = 0;
+        private long struck = 0;
+    }
 
 }

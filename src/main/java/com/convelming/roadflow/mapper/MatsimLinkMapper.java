@@ -2,12 +2,12 @@ package com.convelming.roadflow.mapper;
 
 import com.convelming.roadflow.model.LinkStats;
 import com.convelming.roadflow.model.MatsimLink;
+import com.convelming.roadflow.model.OSMWay;
 import com.convelming.roadflow.model.proxy.MatsimLinkProxy;
 import com.easy.query.api.proxy.client.EasyEntityQuery;
 import com.easy.query.core.proxy.sql.GroupKeys;
 import jakarta.annotation.Resource;
 import net.postgis.jdbc.PGgeometry;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -24,6 +24,10 @@ public class MatsimLinkMapper {
     JdbcTemplate jdbcTemplate;
     @Resource
     private EasyEntityQuery eeq;
+
+    public List<MatsimLink> queryByIds(Collection<String> ids) {
+        return eeq.queryable(MatsimLink.class).where(t -> t.id().in(ids)).toList();
+    }
 
     /**
      * 新增
@@ -116,12 +120,22 @@ public class MatsimLinkMapper {
                     t.linkId().in(list.stream().map(MatsimLink::getId).toList());
                     t.type().ne("3");
                 })
-                .groupBy(t -> GroupKeys.TABLE1.of(t.linkId()))
+                .groupBy(t -> GroupKeys.of(t.linkId()))
                 .select("link_id, string_agg(distinct type, ',') type").toMaps();
         Map<String, String> linkTypeMap = new HashMap<>();
         types.forEach(map -> linkTypeMap.put((String) map.get("link_id"), (String) map.get("type")));
         list.forEach(link -> link.setStatsType(linkTypeMap.get(link.getId())));
         return list;
+    }
+
+    public List<MatsimLink> queryByOrigids(Collection<String> ids) {
+        return eeq.queryable(MatsimLink.class).where(t -> t.origid().in(ids)).toList(MatsimLink.class);
+    }
+
+    public List<MatsimLink> queryByPolygon(PGgeometry geometry) {
+        String sql = " select * from " + TABLE_NAME + " where st_intersects(?, geom3857)";
+//            return jdbcTemplate.queryForList(sql, OSMWay.class, geometry);
+        return eeq.sqlQuery(sql, MatsimLink.class, List.of(geometry));
     }
 
     /**

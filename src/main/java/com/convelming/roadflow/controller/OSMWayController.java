@@ -24,7 +24,7 @@ public class OSMWayController {
      * @return
      */
     @PostMapping("/getGeomjson")
-    public Result getGeomjson(@RequestBody QeuryParam param) {
+    public Result getGeomjson(@RequestBody QueryParam param) {
         double[][] xyarr = null;
         if(!param.selectAll){
             xyarr = new double[param.getXyarr().length + 1][2];
@@ -46,11 +46,21 @@ public class OSMWayController {
         return Result.ok(service.getWayByName(name));
     }
 
+    @PostMapping("/getOsmLinksByArea")
+    public Result getOsmLinksByArea(@RequestBody QueryParam param){
+        double[][] xyarr = new double[param.getXyarr().length + 1][2];
+        for (int i = 0; i < param.getXyarr().length; i++) {
+            xyarr[i] = Arrays.copyOf(param.getXyarr()[i], 2);
+        }
+        xyarr[param.getXyarr().length] = param.getXyarr()[0];
+        return Result.ok(service.getOsmLinksByArea(xyarr));
+    }
+
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    private static class QeuryParam {
+    public static class QueryParam {
 
         private double[][] xyarr;
         private Boolean selectAll = false;

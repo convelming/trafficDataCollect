@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import net.postgis.jdbc.PGgeometry;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -70,5 +71,8 @@ public class OSMWay implements ProxyEntityAvailable<OSMWay, OSMWayProxy> {
      * 其他信息
      */
     private String other;
+
+    @ColumnIgnore
+    private List<MatsimLink> links;
 
 }

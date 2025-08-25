@@ -11,4 +11,6 @@ public interface OSMWayService {
 
     List<OSMWay> getWayByName(String name);
 
+    List<OSMWay> getOsmLinksByArea(double[][] xyarr);
+
 }

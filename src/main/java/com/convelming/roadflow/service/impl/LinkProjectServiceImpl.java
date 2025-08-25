@@ -6,9 +6,11 @@ import com.convelming.roadflow.common.Page;
 import com.convelming.roadflow.controller.LinkProjectController;
 import com.convelming.roadflow.mapper.LinkProjectMapper;
 import com.convelming.roadflow.mapper.LinkProjectStatsMapper;
+import com.convelming.roadflow.mapper.LinkStatsMapper;
 import com.convelming.roadflow.mapper.MatsimLinkMapper;
 import com.convelming.roadflow.model.LinkProject;
 import com.convelming.roadflow.model.LinkProjectStats;
+import com.convelming.roadflow.model.LinkStats;
 import com.convelming.roadflow.model.MatsimLink;
 import com.convelming.roadflow.service.LinkProjectService;
 import com.convelming.roadflow.util.GeomUtil;
@@ -32,6 +34,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -46,6 +50,9 @@ public class LinkProjectServiceImpl implements LinkProjectService {
     @Resource
     HttpServletRequest request;
 
+    @Resource
+    private LinkStatsMapper linkStatsMapper;
+
     final GeometryFactory geometryFactory = new GeometryFactory();
 
     @Override
@@ -54,7 +61,7 @@ public class LinkProjectServiceImpl implements LinkProjectService {
     }
 
     @Override
-    public boolean insert(LinkProject linkProject, MultipartFile file, double[][] xyarr) {
+    public LinkProject insert(LinkProject linkProject, MultipartFile file, double[][] xyarr) {
         // 保存shp
         if (file != null) {
             String name = file.getOriginalFilename();
@@ -91,8 +98,10 @@ public class LinkProjectServiceImpl implements LinkProjectService {
             Polygon geometry = createPolygon(xyarr);
             linkProject.setGeomStr(JSON.toJSONString(List.of(geometry.toString())));
         }
-
-        return mapper.insert(linkProject);
+        if (!mapper.insert(linkProject)) {
+            throw new RuntimeException("新增失败");
+        }
+        return linkProject;
     }
 
     @Override
@@ -131,8 +140,51 @@ public class LinkProjectServiceImpl implements LinkProjectService {
     }
 
     @Override
-    public List<LinkProjectStats> querySample(Long projectId, String linkId) {
-        return linkProjectStatsMapper.query(projectId, linkId);
+    public List<LinkProjectStats> querySample(Long[] projectIds, String[] linkIds) {
+        if (projectIds == null || projectIds.length == 0) {
+            projectIds = new Long[]{0L}; // 默认项目
+        }
+        List<LinkProjectStats> list = linkProjectStatsMapper.query(projectIds, linkIds);
+
+        List<LinkStats> linkStats = linkStatsMapper.queryByProjectIds(projectIds);
+        // 计算平均值
+
+        linkStats.forEach(ls -> {
+            list.add(new LinkProjectStats(null, ls.getProjectId(), ls.getLinkId(), ls.getSaturation(), ls.getService(), "", null, null, ls));
+        });
+
+        if (!list.isEmpty()) {
+            List<MatsimLink> links = matsimLinkMapper.queryByIds(list.stream().map(LinkProjectStats::getLinkId).toList());
+            Map<String, MatsimLink> map = links.stream().collect(Collectors.toMap(MatsimLink::getId, x -> x, (x1, x2) -> x2));
+            list.forEach(lp -> {
+                lp.setLink(map.get(lp.getLinkId()));
+            });
+        }
+
+        // 计算平均值
+        List<LinkProjectStats> result = new ArrayList<>();
+        Map<String, List<LinkProjectStats>> map = list.stream().collect(Collectors.groupingBy(LinkProjectStats::getLinkId));
+        map.forEach((k, v) -> {
+            LinkProjectStats lps = new LinkProjectStats();
+            MatsimLink link = null;
+            double saturation = 0.;
+            for (LinkProjectStats l : v) {
+                link = l.getLink();
+                if (l.getSaturation() == null) {
+                    LinkStatsServiceImpl.calcSetSaturation(l.getLinkStats(), l.getLink());
+                    l.setSaturation(l.getLinkStats().getSaturation());
+                }
+                saturation += l.getSaturation();
+                lps.setStyle(l.getStyle());
+            }
+            lps.setSaturation(saturation / v.size());
+            lps.setService(calcService(lps.getSaturation()));
+            lps.setLink(link);
+            lps.setLinkId(k);
+            result.add(lps);
+        });
+
+        return result;
     }
 
 
@@ -143,6 +195,24 @@ public class LinkProjectServiceImpl implements LinkProjectService {
         }
         LinearRing shell = new LinearRing(new CoordinateArraySequence(shellPoints), geometryFactory);
         return new Polygon(shell, null, geometryFactory);
+    }
+
+    private String calcService(double saturation) {
+        String service = "A";
+        if (0 <= saturation && saturation <= 0.4) {
+            service = "A";
+        } else if (0.4 < saturation && saturation <= 0.6) {
+            service = "B";
+        } else if (0.6 < saturation && saturation <= 0.75) {
+            service = "C";
+        } else if (0.75 < saturation && saturation <= 0.85) {
+            service = "D";
+        } else if (0.85 < saturation && saturation <= 0.95) {
+            service = "E";
+        } else if (0.95 < saturation) {
+            service = "F";
+        }
+        return service;
     }
 
 }

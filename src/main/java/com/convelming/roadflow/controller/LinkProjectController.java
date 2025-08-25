@@ -33,7 +33,6 @@ public class LinkProjectController {
     public Result insert(@ModelAttribute BO bo, HttpServletRequest request) {
 
         double[][] xyarr = null;
-        double[][][] holes = null;
 
         try {
             if (bo.xyarr != null) {
@@ -94,9 +93,9 @@ public class LinkProjectController {
      * @param linkId
      * @return
      */
-    @GetMapping("/query/sample")
-    public Result querySample(Long projectId, String linkId) {
-        return Result.ok(service.querySample(projectId, linkId));
+    @PostMapping("/query/sample")
+    public Result querySample(@RequestBody QueryParam param) {
+        return Result.ok(service.querySample(param.projectId, param.linkIds));
     }
 
     // 演示值对象
@@ -125,6 +124,10 @@ public class LinkProjectController {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class QueryParam {
+
+        String[] linkIds;
+        Long[] projectId;
+
         private Integer pageNum = 1;
         private Integer pageSize = 10;
 

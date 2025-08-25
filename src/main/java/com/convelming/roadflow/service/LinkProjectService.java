@@ -13,7 +13,7 @@ public interface LinkProjectService {
 
     Page<LinkProject> list(Page<LinkProject> page);
 
-    boolean insert(LinkProject linkProject, MultipartFile file, double[][] xyarr);
+    LinkProject insert(LinkProject linkProject, MultipartFile file, double[][] xyarr);
 
     boolean update(LinkProject linkProject);
 
@@ -24,6 +24,6 @@ public interface LinkProjectService {
      */
     boolean addSample(LinkProjectController.Sample sample);
 
-    List<LinkProjectStats> querySample(Long projectId, String linkId);
+    List<LinkProjectStats> querySample(Long[] projectIds, String[] linkIds);
 
 }
