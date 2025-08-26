@@ -102,6 +102,10 @@ public class MatsimLink implements ProxyEntityAvailable<MatsimLink, MatsimLinkPr
     @ColumnIgnore
     private String lineName;
 
+    @JsonIgnore
+    @ColumnIgnore
+    private Boolean oneWay = false;
+
     public MatsimLink(MatsimLink link) {
         BeanUtils.copyProperties(link, this);
     }

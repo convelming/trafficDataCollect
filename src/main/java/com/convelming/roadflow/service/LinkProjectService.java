@@ -10,6 +10,7 @@ import java.util.List;
 
 public interface LinkProjectService {
 
+    LinkProject detail(Long id);
 
     Page<LinkProject> list(Page<LinkProject> page);
 

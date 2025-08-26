@@ -2,7 +2,6 @@ package com.convelming.roadflow.mapper;
 
 import com.convelming.roadflow.model.LinkStats;
 import com.convelming.roadflow.model.MatsimLink;
-import com.convelming.roadflow.model.OSMWay;
 import com.convelming.roadflow.model.proxy.MatsimLinkProxy;
 import com.easy.query.api.proxy.client.EasyEntityQuery;
 import com.easy.query.core.proxy.sql.GroupKeys;
@@ -129,7 +128,21 @@ public class MatsimLinkMapper {
     }
 
     public List<MatsimLink> queryByOrigids(Collection<String> ids) {
-        return eeq.queryable(MatsimLink.class).where(t -> t.origid().in(ids)).toList(MatsimLink.class);
+        if (ids.size() > 10000) { // 分批次查询
+            List<MatsimLink> result = new ArrayList<>();
+            List<String> idList = ids.stream().toList();
+            int size = idList.size();
+            int cur = 0;
+            for (; cur < size - 10000; cur += 10000) {
+                List<String> tempId = idList.subList(cur, cur + 10000);
+                result.addAll(eeq.queryable(MatsimLink.class).where(t -> t.origid().in(tempId)).toList(MatsimLink.class));
+            }
+            List<String> tempId = idList.subList(cur, size);
+            result.addAll(eeq.queryable(MatsimLink.class).where(t -> t.origid().in(tempId)).toList(MatsimLink.class));
+            return result;
+        } else {
+            return eeq.queryable(MatsimLink.class).where(t -> t.origid().in(ids)).toList(MatsimLink.class);
+        }
     }
 
     public List<MatsimLink> queryByPolygon(PGgeometry geometry) {

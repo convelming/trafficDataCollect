@@ -16,5 +16,5 @@ public class LinkStatsChartVo {
     private String style;
     private Double[] fromxy;
     private Double[] toxy;
-
+    private Boolean oneWay = false;
 }

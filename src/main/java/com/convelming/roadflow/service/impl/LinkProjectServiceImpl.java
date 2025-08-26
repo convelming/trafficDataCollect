@@ -13,9 +13,11 @@ import com.convelming.roadflow.util.GeomUtil;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import net.postgis.jdbc.PGgeometry;
 import org.geotools.data.FileDataStore;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
 import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.data.simple.SimpleFeatureIterator;
 import org.locationtech.jts.geom.*;
 import org.locationtech.jts.geom.impl.CoordinateArraySequence;
 import org.opengis.feature.simple.SimpleFeature;
@@ -28,10 +30,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -59,6 +58,11 @@ public class LinkProjectServiceImpl implements LinkProjectService {
     private LinkProjectMapper linkProjectMapper;
 
     @Override
+    public LinkProject detail(Long id) {
+        return mapper.selectById(id);
+    }
+
+    @Override
     public Page<LinkProject> list(Page<LinkProject> page) {
         return mapper.page(page);
     }
@@ -75,19 +79,30 @@ public class LinkProjectServiceImpl implements LinkProjectService {
             try {
                 FileCopyUtils.copy(file.getBytes(), new File(shp));
                 // 处理shp
-                List<String> geomStr = new ArrayList<>();
+                List<List<Double[]>> geomStr = new ArrayList<>();
                 FileDataStore dataStore = new ShapefileDataStoreFactory().createDataStore(Path.of(shp).toUri().toURL());
                 String typeName = dataStore.getTypeNames()[0];
                 // SimpleFeatureType schema = dataStore.getSchema(typeName);
                 SimpleFeatureCollection featureCollection = dataStore.getFeatureSource(typeName).getFeatures();
-                try (org.geotools.data.simple.SimpleFeatureIterator features = featureCollection.features()) {
+                try (SimpleFeatureIterator features = featureCollection.features()) {
                     while (features.hasNext()) {
                         SimpleFeature feature = features.next();
                         Geometry geometry = (Geometry) feature.getDefaultGeometry();
                         // 处理每个feature的属性和几何形状
-                        String multilinestring = geometry.toString();
-                        geomStr.add(multilinestring);
+                        List<Double[]> polygon = new ArrayList<>();
+                        if (geometry.getGeometryType().endsWith("Polygon")) {
+                            if (geometry.getSRID() != GeomUtil.MKT) {
+                                throw new RuntimeException("请上传全部范围为srid=3857的shp文件");
+                            }
+                            for (Coordinate coordinate : geometry.getCoordinates()) {
+                                polygon.add(new Double[]{coordinate.getX(), coordinate.getY()});
+                            }
+                        }
+                        geomStr.add(polygon);
                     }
+                }
+                if (geomStr.isEmpty()) {
+                    throw new RuntimeException("未识别到范围，请重新上传包含Polygon的shp文件");
                 }
 
                 linkProject.setGeomFile("/" + shp.replaceAll("\\\\", "/").replaceAll(Constant.DATA_PATH, ""));
@@ -98,8 +113,8 @@ public class LinkProjectServiceImpl implements LinkProjectService {
             }
         } else {
             // MULTILINESTRING ((113.4492334 23.1814872, 113.44906 23.18166))
-            Polygon geometry = createPolygon(xyarr);
-            linkProject.setGeomStr(JSON.toJSONString(List.of(geometry.toString())));
+//            Polygon geometry = createPolygon(xyarr);
+            linkProject.setGeomStr(JSON.toJSONString(List.of(List.of(xyarr))));
         }
         if (!mapper.insert(linkProject)) {
             throw new RuntimeException("新增失败");
@@ -118,19 +133,30 @@ public class LinkProjectServiceImpl implements LinkProjectService {
             try {
                 FileCopyUtils.copy(file.getBytes(), new File(shp));
                 // 处理shp
-                List<String> geomStr = new ArrayList<>();
+                List<List<Double[]>> geomStr = new ArrayList<>();
                 FileDataStore dataStore = new ShapefileDataStoreFactory().createDataStore(Path.of(shp).toUri().toURL());
                 String typeName = dataStore.getTypeNames()[0];
                 // SimpleFeatureType schema = dataStore.getSchema(typeName);
                 SimpleFeatureCollection featureCollection = dataStore.getFeatureSource(typeName).getFeatures();
-                try (org.geotools.data.simple.SimpleFeatureIterator features = featureCollection.features()) {
+                try (SimpleFeatureIterator features = featureCollection.features()) {
                     while (features.hasNext()) {
                         SimpleFeature feature = features.next();
                         Geometry geometry = (Geometry) feature.getDefaultGeometry();
                         // 处理每个feature的属性和几何形状
-                        String multilinestring = geometry.toString();
-                        geomStr.add(multilinestring);
+                        List<Double[]> polygon = new ArrayList<>();
+                        if (geometry.getGeometryType().endsWith("Polygon")) {
+                            if (geometry.getSRID() != GeomUtil.MKT) {
+                                throw new RuntimeException("请上传全部范围为srid=3857的shp文件");
+                            }
+                            for (Coordinate coordinate : geometry.getCoordinates()) {
+                                polygon.add(new Double[]{coordinate.getX(), coordinate.getY()});
+                            }
+                        }
+                        geomStr.add(polygon);
                     }
+                }
+                if (geomStr.isEmpty()) {
+                    throw new RuntimeException("未识别到范围，请重新上传包含Polygon的shp文件");
                 }
 
                 linkProject.setGeomFile("/" + shp.replaceAll("\\\\", "/").replaceAll(Constant.DATA_PATH, ""));
@@ -141,8 +167,8 @@ public class LinkProjectServiceImpl implements LinkProjectService {
             }
         } else {
             // MULTILINESTRING ((113.4492334 23.1814872, 113.44906 23.18166))
-            Polygon geometry = createPolygon(xyarr);
-            linkProject.setGeomStr(JSON.toJSONString(List.of(geometry.toString())));
+//            Polygon geometry = createPolygon(xyarr);
+            linkProject.setGeomStr(JSON.toJSONString(List.of(List.of(xyarr))));
         }
         if (!mapper.update(linkProject)) {
             throw new RuntimeException("修改失败");
@@ -186,8 +212,15 @@ public class LinkProjectServiceImpl implements LinkProjectService {
 
         LinkProject areaProject = linkProjectMapper.selectById(areaProjectId);
         JSONArray array = JSONArray.parseArray(areaProject.getGeomStr());
+        PGgeometry[] geoms = new PGgeometry[array.size()];
+        for (int i = 0; i < array.size(); i++) {
+            double[][] doubles = jsonArray2DoubleArray(array.getJSONArray(i));
+            doubles = Arrays.copyOf(doubles, doubles.length + 1);
+            doubles[doubles.length - 1] = doubles[0]; // 闭环
+            geoms[i] = (GeomUtil.genPolygon(doubles, GeomUtil.MKT));
+        }
 
-        List<OSMWay> osmWays = osmWayMapper.queryByPolygon(GeomUtil.genPolygon("SRID=#{srid}; " + array.get(0), GeomUtil.MKT));
+        List<OSMWay> osmWays = osmWayMapper.queryByPolygon(geoms);
         List<MatsimLink> linkList = matsimLinkMapper.queryByOrigids(osmWays.stream().map(OSMWay::getId).toList());
         Map<String, List<MatsimLink>> osmLinkMap = linkList.stream().collect(Collectors.groupingBy(MatsimLink::getOrigid));
 
@@ -220,9 +253,13 @@ public class LinkProjectServiceImpl implements LinkProjectService {
 
         // 分组
         List<List<MatsimLink>> osmLinks = new ArrayList<>();
-        for (OSMWay osmway : osmWays) {
-            osmLinks.addAll(matsimLinkService.buildTwoWay(osmLinkMap.get(osmway.getId()), osmway));
-        }
+        osmWays.parallelStream().forEach(osmway -> {
+            try {
+                osmLinks.addAll(matsimLinkService.buildTwoWay(osmLinkMap.get(osmway.getId()), osmway));
+            } catch (Exception e) {
+                log.error(e.getMessage(), osmLinkMap.get(osmway.getId()));
+            }
+        });
 
         List<List<LinkStatsChartVo>> result = new ArrayList<>();
         for (List<MatsimLink> olinks : osmLinks) {
@@ -234,6 +271,7 @@ public class LinkProjectServiceImpl implements LinkProjectService {
                 vo.setLinkId(link.getId());
                 vo.setToxy(link.getToxy());
                 vo.setFromxy(link.getFromxy());
+                vo.setOneWay(link.getOneWay());
                 if (lps != null) {
                     vo.setSaturation(lps.getSaturation());
                     vo.setService(lps.getService());
@@ -271,6 +309,15 @@ public class LinkProjectServiceImpl implements LinkProjectService {
             service = "F";
         }
         return service;
+    }
+
+    public double[][] jsonArray2DoubleArray(JSONArray jsonArray) {
+        double[][] result = new double[jsonArray.size()][];
+        for (int i = 0; i < jsonArray.size(); i++) {
+            JSONArray item = jsonArray.getJSONArray(i);
+            result[i] = new double[]{item.getDouble(0), item.getDouble(1)};
+        }
+        return result;
     }
 
 }

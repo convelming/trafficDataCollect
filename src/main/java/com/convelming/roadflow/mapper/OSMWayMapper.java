@@ -71,15 +71,21 @@ public class OSMWayMapper {
      * @param geometry 多边形. 为 null 查询全部
      * @return 路
      */
-    public List<OSMWay> queryByPolygon(PGgeometry geometry) {
+    public List<OSMWay> queryByPolygon(PGgeometry... geometry) {
         String sql;
         if (geometry == null) {
 //            sql = " select * from " + TABLE_NAME + " where highway is not null";
 //            return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(OSMWay.class));
             return eeq.queryable(OSMWay.class).where(w -> w.highway().isNotNull()).toList();
         } else {
-            sql = " select * from " + TABLE_NAME + " where st_intersects(?, geom3857) and highway is not null and id in (select origid from matsim_link) ";
+            sql = " select * from " + TABLE_NAME + " where highway is not null and id in (select origid from matsim_link) ";
 //            return jdbcTemplate.queryForList(sql, OSMWay.class, geometry);
+            sql += " and (";
+            for (int i = 0; i < geometry.length; i++) {
+                sql += "st_intersects(?, geom3857) or";
+            }
+            sql = sql.substring(0, sql.length() - 3);
+            sql += ")";
             return eeq.sqlQuery(sql, OSMWay.class, List.of(geometry));
         }
     }

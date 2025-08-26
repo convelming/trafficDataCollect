@@ -29,6 +29,11 @@ public class LinkProjectController {
     @Resource
     private LinkProjectService service;
 
+    @GetMapping("/detail/{id}")
+    public Result detail(@PathVariable Long id) {
+        return Result.ok(service.detail(id));
+    }
+
     @PostMapping("/insert")
     public Result insert(@ModelAttribute BO bo, HttpServletRequest request) {
 

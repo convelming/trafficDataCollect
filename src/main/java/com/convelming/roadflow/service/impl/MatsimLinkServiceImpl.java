@@ -134,6 +134,7 @@ public class MatsimLinkServiceImpl implements MatsimLinkService {
     }
 
     public List<List<MatsimLink>> buildTwoWay(List<MatsimLink> org, OSMWay osmWay) {
+        org.forEach(link -> link.setOneWay(osmWay.getOneway())); // 设置是否双向
         String startNodeId = JSONArray.parseArray(osmWay.getNodes()).getString(0);
         if (osmWay.getOneway()) { // 单行道
             List<MatsimLink> links = buildOneWay(org);
