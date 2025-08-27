@@ -245,14 +245,14 @@ public class LinkProjectServiceImpl implements LinkProjectService {
                 saturation += t.getSaturation();
                 lps.setStyle(t.getStyle());
             }
-            lps.setSaturation(saturation);
+            lps.setSaturation(saturation / v.size());
             lps.setService(calcService(saturation));
             lps.setLinkId(k);
             map.put(k, lps);
         });
 
         // 分组
-        List<List<MatsimLink>> osmLinks = new ArrayList<>();
+        List<List<MatsimLink>> osmLinks = new Vector<>();
         osmWays.parallelStream().forEach(osmway -> {
             try {
                 osmLinks.addAll(matsimLinkService.buildTwoWay(osmLinkMap.get(osmway.getId()), osmway));

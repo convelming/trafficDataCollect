@@ -46,5 +46,11 @@ public class LinkProjectStatsMapper {
         }).select("id").toList();
     }
 
+    public LinkProjectStats query(Long projectId, String linkId) {
+        return eeq.queryable(LinkProjectStats.class).where(t -> {
+            t.projectId().eq(projectId);
+            t.linkId().eq(linkId);
+        }).singleOrNull();
+    }
 
 }

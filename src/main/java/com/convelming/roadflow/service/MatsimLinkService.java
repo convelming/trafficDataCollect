@@ -8,7 +8,7 @@ public interface MatsimLinkService {
 
     List<List<MatsimLink>> queryByOrigid(String origid);
 
-    MatsimLink queryById(String id);
+    MatsimLink queryById(String id, Long projectId);
     List<MatsimLink> queryLikeId(String id);
 
     MatsimLink queryReverseLink(String id);

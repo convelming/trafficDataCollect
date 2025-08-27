@@ -2,8 +2,10 @@ package com.convelming.roadflow.service.impl;
 
 import com.convelming.roadflow.common.Page;
 import com.convelming.roadflow.enums.HighwayType;
+import com.convelming.roadflow.mapper.LinkProjectStatsMapper;
 import com.convelming.roadflow.mapper.LinkStatsMapper;
 import com.convelming.roadflow.mapper.MatsimLinkMapper;
+import com.convelming.roadflow.model.LinkProjectStats;
 import com.convelming.roadflow.model.LinkStats;
 import com.convelming.roadflow.model.MatsimLink;
 import com.convelming.roadflow.model.vo.LinkStatsAvg;
@@ -16,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -30,6 +31,8 @@ LinkStatsServiceImpl implements LinkStatsService {
     private LinkStatsMapper linkStatsMapper;
     @Resource
     private MatsimLinkMapper matsimLinkMapper;
+    @Resource
+    private LinkProjectStatsMapper linkProjectStatsMapper;
 
     /**
      * 一小时毫秒数

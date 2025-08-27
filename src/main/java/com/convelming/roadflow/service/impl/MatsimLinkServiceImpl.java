@@ -1,9 +1,11 @@
 package com.convelming.roadflow.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
+import com.convelming.roadflow.mapper.LinkProjectStatsMapper;
 import com.convelming.roadflow.mapper.MatsimLinkMapper;
 import com.convelming.roadflow.mapper.MatsimNodeMapper;
 import com.convelming.roadflow.mapper.OSMWayMapper;
+import com.convelming.roadflow.model.LinkProjectStats;
 import com.convelming.roadflow.model.MatsimLink;
 import com.convelming.roadflow.model.MatsimNode;
 import com.convelming.roadflow.model.OSMWay;
@@ -26,6 +28,8 @@ public class MatsimLinkServiceImpl implements MatsimLinkService {
     private OSMWayMapper osmWayMapper;
     @Resource
     private MatsimNodeMapper matsimNodeMapper;
+    @Resource
+    private LinkProjectStatsMapper linkProjectStatsMapper;
 
     public List<List<MatsimLink>> queryByOrigid(String origid) {
         List<MatsimLink> org = matsimLinkMapper.queryByOrigid(origid); // 需要分成 to , from 两组 , 按顺序连接
@@ -34,8 +38,16 @@ public class MatsimLinkServiceImpl implements MatsimLinkService {
     }
 
     @Override
-    public MatsimLink queryById(String id) {
-        return matsimLinkMapper.selectById(id);
+    public MatsimLink queryById(String id, Long projectId) {
+        MatsimLink matsimLink = matsimLinkMapper.selectById(id);
+        // 设置虚拟值
+        if (projectId != null) {
+            // 设置项目的服务水平和饱和度
+            LinkProjectStats lps = linkProjectStatsMapper.query(projectId, id);
+            matsimLink.setService(lps.getService());
+            matsimLink.setSaturation(lps.getSaturation());
+        }
+        return matsimLink;
     }
 
     @Override

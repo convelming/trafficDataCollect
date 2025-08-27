@@ -70,7 +70,7 @@ public class LinkStatsController {
      * @return
      */
     @GetMapping("/{id}")
-    public Result getById(@PathVariable Long id) {
+    public Result getById(@PathVariable Long id, Long projectId) {
         return Result.ok(linkStatsService.queryById(id));
     }
 
@@ -168,7 +168,8 @@ public class LinkStatsController {
         page.param(
                 new Object[]{"type", param.getType()},
                 new Object[]{"beginTime", param.getBeginTime()},
-                new Object[]{"endTime", param.getEndTime()}
+                new Object[]{"endTime", param.getEndTime()},
+                new Object[]{"projectId", param.getProjectId()}
         );
         return Result.ok(linkStatsService.queryByLinkId(linkId, page));
     }
@@ -230,6 +231,12 @@ public class LinkStatsController {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class QueryParam {
+
+        /**
+         * 项目id
+         */
+        private Long projectId;
+
         /**
          * 主键id
          */
