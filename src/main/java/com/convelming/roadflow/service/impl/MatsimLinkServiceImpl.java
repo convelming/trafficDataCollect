@@ -44,8 +44,10 @@ public class MatsimLinkServiceImpl implements MatsimLinkService {
         if (projectId != null) {
             // 设置项目的服务水平和饱和度
             LinkProjectStats lps = linkProjectStatsMapper.query(projectId, id);
-            matsimLink.setService(lps.getService());
-            matsimLink.setSaturation(lps.getSaturation());
+            if (lps != null) {
+                matsimLink.setService(lps.getService());
+                matsimLink.setSaturation(lps.getSaturation());
+            }
         }
         return matsimLink;
     }
