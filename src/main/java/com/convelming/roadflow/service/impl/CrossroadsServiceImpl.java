@@ -26,6 +26,7 @@ import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
+import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.network.NetworkUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -523,31 +524,89 @@ public class CrossroadsServiceImpl implements CrossroadsService {
      * @param stack 存储路径
      */
     private static boolean calcRouteAccessible(Link start, Link end, Stack<Id<Link>> stack) {
-        stack.push(start.getId());
-        if (start.getId().equals(end.getId())) {
+//        stack.push(start.getId());
+//        if (start.getId().equals(end.getId())) {
+//            return true;
+//        }
+//        for (Map.Entry<Id<Link>, ? extends Link> entry : start.getToNode().getOutLinks().entrySet()) {
+//            Id<Link> id = entry.getKey();
+//            if (stack.contains(id) && !id.equals(start.getId())) {
+//                stack.pop();
+//                return false;
+//            }
+//            if (stack.isEmpty()) {
+//                return false;
+//            }
+//            Link link = entry.getValue();
+//            if (start.getFromNode().getId().equals(link.getToNode().getId()) && !stack.isEmpty() && !start.getId().equals(stack.get(0))) {
+//                continue;
+//            }
+//            if (calcRouteAccessible(link, end, stack)) {
+//                return true;
+//            }
+//            if (stack.isEmpty()) {
+//                return false;
+//            }
+//            stack.pop();
+//        }
+//        return false;
+        // 使用已访问集合避免无限循环
+        Set<Id<Link>> visited = new HashSet<>();
+        // 记录前一个节点，避免往回走
+        Map<Id<Link>, Id<Node>> previousNode = new HashMap<>();
+        return dfs(start, end, stack, visited, previousNode);
+    }
+
+    /**
+     * 深度优先搜索递归实现
+     */
+    private static boolean dfs(Link current, Link end, Stack<Id<Link>> path,
+                               Set<Id<Link>> visited, Map<Id<Link>, Id<Node>> previousNode) {
+        // 将当前节点加入路径和已访问集合
+        Id<Link> currentId = current.getId();
+        path.push(currentId);
+        visited.add(currentId);
+
+        // 如果到达目标节点
+        if (currentId.equals(end.getId())) {
             return true;
         }
-        for (Map.Entry<Id<Link>, ? extends Link> entry : start.getToNode().getOutLinks().entrySet()) {
-            Id<Link> id = entry.getKey();
-            if (stack.contains(id) && !id.equals(start.getId())) {
-                stack.pop();
-                return false;
-            }
-            if (stack.isEmpty()) {
-                return false;
-            }
-            Link link = entry.getValue();
-            if (start.getFromNode().getId().equals(link.getToNode().getId()) && !stack.isEmpty() && !start.getId().equals(stack.get(0))) {
+
+        // 记录当前link的起点节点
+        Id<Node> fromNodeId = current.getFromNode().getId();
+
+        // 遍历所有出边
+        for (Map.Entry<Id<Link>, ? extends Link> entry : current.getToNode().getOutLinks().entrySet()) {
+            Link nextLink = entry.getValue();
+            Id<Link> nextId = nextLink.getId();
+
+            // 跳过已访问的节点（避免环路）
+            if (visited.contains(nextId)) {
                 continue;
             }
-            if (calcRouteAccessible(link, end, stack)) {
+
+            // 禁止往回走：检查下一个link的终点是否等于当前link的起点
+            // 如果 nextLink.toNode == current.fromNode，说明是往回走
+            // 非十字路口前不能掉头
+            if (nextLink.getToNode().getId().equals(fromNodeId) && current.getToNode().getOutLinks().size() <= 2) {
+                continue;
+            }
+
+            // 记录前一个节点信息
+            previousNode.put(nextId, current.getToNode().getId());
+
+            // 递归搜索
+            if (dfs(nextLink, end, path, visited, previousNode)) {
                 return true;
             }
-            if (stack.isEmpty()) {
-                return false;
-            }
-            stack.pop();
+
+            // 回溯时移除前一个节点信息
+            previousNode.remove(nextId);
         }
+
+        // 回溯：当前路径不通，移除当前节点
+        path.pop();
+        visited.remove(currentId);
         return false;
     }
 
