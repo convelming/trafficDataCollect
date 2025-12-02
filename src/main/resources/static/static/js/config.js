@@ -19,7 +19,7 @@ MAP_LAYER_STYLE = [
   {
     style_name: "POSITRON",
     getUrl: function () {
-      return `http://192.168.60.234:8081/styles/DK/512/${this.zoom}/${this.row}/${this.col}.png`;
+      return `http://192.168.60.231:23334/osm/DK/${this.zoom}/${this.row}/${this.col}.png`;
     },
   },
   {
