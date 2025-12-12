@@ -55,4 +55,8 @@ public class LinkProjectMapper {
         return eeq.queryable(LinkProject.class).where(t -> t.id().eq(id)).singleOrNull();
     }
 
+    public List<LinkProject> list(LinkProject linkProject) {
+        return eeq.queryable(LinkProject.class).toList();
+    }
+
 }

@@ -129,6 +129,11 @@ public class LinkProjectController {
         return Result.ok(service.querySample(param.areaProjectId, param.projectId));
     }
 
+    @GetMapping("/geojson")
+    public Result geojson() {
+        return Result.ok(service.geojson());
+    }
+
     // 演示值对象
     @Data
     public static class Sample {

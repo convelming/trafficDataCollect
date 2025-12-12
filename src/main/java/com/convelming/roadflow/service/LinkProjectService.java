@@ -27,4 +27,6 @@ public interface LinkProjectService {
 
     List<List<LinkStatsChartVo>> querySample(Long areaProjectId, Long[] projectIds);
 
+    String geojson();
+
 }

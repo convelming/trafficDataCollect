@@ -2,6 +2,7 @@ package com.convelming.roadflow.service.impl;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.convelming.roadflow.common.Constant;
 import com.convelming.roadflow.common.Page;
 import com.convelming.roadflow.controller.LinkProjectController;
@@ -281,6 +282,38 @@ public class LinkProjectServiceImpl implements LinkProjectService {
             result.add(voList);
         }
         return result;
+    }
+
+    @Override
+    public String geojson() {
+        List<LinkProject> list = mapper.list(new LinkProject());
+        JSONObject geojson = new JSONObject();
+        geojson.put("type", "FeatureCollection");
+        JSONArray features = new JSONArray();
+        for (LinkProject project : list) {
+            JSONObject feature = new JSONObject();
+            feature.put("type", "Feature");
+            feature.put("properties", new JSONObject() {{
+                put("id", project.getId());
+                put("name", project.getName());
+            }});
+            JSONObject geometry = new JSONObject() {{
+                put("type", "MultiPolygon");
+                put("crs", new JSONObject() {{
+                    put("type", "name");
+                    put("properties", new JSONObject() {{
+                        put("name", "EPSG:3857");
+                    }});
+                }});
+                put("coordinates", new JSONArray() {{
+                    add(JSONArray.parseArray(project.getGeomStr()));
+                }});
+            }};
+            feature.put("geometry", geometry);
+            features.add(feature);
+        }
+        geojson.put("features", features);
+        return geojson.toJSONString();
     }
 
 
