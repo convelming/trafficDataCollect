@@ -2,8 +2,10 @@ package com.convelming.roadflow.controller;
 
 import com.convelming.roadflow.common.Constant;
 import com.convelming.roadflow.common.Result;
+import com.convelming.roadflow.model.vo.DataFileTree;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,11 +16,19 @@ import java.io.*;
 import java.net.URLEncoder;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @RestController
 @RequestMapping("/file")
 public class FileController {
+
+    @Value("${data-file.url}")
+    private String url;
+
+    @Value("${data-file.path}")
+    private String path;
 
     @PostMapping("/upload")
     public Result upload(MultipartFile file) {
@@ -64,5 +74,35 @@ public class FileController {
             log.error(e.getMessage());
         }
     }
+
+    @GetMapping("/tree")
+    public Result tree() {
+        DataFileTree root = new DataFileTree();
+//        path = "E:\\3d路网\\";
+        buildTree(new File(path), root);
+        return Result.ok(root.getChildren());
+    }
+
+    public void buildTree(File parent, DataFileTree root) {
+        List<DataFileTree> children = root.getChildren();
+        if (children == null) {
+            children = new ArrayList<>();
+            root.setChildren(children);
+        }
+        DataFileTree file = new DataFileTree();
+        file.setName(parent.getName());
+        file.setPath(parent.getAbsolutePath().replace(path, "").replace("\\", "/"));
+        children.add(file);
+        if (parent.isDirectory()) {
+            for (File child : parent.listFiles()) {
+                buildTree(child, file);
+            }
+            root.setChildren(children);
+        } else {
+            file.setUrl(parent.getAbsolutePath().replace(path, url).replace("\\", "/"));
+            root.setChildren(children);
+        }
+    }
+
 
 }

@@ -36,3 +36,8 @@ easy-query:
   delete-throw: false
   print-sql: true
   keep-native-style: true
+
+# nginx 静态目路
+data-file:
+  url: http://192.168.60.231:8085/
+  path: /home/portal/

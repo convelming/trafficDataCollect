@@ -8,12 +8,29 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Enumeration;
 
 @Slf4j
 public class FileUtil {
 
     public static final String[] ZIP_SUFFIX = {"zip", "rar"};
+    public static final String[] size_unit = {"B", "KB", "MB", "GB"};
+
+    public static String formatSize(long fileSize) {
+        double size = fileSize;
+        int index = 0;
+        while (size > 1024) {
+            index++;
+            size /= 1024;
+            if (index > size_unit.length - 1) {
+                break;
+            }
+        }
+        return BigDecimal.valueOf(size).setScale(2, RoundingMode.HALF_UP) + size_unit[index];
+    }
+
 
     public static boolean isDir(String path) {
         File file = new File(path);
