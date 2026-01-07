@@ -3,6 +3,7 @@ package com.convelming.roadflow.controller;
 import com.convelming.roadflow.common.Result;
 import com.convelming.roadflow.service.NewsAnnexService;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,6 +24,11 @@ public class NewsAnnexController {
     @DeleteMapping("/delete/{ids}")
     public Result delete(@PathVariable String ids) {
         return Result.ok(newsAnnexService.delete(ids));
+    }
+
+    @GetMapping("/batchDownload/{ids}")
+    public void batchDownload(@PathVariable String ids, HttpServletResponse response) {
+        newsAnnexService.batchDownload(ids, response);
     }
 
 }

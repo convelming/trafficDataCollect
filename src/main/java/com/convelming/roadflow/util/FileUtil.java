@@ -4,13 +4,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Enumeration;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Slf4j
 public class FileUtil {
@@ -29,6 +30,36 @@ public class FileUtil {
             }
         }
         return BigDecimal.valueOf(size).setScale(2, RoundingMode.HALF_UP) + size_unit[index];
+    }
+
+    public static ByteArrayInputStream zip(File[] files) throws IOException {
+        Map<String, Integer> nameCache = new ConcurrentHashMap<>();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (ZipOutputStream zos = new ZipOutputStream(baos)) {
+            // 添加文件
+            for (File file : files) {
+                String name = file.getName();
+                Integer count = nameCache.getOrDefault(name, 0);
+                if (count > 0) { // 防止附件打包压缩包内文件重名，重名添加后缀 _n
+                    String suffix = name.substring(name.lastIndexOf("."));
+                    String newname = name.substring(0, name.lastIndexOf(".")) + "_" + count + suffix;
+                    count++;
+                    nameCache.put(name, count);
+                    name = newname;
+                } else {
+                    nameCache.put(name, 1);
+                }
+                ZipEntry entry = new ZipEntry(name);
+                zos.putNextEntry(entry);
+                FileInputStream fis = new FileInputStream(file);
+                zos.write(fis.readAllBytes());
+                zos.closeEntry();
+                fis.close();
+            }
+        }
+
+        // 将ByteArrayOutputStream转换为ByteArrayInputStream
+        return new ByteArrayInputStream(baos.toByteArray());
     }
 
 
