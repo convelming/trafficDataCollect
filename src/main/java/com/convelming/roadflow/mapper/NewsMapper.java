@@ -56,12 +56,14 @@ public class NewsMapper {
     // 列表
     public Page<News> page(Page<News> page) {
         Map<String, Object> params = page.getParam();
-        List<News> data = eeq.queryable(News.class).where(
-                t -> {
-//                    t.name().like(params.get("name") != null, params.get("name").toString());
-//                    t.creator().like(params.get("creator") != null, params.get("creator").toString());
-                }
-        ).toList();
+        List<News> data = eeq.queryable(News.class)
+                // 排序id倒序
+                .orderBy(n -> n.id().desc())
+                // 查询条件
+                .where(t -> {
+
+                })
+                .toList();
         long total = eeq.queryable(News.class).where(
                 t -> {
 //                    t.name().like(params.get("name") != null, params.get("name").toString());

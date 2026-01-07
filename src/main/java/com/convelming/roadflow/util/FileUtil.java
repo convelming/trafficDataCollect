@@ -46,6 +46,7 @@ public class FileUtil {
                     count++;
                     nameCache.put(name, count);
                     name = newname;
+                    nameCache.put(newname, count);
                 } else {
                     nameCache.put(name, 1);
                 }

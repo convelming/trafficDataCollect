@@ -36,7 +36,7 @@ public class NewsAnnexServiceImpl implements NewsAnnexService {
         long fileSize = file.getSize();
 
         String date = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE) + "/" + System.currentTimeMillis(); // 日期/当前毫秒数
-        String path = "/" + date + "/" + fileName;
+        String path = Constant.VIDEO_PATH + "/" + date + "/" + fileName;
         String dir = Constant.VIDEO_PATH + date + "/";
         new File(dir).mkdirs();
         File out = new File(dir + file.getOriginalFilename());

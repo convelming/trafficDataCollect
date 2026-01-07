@@ -1,18 +1,16 @@
 package com.convelming.roadflow;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.convelming.roadflow.common.Constant;
+import com.convelming.roadflow.common.Result;
 import com.convelming.roadflow.controller.CrossroadsController;
+import com.convelming.roadflow.controller.FileController;
 import com.convelming.roadflow.mapper.CrossroadsMapper;
 import com.convelming.roadflow.mapper.CrossroadsStatsMapper;
 import com.convelming.roadflow.mapper.MatsimLinkMapper;
 import com.convelming.roadflow.mapper.MatsimNodeMapper;
-import com.convelming.roadflow.model.Crossroads;
-import com.convelming.roadflow.model.CrossroadsStats;
-import com.convelming.roadflow.model.MapPicture;
-import com.convelming.roadflow.model.MatsimLink;
-import com.convelming.roadflow.model.MatsimNode;
-import com.convelming.roadflow.model.PictureTag;
+import com.convelming.roadflow.model.*;
 import com.convelming.roadflow.model.vo.PictureDirVo;
 import com.convelming.roadflow.util.FileUtil;
 import com.convelming.roadflow.util.IdUtil;
@@ -33,13 +31,16 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.geom.CubicCurve2D;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -62,11 +63,20 @@ public class Test {
     @Resource
     private IdUtil idUtil;
 
-    public static void main(String[] args) throws Exception {
-        OutputStream os = new FileOutputStream("C:/Users/zengren/Desktop/code.txt");
-        output(new File("E:/project/convelming/LinkStats/src"), os);
-        os.close();
+    @Resource
+    private FileController fileController;
+
+    @org.junit.Test
+    public void treeTest() throws IOException, SQLException {
+        Result result = fileController.tree();
+        System.out.println(JSONObject.toJSONString(result));
     }
+
+    // 更新流量服务水平饱和度
+    public void updateStatsService() {
+
+    }
+
 
     @org.junit.Test
     public void heic2jpeg() throws Exception {
@@ -74,7 +84,7 @@ public class Test {
         String heic = "C:/Users/zengren/Desktop/IMG_1824.PNG";
         String jpeg = "C:/Users/zengren/Desktop/IMG_1824.JPEG";
         try {
-            Set<File> list = new HashSet<>(){{
+            Set<File> list = new HashSet<>() {{
                 add(new File(jpeg));
             }};
             Thumbnails.of(new File(heic))
