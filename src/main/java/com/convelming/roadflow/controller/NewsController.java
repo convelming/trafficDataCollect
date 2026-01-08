@@ -5,9 +5,12 @@ import com.convelming.roadflow.common.Result;
 import com.convelming.roadflow.model.News;
 import com.convelming.roadflow.service.NewsService;
 import jakarta.annotation.Resource;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.HashMap;
 
 @Slf4j
 @RestController
@@ -19,7 +22,11 @@ public class NewsController {
 
     // 新闻列表
     @GetMapping("/page")
-    public Result page(Page<News> page) {
+    public Result page(QueryParam param) {
+        Page<News> page = new Page<>(param.getPageNum(), param.getPageSize());
+        page.setParam(new HashMap<>() {{
+            put("type", param.type);
+        }});
         return Result.ok(newsService.page(page));
     }
 
@@ -51,6 +58,13 @@ public class NewsController {
     @PostMapping("/upload/annex")
     public Result upload(MultipartFile file) {
         return Result.ok();
+    }
+
+    @Data
+    public static class QueryParam {
+        private String type = "0";
+        private Integer pageSize = 10;
+        private Integer pageNum = 1;
     }
 
 

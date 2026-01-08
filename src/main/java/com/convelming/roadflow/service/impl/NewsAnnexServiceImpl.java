@@ -36,10 +36,10 @@ public class NewsAnnexServiceImpl implements NewsAnnexService {
         long fileSize = file.getSize();
 
         String date = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE) + "/" + System.currentTimeMillis(); // 日期/当前毫秒数
-        String path = Constant.VIDEO_PATH + "/" + date + "/" + fileName;
+        String path =  "/video/" + date + "/" + fileName;
         String dir = Constant.VIDEO_PATH + date + "/";
         new File(dir).mkdirs();
-        File out = new File(dir + file.getOriginalFilename());
+        File out = new File(dir + fileName);
         try (OutputStream os = new FileOutputStream(out)) {
             InputStream is = file.getInputStream();
             int len;
@@ -85,7 +85,7 @@ public class NewsAnnexServiceImpl implements NewsAnnexService {
         List<NewsAnnex> list = newsAnnexMapper.selectByIds(idList);
         File[] files = new File[idList.size()];
         for (int i = 0; i < list.size(); i++) {
-            files[i] = new File(Constant.VIDEO_PATH + list.get(i).getPath());
+            files[i] = new File(Constant.DATA_PATH + list.get(i).getPath());
         }
         try {
             String fileName = "%E9%99%84%E4%BB%B6.zip"; // 附件.zip

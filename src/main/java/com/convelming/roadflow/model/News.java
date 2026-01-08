@@ -34,6 +34,7 @@ public class News implements ProxyEntityAvailable<News, NewsProxy> {
     private Date date;
     private String content;
     private String photo;
+    private int type;
     @JsonIgnore
     private int sort;
     @JsonIgnore
