@@ -33,10 +33,10 @@ public class Constant {
             SHP_PATH = "F:/link_stats/shp/";
             DATA_PATH = "F:/link_stats/";
         } else {
-            PICTURE_PATH = "/home/link_stats/picture/";
-            VIDEO_PATH = "/home/link_stats/video/";
-            SHP_PATH = "/home/link_stats/shp/";
-            DATA_PATH = "/home/link_stats/";
+            PICTURE_PATH = "/data/link_stats/picture/";
+            VIDEO_PATH = "/data/link_stats/video/";
+            SHP_PATH = "/data/link_stats/shp/";
+            DATA_PATH = "/data/link_stats/";
         }
     }
 

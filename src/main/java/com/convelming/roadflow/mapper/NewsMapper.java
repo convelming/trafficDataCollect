@@ -68,7 +68,7 @@ public class NewsMapper {
         int type = Integer.parseInt(typeStr);
         List<News> data = eeq.queryable(News.class)
                 // 排序id倒序
-                .orderBy(n -> n.id().desc())
+                .orderBy(n -> n.date().desc())
                 // 查询条件
                 .where(t -> {
                     t.type().eq(type);
