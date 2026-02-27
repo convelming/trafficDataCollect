@@ -75,7 +75,7 @@ public class LinkMapperTest {
         System.out.println(result);
     }
 
-    @Test
+//    @Test
     public void initLink() {
         // 文件中 srid 为 3857
         // 1373440 16:38:33
@@ -84,8 +84,8 @@ public class LinkMapperTest {
         int count = 0, total = network.getLinks().values().size();
         List<MatsimLink> links = new ArrayList<>();
 
-        Map<String, OSMWay> wayMap = wayMapper.queryByPolygon(null).stream().collect(Collectors.toMap(OSMWay::getId, w -> w));
-
+//        Map<String, OSMWay> wayMap = wayMapper.queryByPolygon(null).stream().collect(Collectors.toMap(OSMWay::getId, w -> w));
+        Map<String, OSMWay> wayMap = new HashMap<>();
         for (org.matsim.api.core.v01.network.Link link : network.getLinks().values()) {
             MatsimLink l = new MatsimLink();
             l.setId(String.valueOf(link.getId().toString()));

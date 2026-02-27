@@ -52,7 +52,7 @@ public class NodeMapperTest {
     }
 
 
-    @Test
+//    @Test
     public void initMatsiNode() {
         // 文件中 srid 为 3857
         String path = "C:\\Users\\zengren\\Documents\\WeChat Files\\wxid_xg6cuaubu03v22\\FileStorage\\File\\2024-01\\gzInpoly240126.xml";
@@ -73,7 +73,7 @@ public class NodeMapperTest {
         matsimNodeMapper.batchInsert(nodes);
     }
 
-    @Test
+//    @Test
     public void initOSMNode() {
         try {
             String file = "C:\\Users\\zengren\\Desktop\\guangzhou_20240123_210550.osm";

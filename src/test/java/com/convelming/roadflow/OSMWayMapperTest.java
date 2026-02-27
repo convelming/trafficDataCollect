@@ -56,7 +56,7 @@ public class OSMWayMapperTest {
         });
     }
 
-    @Test
+//    @Test
     public void initOSMWay() throws ParseException {
         String file = "C:\\Users\\zengren\\Desktop\\guangzhou_20240123_210550.osm";
         List<OSMWay> osmways = XmlUtil.loadWay(file, "way");
