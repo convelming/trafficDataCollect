@@ -9,6 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,5 +24,6 @@ public class IndexHotLink implements ProxyEntityAvailable<IndexHotLink, IndexHot
     private String name;
     private String link;
     private Long clickCount;
+    private Date updateTime;
 
 }

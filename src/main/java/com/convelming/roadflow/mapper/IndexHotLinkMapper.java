@@ -21,10 +21,10 @@ public class IndexHotLinkMapper {
 
     public void click(IndexHotLink ihl) {
         IndexHotLink count = eeq.queryable(IndexHotLink.class)
-                .where(t -> t.name().eq(ihl.getName()))
+                .where(t -> t.link().eq(ihl.getLink()))
                 .singleOrNull();
         if (count != null) {
-            eeq.sqlExecute("update index_hot_link set click_count = click_count + 1 where id = ?", Collections.singletonList(count.getId()));
+            eeq.sqlExecute("update index_hot_link set click_count = click_count + 1, update_time = now() where id = ?", Collections.singletonList(count.getId()));
         } else {
             ihl.setId(idUtil.getId(TABLE_NAME));
             ihl.setClickCount(1L);
@@ -34,7 +34,10 @@ public class IndexHotLinkMapper {
 
     public List<IndexHotLink> hot(int size) {
         return eeq.queryable(IndexHotLink.class)
+                .where(t -> t.name().isNotEmpty())
                 .orderBy(t -> t.clickCount().desc())
+                .orderBy(t -> t.updateTime().desc())
+                .orderBy(t -> t.name().asc())
                 .limit(0, size).toList();
     }
 
