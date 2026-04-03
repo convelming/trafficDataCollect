@@ -242,6 +242,10 @@ public class LinkStatsMapper {
     }
 
     public Page<LinkStats> queryByGeometry(PGgeometry geometry, Boolean all, Page<LinkStats> page) {
+        return queryByGeometry(geometry, all, page, false);
+    }
+
+    public Page<LinkStats> queryByGeometry(PGgeometry geometry, Boolean all, Page<LinkStats> page, boolean export) {
         if (all) {
             String sql = " select #{col} from " + TABLE_NAME + " ls left join matsim_link ml on ls.link_id = ml.id where ls.deleted = 0 ";
 //            Long total = jdbcTemplate.queryForObject(sql.replace("#{col}", "count(1)"), Long.class);
@@ -255,8 +259,10 @@ public class LinkStatsMapper {
             String sql = " select #{col} from " + TABLE_NAME + " ls " +
                     "left join matsim_link ml on ls.link_id = ml.id " +
                     "left join osm_way ow on ls.way_id = ow.id " +
-                    "where st_intersects(?, ml.geom) and ls.deleted = 0";
-
+                    "where st_intersects(?, ml.geom) and ls.deleted = 0 ";
+            if (export) {
+                sql += "and ls.type in ('0', '1', '2', '4') ";
+            }
             Map<String, Object> param = page.getParam();
             if (param.get("type") != null && !"".equals(param.get("type"))) {
                 sql += " and ls.type = ? ";

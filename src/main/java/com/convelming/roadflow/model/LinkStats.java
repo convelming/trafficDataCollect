@@ -29,7 +29,7 @@ public class LinkStats implements ProxyEntityAvailable<LinkStats, LinkStatsProxy
     @Column(primaryKey = true)
     private Long id;
 
-    @Excel(name = "路段ID", width = 30)
+//    @Excel(name = "路段ID", width = 30)
     private String linkId;
 
     /**

@@ -17,78 +17,33 @@ DEFAULT_MAP_LAYER_STYLE_INDEX = 0;
 // }
 MAP_LAYER_STYLE = [
   {
-    style_name: "POSITRON",
+    style_name: "OSM OpenMapTiles",
+    getUrl: function () {
+      return `http://192.168.60.234:8081/styles/OSM OpenMapTiles/512/${this.zoom}/${this.row}/${this.col}.png`;
+    },
+  },
+  {
+    style_name: "DK",
     getUrl: function () {
       return `http://192.168.60.231:23334/osm/DK/${this.zoom}/${this.row}/${this.col}.png`;
     },
   },
   {
-    style_name: "POSITRON",
+    style_name: "CSJT",
     getUrl: function () {
-      return `http://192.168.60.231:23334/osm/Positron/${this.zoom}/${this.row}/${this.col}.png`;
+      return `http://192.168.60.231:23334/osm/CSJT/${this.zoom}/${this.row}/${this.col}.png`;
     },
   },
   {
-    style_name: "OSM_LIDERTY",
+    style_name: "DRAKBlue",
     getUrl: function () {
-      return `http://192.168.60.231:23334/osm/OSMLiberty/${this.zoom}/${this.row}/${this.col}.png`;
+      return `http://192.168.60.231:23334/osm/DRAKBlue/${this.zoom}/${this.row}/${this.col}.png`;
     },
   },
   {
-    style_name: "MAP_TILER_BASIC",
+    style_name: "LightBlue",
     getUrl: function () {
-      return `http://192.168.60.231:23334/osm/MapTilerBasic/${this.zoom}/${this.row}/${this.col}.png`;
-    },
-  },
-  {
-    style_name: "DARK_MATTER",
-    background: `#0a4173`,
-    getUrl: function () {
-      return `http://192.168.60.231:23334/osm/DarkMatter/${this.zoom}/${this.row}/${this.col}.png`;
-    },
-  },
-  {
-    style_name: "OSM_BROGHT",
-    getUrl: function () {
-      return `http://192.168.60.231:23334/osm/OSMBroght/${this.zoom}/${this.row}/${this.col}.png`;
-    },
-  },
-  {
-    style_name: "LIBERTY",
-    getUrl: function () {
-      return `http://192.168.60.231:23334/osm/liberty/${this.zoom}/${this.row}/${this.col}.png`;
-    },
-  },
-  {
-    style_name: "MAPBOX",
-    getUrl: function () {
-      return `https://api.mapbox.com/styles/v1/convel/ck8frzi262yko1invkvbif5aw/tiles/512/${this.zoom}/${this.row}/${this.col}@2x?access_token=pk.eyJ1IjoiY29udmVsIiwiYSI6ImNtOW50Z2c0NTAyNGMybHB5Y2txcXY0NmgifQ.zM_QAebuyQtVh-A93w5wyA`;
-    },
-  },
-  // {
-  //   style_name: "卫星图",
-  //   getUrl: function () {
-  //     return `http://192.168.60.231:23334/baidu/satellite/${this.zoom}/${this.row}/${this.col}.jpg`;
-  //   },
-  // },
-  {
-    style_name: "Arcgis",
-    background: `#0a4173`,
-    getUrl: function () {
-      const { x, y, zoom } = this;
-      const width = EARTH_RADIUS / Math.pow(2, zoom);
-      const bbox = `${x - width},${y - width},${x + width},${y + width}`;
-      const bboxSR = "3857";
-      const imageSR = "3857";
-
-      return `http://192.168.60.232:9195/mserver/arcgis/rest/services/csjt/%E5%B9%BF%E4%B8%9C%E7%9C%81wgs/MapServer/export?dpi=96&transparent=true&format=png8&layers=show:0,1,2,3&bbox=${bbox}&f=image&bboxSR=${bboxSR}&imageSR=${imageSR}`;
-    },
-  },
-  {
-    style_name: "极夜蓝",
-    background: `#0a4173`,
-    getUrl: function () {
-      return `https://api.mapbox.com/styles/v1/dasin/cltigm5bp010s01ptciblgffl/tiles/512/${this.zoom}/${this.row}/${this.col}@2x?access_token=pk.eyJ1IjoiY29udmVsIiwiYSI6ImNtOW50Z2c0NTAyNGMybHB5Y2txcXY0NmgifQ.zM_QAebuyQtVh-A93w5wyA`;
+      return `http://192.168.60.231:23334/osm/LightBlue/${this.zoom}/${this.row}/${this.col}.png`;
     },
   },
   {

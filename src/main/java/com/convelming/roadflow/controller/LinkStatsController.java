@@ -202,7 +202,7 @@ public class LinkStatsController {
                     new Object[]{"beginTime", param.getBeginTime()},
                     new Object[]{"endTime", param.getEndTime()}
             );
-            list = linkStatsService.queryByArea(xyarr, false, page).getData();
+            list = linkStatsService.queryByArea(xyarr, false, page, true).getData();
         } else {
             list = linkStatsService.queryByIds(List.of(param.getIds()));
         }

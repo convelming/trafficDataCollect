@@ -136,6 +136,11 @@ LinkStatsServiceImpl implements LinkStatsService {
     }
 
     @Override
+    public Page<LinkStats> queryByArea(double[][] xyarr, Boolean all, Page<LinkStats> page, boolean export) {
+        return linkStatsMapper.queryByGeometry(GeomUtil.genPolygon(xyarr, GeomUtil.MKT), all, page, export);
+    }
+
+    @Override
     public Page<LinkStats> queryByLinkId(String linkId, Page<LinkStats> page) {
         page = linkStatsMapper.queryByLinkId(linkId, page);
         if (!page.getData().isEmpty()) {

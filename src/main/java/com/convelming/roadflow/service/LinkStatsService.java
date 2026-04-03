@@ -21,6 +21,8 @@ public interface LinkStatsService {
     List<LinkStats> queryAllMaker(Date beginTime, Date endTime, String type);
 
     Page<LinkStats> queryByArea(double[][] xyarr, Boolean all, Page<LinkStats> page);
+    // 导出查询默认不包含type=3
+    Page<LinkStats> queryByArea(double[][] xyarr, Boolean all, Page<LinkStats> page, boolean export);
 
     Page<LinkStats> queryByLinkId(String linkId, Page<LinkStats> page);
 
