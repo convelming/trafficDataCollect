@@ -26,8 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -78,7 +77,19 @@ public class LinkProjectServiceImpl implements LinkProjectService {
             new File(dir).mkdirs(); // 创建目录
             String shp = dir + name;
             try {
-                FileCopyUtils.copy(file.getBytes(), new File(shp));
+                //
+                byte[] bytes = new byte[10240];
+                int len = 0;
+                InputStream is = file.getInputStream();
+                OutputStream os = new FileOutputStream(shp);
+                while ((len = is.read(bytes)) != -1) {
+                    os.write(bytes, 0, len);
+                }
+                os.close();
+                os.flush();
+                is.close();
+//            FileCopyUtils.copy(file.getBytes(), new File(zip));
+                // FileCopyUtils.copy(file.getBytes(), new File(shp));
                 // 处理shp
                 List<List<Double[]>> geomStr = new ArrayList<>();
                 FileDataStore dataStore = new ShapefileDataStoreFactory().createDataStore(Path.of(shp).toUri().toURL());
@@ -132,7 +143,19 @@ public class LinkProjectServiceImpl implements LinkProjectService {
             new File(dir).mkdirs(); // 创建目录
             String shp = dir + name;
             try {
-                FileCopyUtils.copy(file.getBytes(), new File(shp));
+                //
+                byte[] bytes = new byte[10240];
+                int len = 0;
+                InputStream is = file.getInputStream();
+                OutputStream os = new FileOutputStream(shp);
+                while ((len = is.read(bytes)) != -1) {
+                    os.write(bytes, 0, len);
+                }
+                os.close();
+                os.flush();
+                is.close();
+//            FileCopyUtils.copy(file.getBytes(), new File(zip));
+                // FileCopyUtils.copy(file.getBytes(), new File(shp));
                 // 处理shp
                 List<List<Double[]>> geomStr = new ArrayList<>();
                 FileDataStore dataStore = new ShapefileDataStoreFactory().createDataStore(Path.of(shp).toUri().toURL());

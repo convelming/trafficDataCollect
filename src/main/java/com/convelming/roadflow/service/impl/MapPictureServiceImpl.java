@@ -23,8 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -109,15 +108,24 @@ public class MapPictureServiceImpl implements MapPictureService {
 
     @Override
     public boolean unzip(MultipartFile file, String projectName, String type) {
-
-
         String name = file.getOriginalFilename();
         String date = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE) + "/" + System.currentTimeMillis(); // 日期/当前毫秒数
         String dir = Constant.PICTURE_PATH + date + "/";
         new File(dir).mkdirs(); // 创建目录
         String zip = dir + name;
         try {
-            FileCopyUtils.copy(file.getBytes(), new File(zip));
+            //
+            byte[] bytes = new byte[10240];
+            int len = 0;
+            InputStream is = file.getInputStream();
+            OutputStream os = new FileOutputStream(zip);
+            while ((len = is.read(bytes)) != -1) {
+                os.write(bytes, 0, len);
+            }
+            os.close();
+            os.flush();
+            is.close();
+//            FileCopyUtils.copy(file.getBytes(), new File(zip));
         } catch (IOException e) {
             log.error("保存文件出错", e);
             throw new RuntimeException("上传文件出错：" + e.getMessage());
