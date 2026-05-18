@@ -67,9 +67,40 @@ public class Test {
     private FileController fileController;
 
     @org.junit.Test
+    public void test(){
+        JSONObject jobj = new JSONObject();
+        String tags = "\"modes\"=>\"car,walk,bus\",\"lanes\"=>\"1\",\"oneway\"=>\"no\",\"length\"=>\"13.0\",\"speedClass\"=>\"7\",\"minspeed\"=>\"11\",\"maxspeed\"=>\"30\"";
+        char[] chars = tags.toCharArray();
+        String key = "", value = "";
+        int index = 0;
+        for (char c : chars) {
+            if (c == '"') {
+                index++;
+            } else {
+                if (index < 2) {
+                    key += c;
+                } else if (index == 3) {
+                    value += c;
+                } else if (index > 3) {
+                    index = 0;
+                    jobj.put(key, value);
+                    key = "";
+                    value = "";
+                }
+            }
+        }
+        System.out.println(jobj);
+    }
+
+    @org.junit.Test
     public void treeTest() throws IOException, SQLException {
-        Result result = fileController.tree();
-        System.out.println(JSONObject.toJSONString(result));
+        String url = "/数据库/公共交通/常规公交线网/公交站点.geojson?time=1775982856674";
+        url = url.substring(0, url.lastIndexOf("?"));
+        System.out.println(url);
+        String type = url.substring(url.lastIndexOf(".") + 1);
+        System.out.println(type);
+//        Result result = fileController.tree();
+//        System.out.println(JSONObject.toJSONString(result));
     }
 
     // 更新流量服务水平饱和度
