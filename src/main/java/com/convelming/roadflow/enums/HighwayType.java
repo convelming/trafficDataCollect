@@ -47,7 +47,7 @@ public enum HighwayType {
     /**
      * 次要道路_连接
      */
-    SECONDARY_LINK("secondary_link", "次要道路_连接", "城市次要车行道路立交、匝道(数据量少，部分零散分布未知类别)", "城市主干路", 750),
+    SECONDARY_LINK("secondary_link", "次要道路-连接", "城市次要车行道路立交、匝道(数据量少，部分零散分布未知类别)", "城市主干路", 750),
 
     /**
      * 第三级道路
@@ -57,7 +57,7 @@ public enum HighwayType {
     /**
      * 第三级道路_连接
      */
-    TERTIARY_LINK("tertiary_link", "第三级道路_连接", "匝道，机场集散车行道路(数据量极少，多是未知道路)", "城市次干路", 600),
+    TERTIARY_LINK("tertiary_link", "第三级道路-连接", "匝道，机场集散车行道路(数据量极少，多是未知道路)", "城市次干路", 600),
 
     /**
      * 居住区道路

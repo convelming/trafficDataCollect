@@ -1,6 +1,7 @@
 package com.convelming.roadflow.service.impl;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.convelming.roadflow.enums.HighwayType;
 import com.convelming.roadflow.service.PortalService;
 import com.convelming.roadflow.util.GeojsonRead;
 import lombok.extern.slf4j.Slf4j;
@@ -68,7 +69,9 @@ public class PortalServiceImpl implements PortalService {
                         roadLength = roadLength.add(new BigDecimal(length));
                     }
                     String highway = jobj.getString("fclass");
-                    roadMap.merge(highway, 1, Integer::sum);
+                    HighwayType ht = HighwayType.getOfCode(highway);
+                    String name = ht == null ? highway : ht.getName();
+                    roadMap.merge(name, 1, Integer::sum);
                 } else {
                     JSONObject jobj = tags2map(tags);
                     String length = jobj.getString("length");
@@ -79,7 +82,9 @@ public class PortalServiceImpl implements PortalService {
                         roadLength = roadLength.add(new BigDecimal(length));
                     }
                     String highway = jobj.getString("highway");
-                    roadMap.merge(highway, 1, Integer::sum);
+                    HighwayType ht = HighwayType.getOfCode(highway);
+                    String name = ht == null ? highway : ht.getName();
+                    roadMap.merge(name, 1, Integer::sum);
                 }
             }
         }
@@ -91,8 +96,24 @@ public class PortalServiceImpl implements PortalService {
         result.put("道路里程", roadLength.doubleValue());
         result.put("道路密度", roadLength.divide(area, 2, RoundingMode.HALF_UP));
         result.put("道路数量", count);
-        result.put("数据类型分布", roadMap);
 
+        BigDecimal _100 = new BigDecimal("100").setScale(2, RoundingMode.HALF_UP);
+        BigDecimal _count = new BigDecimal(roadMap.values().stream().reduce(0, Integer::sum)).setScale(2, RoundingMode.HALF_UP);
+        List<Map<String, Object>> list = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : roadMap.entrySet()) {
+            Map<String, Object> map = new HashMap<>();
+            Integer num = entry.getValue();
+            String name = entry.getKey();
+            Double r = BigDecimal.valueOf(num)
+                    .multiply(_100)
+                    .divide(_count, 2, RoundingMode.HALF_UP)
+                    .doubleValue();
+            map.put("name", name);
+            map.put("r", r);
+            map.put("num", num);
+            list.add(map);
+        }
+        result.put("数据类型分布", list);
         return result;
     }
 
@@ -133,7 +154,7 @@ public class PortalServiceImpl implements PortalService {
             URL uri = new URL(url);
             InputStream inputStream = uri.openStream();
             GeojsonRead<JSONObject> geojsonRead = new GeojsonRead<>(inputStream, "UTF-8");
-            log.info("加载:{}", url);
+            log.info("加载: {}", url);
             log.info("耗时：{}ms", System.currentTimeMillis() - time);
             return geojsonRead.data();
         } catch (Exception e) {
@@ -245,7 +266,7 @@ public class PortalServiceImpl implements PortalService {
         return distance;
     }
 
-    private static double EARTH_RADIUS = 6378137;
+    private static final double EARTH_RADIUS = 6378137;
 
     private static double rad(double d) {
         return d * Math.PI / 180.0;
