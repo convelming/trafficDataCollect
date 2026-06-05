@@ -84,6 +84,9 @@ public class PortalServiceImpl implements PortalService {
         roadLength = roadLength.divide(new BigDecimal("1000"), 2, RoundingMode.HALF_UP);
         // 面积 km²
         BigDecimal area = BigDecimal.valueOf(area(geometry)).divide(new BigDecimal("1000000"), 2, RoundingMode.HALF_UP);
+        if(area.doubleValue() == 0.){
+            area = new BigDecimal("0.01"); // 防止出现 by zero
+        }
         Map<String, Object> result = new HashMap<>();
         result.put("所在行政区", addr);
         result.put("道路里程", roadLength.doubleValue());

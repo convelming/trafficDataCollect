@@ -175,7 +175,7 @@ public enum HighwayType {
                 return highwayType;
             }
         }
-        return null;
+        return UNKNOWN;
 //        throw new RuntimeException("找不到枚举值: " + code);
     }
 
