@@ -6,22 +6,15 @@ import com.convelming.roadflow.service.PortalService;
 import com.convelming.roadflow.util.GeojsonRead;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.geotools.geometry.jts.JTS;
-import org.geotools.referencing.CRS;
 import org.locationtech.jts.geom.*;
 import org.locationtech.jts.geom.impl.CoordinateArraySequence;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.MathTransform;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -60,7 +53,7 @@ public class PortalServiceImpl implements PortalService {
                 if (StringUtils.isBlank(tags)) {
                     JSONObject jobj = element.properties();
 
-                    double length = getDistance(element.geometry());
+                    double length = calcDistance3857(element.geometry());
                     String oneway = jobj.getString("oneway");
                     if ("F".equals(oneway)) {
                         // 双线_长度/2
@@ -113,6 +106,7 @@ public class PortalServiceImpl implements PortalService {
             map.put("num", num);
             list.add(map);
         }
+        list.sort(Comparator.comparing((a) -> -(Integer) a.get("num")));
         result.put("数据类型分布", list);
         return result;
     }
@@ -274,14 +268,28 @@ public class PortalServiceImpl implements PortalService {
 
     private static double area(Geometry geometry) {
         try {
-            CoordinateReferenceSystem sourceCRS = CRS.decode("CRS:84");
+//            CoordinateReferenceSystem sourceCRS = CRS.decode("CRS:84");
             // Pseudo-Mercator(转换为地理坐标系)
-            CoordinateReferenceSystem targetCRS = CRS.decode("EPSG:3857");
-            MathTransform transform = CRS.findMathTransform(sourceCRS, targetCRS, false);
-            Geometry geometryMercator = JTS.transform(geometry, transform);
-            return geometryMercator.getArea();
+//            CoordinateReferenceSystem targetCRS = CRS.decode("EPSG:3857");
+//            MathTransform transform = CRS.findMathTransform(sourceCRS, targetCRS, false);
+//            Geometry geometryMercator = JTS.transform(geometry, transform);
+            return geometry.getArea();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * 计算墨卡托坐标距离
+     */
+    private static double calcDistance3857(Geometry geometry) {
+        double distance = 0;
+        Coordinate[] points = geometry.getCoordinates();
+        for (int i = 1; i < points.length; i++) {
+            Coordinate c1 = points[i - 1];
+            Coordinate c2 = points[i];
+            distance += Math.sqrt(Math.pow(c1.getX() - c2.getX(), 2) + Math.pow(c1.getY() - c2.getY(), 2));
+        }
+        return distance;
     }
 }

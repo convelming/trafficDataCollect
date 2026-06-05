@@ -2,12 +2,12 @@ package com.convelming.roadflow.util;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-//import com.jts.route.common.exception.RuntimeException;
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.WKTReader;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.core.utils.geometry.CoordinateTransformation;
+import org.matsim.core.utils.geometry.transformations.TransformationFactory;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -20,7 +20,8 @@ public class GeojsonRead<T> {
 
     private static final WKTReader wkt = new WKTReader(JTSFactoryFinder.getGeometryFactory());
     private final List<Geojson<T>> data;
-    private final CoordinateTransformation ctf;
+    private CoordinateTransformation ctf;
+    private static final String system_crs = "epsg:3857";
 
     public GeojsonRead(String file, String encoding) {
         this(file, encoding, null);
@@ -52,6 +53,22 @@ public class GeojsonRead<T> {
         }
 
         JSONObject obj = JSONObject.parseObject(json.toString());
+        JSONObject crs_obj = obj.getJSONObject("crs");
+        JSONObject crs_properties = crs_obj.getJSONObject("properties");
+        String crs = crs_properties.getString("name");
+
+        if (crs != null) {
+            if (crs.contains("3857")) {
+                this.ctf = null;
+            } else if (crs.contains("4526")) {
+                this.ctf = TransformationFactory.getCoordinateTransformation("EPSG:4526", system_crs);
+            } else if (crs.contains("4326")) {
+                this.ctf = TransformationFactory.getCoordinateTransformation("EPSG:4326", system_crs);
+            } else {
+                this.ctf = TransformationFactory.getCoordinateTransformation(crs, system_crs);
+            }
+        }
+
         JSONArray features = obj.getJSONArray("features");
         for (int i = 0; i < features.size(); i++) {
             JSONObject feature = features.getJSONObject(i);
@@ -105,7 +122,7 @@ public class GeojsonRead<T> {
         switch (type) {
             case "Point": {
                 JSONArray coord = obj.getJSONArray("coordinates");
-                ct_4326to3857(coord);
+                ct_transform(coord);
                 String geometry = "POINT(";
                 geometry += coord.getString(0);
                 geometry += " ";
@@ -126,7 +143,7 @@ public class GeojsonRead<T> {
                 StringBuilder geometry = new StringBuilder("LINESTRING(");
                 for (int i = 0; i < coordinates.size(); i++) {
                     JSONArray coord = coordinates.getJSONArray(i);
-                    ct_4326to3857(coord);
+                    ct_transform(coord);
                     geometry.append(coord.get(0)).append(" ").append(coord.get(1)).append(",");
                 }
                 geometry.deleteCharAt(geometry.length() - 1);
@@ -141,7 +158,7 @@ public class GeojsonRead<T> {
                     multilinestring.append("(");
                     for (int j = 0; j < coordinates.size(); j++) {
                         JSONArray coord = coordinates.getJSONArray(j);
-                        ct_4326to3857(coord);
+                        ct_transform(coord);
                         multilinestring.append(coord.get(0)).append(" ").append(coord.get(1)).append(",");
                     }
                     multilinestring.deleteCharAt(multilinestring.length() - 1);
@@ -173,7 +190,7 @@ public class GeojsonRead<T> {
                         JSONArray coords = coordinates.getJSONArray(j);
                         for (int k = 0; k < coords.size(); k++) {
                             JSONArray coord = coords.getJSONArray(k);
-                            ct_4326to3857(coord);
+                            ct_transform(coord);
                             multipolygon.append(coord.get(0)).append(" ").append(coord.get(1)).append(",");
                         }
                         multipolygon.setLength(multipolygon.length() - 1);
@@ -190,7 +207,7 @@ public class GeojsonRead<T> {
         return "";
     }
 
-    private void ct_4326to3857(JSONArray array) {
+    private void ct_transform(JSONArray array) {
         if (ctf == null) {
             return;
         }
