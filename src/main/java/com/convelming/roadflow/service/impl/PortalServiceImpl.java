@@ -2,6 +2,7 @@ package com.convelming.roadflow.service.impl;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.convelming.roadflow.enums.HighwayType;
+import com.convelming.roadflow.enums.NetworkSource;
 import com.convelming.roadflow.service.PortalService;
 import com.convelming.roadflow.util.GeojsonRead;
 import lombok.extern.slf4j.Slf4j;
@@ -45,39 +46,50 @@ public class PortalServiceImpl implements PortalService {
         BigDecimal roadLength = new BigDecimal("0");
         // 数量
         int count = 0;
+        // OSM路网、swtx路网、单线路网
+        NetworkSource ns = NetworkSource.networkSource(url);
+
         for (GeojsonRead.Geojson<JSONObject> element : roadElements) {
             if (geometry.intersects(element.geometry())) {
                 count++;
                 String tags = element.properties().getString("other_tags");
                 // 获取属性
-                if (StringUtils.isBlank(tags)) {
-                    JSONObject jobj = element.properties();
-
-                    double length = calcDistance3857(element.geometry());
-                    String oneway = jobj.getString("oneway");
-                    if ("F".equals(oneway)) {
-                        // 双线_长度/2
-                        roadLength = roadLength.add(new BigDecimal(length).divide(new BigDecimal("2"), 2, RoundingMode.HALF_UP));
-                    } else {
-                        roadLength = roadLength.add(new BigDecimal(length));
+                switch (ns){
+                    case OSM -> {
+                        JSONObject jobj = element.properties();
+                        double length = calcDistance3857(element.geometry());
+                        String oneway = jobj.getString("oneway");
+                        if ("F".equals(oneway)) {
+                            // 双线_长度/2
+                            roadLength = roadLength.add(new BigDecimal(length).divide(new BigDecimal("2"), 2, RoundingMode.HALF_UP));
+                        } else {
+                            roadLength = roadLength.add(new BigDecimal(length));
+                        }
+                        String highway = jobj.getString("fclass");
+                        HighwayType ht = HighwayType.getOfCode(highway);
+                        String name = ht == null ? highway : ht.getName();
+                        roadMap.merge(name, 1, Integer::sum);
+                        break;
                     }
-                    String highway = jobj.getString("fclass");
-                    HighwayType ht = HighwayType.getOfCode(highway);
-                    String name = ht == null ? highway : ht.getName();
-                    roadMap.merge(name, 1, Integer::sum);
-                } else {
-                    JSONObject jobj = tags2map(tags);
-                    String length = jobj.getString("length");
-                    String oneway = jobj.getString("oneway");
-                    if ("no".equals(oneway)) {
-                        roadLength = roadLength.add(new BigDecimal(length).divide(new BigDecimal("2"), 2, RoundingMode.HALF_UP));
-                    } else {
-                        roadLength = roadLength.add(new BigDecimal(length));
+                    case SWTX -> {
+                        JSONObject jobj = tags2map(tags);
+                        String length = jobj.getString("length");
+                        String oneway = jobj.getString("oneway");
+                        if ("no".equals(oneway)) {
+                            roadLength = roadLength.add(new BigDecimal(length).divide(new BigDecimal("2"), 2, RoundingMode.HALF_UP));
+                        } else {
+                            roadLength = roadLength.add(new BigDecimal(length));
+                        }
+                        String highway = element.properties().getString("highway");
+                        HighwayType ht = HighwayType.getOfCode(highway);
+                        String name = ht == null ? highway : ht.getName();
+                        roadMap.merge(name, 1, Integer::sum);
+                        break;
                     }
-                    String highway = jobj.getString("highway");
-                    HighwayType ht = HighwayType.getOfCode(highway);
-                    String name = ht == null ? highway : ht.getName();
-                    roadMap.merge(name, 1, Integer::sum);
+                    case DX -> {
+                        // todo 单线路网处理逻辑
+                        break;
+                    }
                 }
             }
         }
