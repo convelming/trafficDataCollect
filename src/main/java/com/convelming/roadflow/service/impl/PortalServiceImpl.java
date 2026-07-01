@@ -87,7 +87,11 @@ public class PortalServiceImpl implements PortalService {
                         break;
                     }
                     case DX -> {
-                        // todo 单线路网处理逻辑
+                        JSONObject jobj = element.properties();
+                        String length = jobj.getString("length");
+                        roadLength = roadLength.add(new BigDecimal(length));
+                        String road_class = element.properties().getString("等级");
+                        roadMap.merge(road_class, 1, Integer::sum);
                         break;
                     }
                 }
